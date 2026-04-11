@@ -1,0 +1,92 @@
+# Gametime — Lessons Learned
+
+> Append here after every correction. Format: date, title, what happened, rule.
+> Goal: never make the same mistake twice on this project.
+
+---
+
+### 2026-03-11 — Read file before editing
+**What happened:** Edit tool threw "File has not been read yet" when trying to edit `pushService.js` and `notificationsRoutes.js` without reading them first.
+**Rule:** Always call `Read` on a file before calling `Edit` on it, even if you think you know the contents. No exceptions.
+
+---
+
+### 2026-03-11 — No logger import inside env.js (circular dependency)
+**What happened:** `logger.js` imports from `env.js` for config. Importing `logger` back into `env.js` for dev warnings creates a circular import that crashes the server on boot.
+**Rule:** `env.js` must never import from `utils/logger.js`. Use `process.stderr.write(...)` for any warnings or errors inside `env.js`.
+
+---
+
+### 2026-03-11 — SQLite backup: use hot backup API, not file copy
+**What happened:** Considered using `cp` to copy the `.db` file for backups, but SQLite WAL mode means a file copy can capture a partially-written state.
+**Rule:** Always use `db.driver.backup(destPath, callback)` (the SQLite online backup API) for database backups. It is safe to run while the server is live. Never `cp` a live SQLite file.
+
+---
+
+### 2026-03-11 — notifInitialised must be a ref, not state
+**What happened:** Using `useState` for the "has the server load resolved?" flag in `SettingsPage.jsx` would cause an extra render, which triggers the debounced save effect before the server response has actually populated the `notif` state — saving stale defaults back to the server.
+**Rule:** Use `useRef` (not `useState`) for flags that track lifecycle events (like "has initial load completed?") where you do NOT want a re-render on change. The check is `if (!notifInitialised.current) return` inside the effect.
+
+---
+
+### 2026-03-11 — pino-http: exclude health check from auto-logging
+**What happened:** Without the `autoLogging.ignore` option, every uptime ping to `/health` floods the log with noise.
+**Rule:** When configuring `pino-http`, always add `autoLogging: { ignore: (req) => req.url === '/health' }` to suppress health check log spam.
+
+---
+
+### 2026-03-11 — DATABASE_PATH crash-fast only in production
+**What happened:** The `env.js` crash-fast guard for `DATABASE_PATH` was added correctly for production, but the condition must check `NODE_ENV === 'production'` so local dev still works with relative paths.
+**Rule:** Crash-fast env guards that don't apply to local development must be wrapped in `if (process.env.NODE_ENV === 'production')`. Never make a production-only requirement block local dev startup.
+
+---
+
+### 2026-03-11 — Better-sqlite3 is synchronous; sqlite is async — check which one a file uses
+**What happened:** The codebase uses both `better-sqlite3` (synchronous, `.prepare().run()`) and the `sqlite` async wrapper (`.run()` returns a Promise). Mixing them in the same file causes silent failures or unhandled promise rejections.
+**Rule:** Before adding any DB call to a file, check the import at the top. `better-sqlite3` = sync (no await). `sqlite` wrapper = async (needs await). Never mix patterns in the same service without being explicit.
+
+---
+
+### 2026-03-11 — ES modules only — no require()
+**What happened:** Backend uses `"type": "module"` in `package.json`. Using `require()` anywhere throws `ReferenceError: require is not defined`.
+**Rule:** This project uses ES modules throughout. Always use `import/export`. Never use `require()`, `module.exports`, or `__dirname` (use `import.meta.url` + `fileURLToPath` for `__dirname` equivalent).
+
+---
+
+### 2026-03-11 — Notification preference gating: children always pass
+**What happened:** The `shouldNotify()` function must allow all notifications through for child recipients regardless of preference settings — preferences are a parent-only concept.
+**Rule:** In `shouldNotify(recipientType, recipientId, type)`, always return `true` immediately if `recipientType !== 'Parent'`. Never apply parent preference logic to child notification recipients.
+
+---
+
+### 2026-03-11 — Design docs go in /docs/design/ — never modify source code during design phase
+**What happened:** The design phase produces 4 markdown documents only. Source code is not touched until the design is approved and implementation begins.
+**Rule:** During the design phase, output files to `docs/design/` only. Do not modify any files under `backend/`, `frontend/`, or `mobile/` until the user explicitly starts an implementation task.
+
+---
+
+*Add new lessons below this line after each correction.*
+
+---
+
+### 2026-04-08 — SSE streaming: backend emits `text`/`delta`, not `token`/`token`
+**What happened:** ChildAiScreen still used `event.type === 'token'` and `event.token` after the parent screen was fixed. The backend (aiChildService.js) emits `{ type: 'text', delta: string }` consistently with aiService.js.
+**Rule:** Both AI streaming services emit `{ type: 'text', delta }`. Mobile screens must listen for `event.type === 'text'` and read `event.delta`. Never use `event.token`.
+
+---
+
+### 2026-04-08 — Field name mismatch: API returns `aiRecommendation`, not `aiVerdict`
+**What happened:** ParentHomeScreen.ApprovalRow used `task.aiVerdict` which is undefined — the API (listTasksForParent) returns `aiRecommendation`. The badge always showed "⚠ Review" regardless of actual AI result.
+**Rule:** The tasks list API returns `aiRecommendation` (values: 'Approve', 'Reject', 'NeedsParentReview'). Never reference `aiVerdict` or `aiStatus` as top-level task fields; use `aiRecommendation`.
+
+---
+
+### 2026-04-08 — Evidence data is NOT returned in the task list response
+**What happened:** ParentApprovalsScreen checked `task.evidenceData` which is always undefined because `listTasksForParent` only returns `hasEvidence` (0/1 flag) to avoid shipping large base64 blobs in every list call. Evidence must be fetched separately via `GET /tasks/evidence/:completionId`.
+**Rule:** The task list endpoint only returns `hasEvidence` (flag), `completionId`, and `evidenceType`. Actual evidence bytes must be fetched via `/tasks/evidence/:completionId` using an authenticated request with `Authorization: Bearer <token>` header. In React Native, convert the ArrayBuffer response to base64 manually (no FileReader available).
+
+---
+
+### 2026-04-08 — EvidenceReviewPanel called non-existent backend routes
+**What happened:** The web EvidenceReviewPanel was fully built but called `GET /tasks/:taskId/submission` and `POST /tasks/:taskId/review` — neither existed in the backend. The component was broken in production.
+**Rule:** After building a new component that calls custom API routes, immediately verify those routes exist in `backend/src/routes/`. If they're new, add both the controller function in `controllers/` and the route registration in `routes/`. Don't assume existing approve/reject routes will be called under a different URL.

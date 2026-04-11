@@ -1,0 +1,513 @@
+/* ── Parent Onboarding Wizard ─────────────────────────────────────────────── */
+
+.ob-backdrop {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F0F4FF;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle dot-grid background */
+.ob-backdrop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, #c7d2fe 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.ob-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 600px;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(59, 91, 219, 0.12);
+  padding: 2.5rem 2.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Progress ─────────────────────────────────────────────────────────────── */
+
+.ob-progress { margin-bottom: 0.25rem; }
+
+.ob-progress-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.ob-progress-track {
+  display: flex;
+  gap: 4px;
+}
+
+.ob-progress-seg {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  transition: background 0.3s ease;
+}
+
+.ob-progress-seg--done {
+  background: var(--color-primary, #3B5BDB);
+}
+
+/* ── Headings ─────────────────────────────────────────────────────────────── */
+
+.ob-icon {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.ob-heading {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-primary, #3B5BDB);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.ob-sub {
+  font-size: 0.95rem;
+  color: var(--text-muted, #6b7280);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Callout ──────────────────────────────────────────────────────────────── */
+
+.ob-callout {
+  background: #eff6ff;
+  border-left: 3px solid var(--color-primary, #3B5BDB);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  color: var(--text-main, #1a1c20);
+  line-height: 1.5;
+}
+
+.ob-callout--info {
+  background: #f0fdf4;
+  border-left-color: #22c55e;
+}
+
+/* ── Error ────────────────────────────────────────────────────────────────── */
+
+.ob-error {
+  font-size: 0.88rem;
+  color: #ef4444;
+  background: #fef2f2;
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  margin: 0;
+}
+
+/* ── Form ─────────────────────────────────────────────────────────────────── */
+
+.ob-field { display: flex; flex-direction: column; gap: 6px; }
+
+.ob-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main, #1a1c20);
+}
+
+.ob-optional {
+  font-weight: 400;
+  color: var(--text-muted, #6b7280);
+}
+
+.ob-helper {
+  font-size: 0.78rem;
+  color: var(--text-muted, #6b7280);
+  margin: 0;
+}
+
+.ob-input {
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-main, #1a1c20);
+  background: var(--surface, #fff);
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.ob-input:focus {
+  border-color: var(--color-primary, #3B5BDB);
+  box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
+}
+
+/* ── Age picker ───────────────────────────────────────────────────────────── */
+
+.ob-age-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ob-age-btn {
+  min-width: 52px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border, #e5e7eb);
+  background: var(--surface, #fff);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main, #1a1c20);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.ob-age-btn:hover { border-color: var(--color-primary, #3B5BDB); }
+
+.ob-age-btn--selected {
+  background: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, #3B5BDB);
+  color: #fff;
+}
+
+/* ── PIN input ────────────────────────────────────────────────────────────── */
+
+.ob-pin-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ob-pin-box {
+  width: 52px;
+  height: 56px;
+  border: 2px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-main, #1a1c20);
+  background: var(--surface, #fff);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ob-pin-box:focus {
+  border-color: var(--color-primary, #3B5BDB);
+  box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
+}
+
+/* ── Task tiles ───────────────────────────────────────────────────────────── */
+
+.ob-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.ob-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0.75rem 0.5rem;
+  border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s;
+}
+
+.ob-tile:hover { border-color: var(--color-primary, #3B5BDB); }
+
+.ob-tile--selected {
+  border-color: var(--color-primary, #3B5BDB);
+  background: #eff6ff;
+}
+
+.ob-tile-icon { font-size: 1.4rem; line-height: 1; }
+
+.ob-tile-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-main, #1a1c20);
+  line-height: 1.3;
+}
+
+.ob-tile-points {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary, #3B5BDB);
+  background: #eff6ff;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.ob-tile-check {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: var(--color-primary, #3B5BDB);
+}
+
+/* ── Points selector ──────────────────────────────────────────────────────── */
+
+.ob-points-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ob-points-btn {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border, #e5e7eb);
+  background: var(--surface, #fff);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main, #1a1c20);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.ob-points-btn--selected {
+  background: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, #3B5BDB);
+  color: #fff;
+}
+
+/* ── Segmented control ────────────────────────────────────────────────────── */
+
+.ob-seg-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ob-seg-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border, #e5e7eb);
+  background: var(--surface, #fff);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main, #1a1c20);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.ob-seg-btn--selected {
+  background: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, #3B5BDB);
+  color: #fff;
+}
+
+/* ── Reward cards ─────────────────────────────────────────────────────────── */
+
+.ob-reward-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ob-reward-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 1rem;
+  border: 2px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.ob-reward-card:hover { border-color: var(--color-primary, #3B5BDB); }
+
+.ob-reward-card--selected {
+  border-color: var(--color-primary, #3B5BDB);
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.1);
+}
+
+.ob-reward-icon { font-size: 1.6rem; line-height: 1; }
+.ob-reward-name { font-size: 0.88rem; font-weight: 700; color: var(--text-main, #1a1c20); }
+.ob-reward-desc { font-size: 0.76rem; color: var(--text-muted, #6b7280); line-height: 1.4; }
+
+/* ── Gaming config ────────────────────────────────────────────────────────── */
+
+.ob-gaming-config { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.ob-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #eff6ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  padding: 0.65rem 1rem;
+}
+
+.ob-preview-label { font-size: 0.72rem; font-weight: 700; color: var(--color-primary, #3B5BDB); text-transform: uppercase; letter-spacing: 0.4px; }
+.ob-preview-title { font-size: 0.88rem; font-weight: 700; color: var(--text-main, #1a1c20); }
+.ob-preview-cost { font-size: 0.88rem; font-weight: 700; color: var(--color-primary, #3B5BDB); background: #fff; border-radius: 999px; padding: 2px 10px; border: 1px solid #c7d2fe; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+
+.ob-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.ob-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ob-btn:not(:disabled):active { transform: scale(0.98); }
+
+.ob-btn--primary {
+  background: var(--color-primary, #3B5BDB);
+  color: #fff;
+  width: 100%;
+  padding: 0.85rem 1.75rem;
+}
+
+.ob-btn--primary:not(:disabled):hover { opacity: 0.9; }
+
+.ob-btn--ghost {
+  background: transparent;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  text-align: center;
+  width: 100%;
+}
+
+.ob-btn--ghost:hover { color: var(--text-main, #1a1c20); }
+
+.ob-btn--back {
+  flex-shrink: 0;
+  width: auto;
+}
+
+.ob-link {
+  font-size: 0.85rem;
+  color: var(--color-primary, #3B5BDB);
+  text-decoration: underline;
+  text-align: center;
+}
+
+.ob-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Success screen ───────────────────────────────────────────────────────── */
+
+.ob-card--success {
+  text-align: center;
+  gap: 1.25rem;
+  padding: 3rem 2.25rem;
+}
+
+.ob-success-icon { font-size: 3.5rem; line-height: 1; }
+.ob-success-title { font-size: 1.8rem; font-weight: 800; color: var(--color-primary, #3B5BDB); margin: 0; }
+.ob-success-sub { font-size: 0.95rem; color: var(--text-muted, #6b7280); line-height: 1.5; margin: 0; }
+
+.ob-success-recap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.ob-recap-pill {
+  background: #eff6ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-primary, #3B5BDB);
+}
+
+.ob-success-pin {
+  font-size: 0.88rem;
+  color: var(--text-muted, #6b7280);
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  margin: 0;
+}
+
+/* ── Confetti ─────────────────────────────────────────────────────────────── */
+
+.ob-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ob-confetti-piece {
+  position: absolute;
+  top: -12px;
+  border-radius: 2px;
+  animation: ob-fall linear forwards;
+}
+
+@keyframes ob-fall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .ob-card { padding: 1.75rem 1.25rem 1.5rem; }
+  .ob-heading { font-size: 1.3rem; }
+  .ob-tile-grid { grid-template-columns: repeat(2, 1fr); }
+  .ob-reward-row { grid-template-columns: 1fr; }
+  .ob-seg-row { flex-wrap: wrap; }
+}
+
+/* ── Dark mode ────────────────────────────────────────────────────────────── */
+
+[data-theme='dark'] .ob-backdrop { background: #1e2030; }
+[data-theme='dark'] .ob-card { background: var(--surface, #252738); }
+[data-theme='dark'] .ob-tile--selected,
+[data-theme='dark'] .ob-reward-card--selected { background: rgba(59, 91, 219, 0.15); }
+[data-theme='dark'] .ob-callout { background: rgba(59, 91, 219, 0.12); }
+[data-theme='dark'] .ob-callout--info { background: rgba(34, 197, 94, 0.1); }
+[data-theme='dark'] .ob-preview-card { background: rgba(59, 91, 219, 0.12); border-color: rgba(59, 91, 219, 0.3); }
+[data-theme='dark'] .ob-preview-cost { background: rgba(59, 91, 219, 0.2); border-color: rgba(59, 91, 219, 0.4); }
+[data-theme='dark'] .ob-tile-points { background: rgba(59, 91, 219, 0.15); }
+[data-theme='dark'] .ob-recap-pill { background: rgba(59, 91, 219, 0.15); border-color: rgba(59, 91, 219, 0.3); }

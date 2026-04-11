@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="ps-bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#003087"/><stop offset="100%" stop-color="#001F5B"/></linearGradient>
+  </defs>
+  <rect width="400" height="250" rx="14" fill="url(#ps-bg)"/>
+  <!-- PS Logo mark -->
+  <g transform="translate(30,60)">
+    <text x="0" y="80" font-family="Arial Black,Arial,sans-serif" font-size="100" font-weight="900" fill="white" opacity="0.9">PS</text>
+  </g>
+  <!-- Decorative arc -->
+  <ellipse cx="200" cy="250" rx="250" ry="120" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="40"/>
+  <text x="290" y="118" font-family="Arial Black,Arial,sans-serif" font-size="22" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">PlayStation</text>
+  <text x="290" y="145" font-family="Arial,sans-serif" font-size="14" fill="rgba(255,255,255,0.75)" text-anchor="middle" letter-spacing="4">GIFT CARD</text>
+  <line x1="180" y1="165" x2="370" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <text x="290" y="205" font-family="Arial,sans-serif" font-size="12" fill="rgba(255,255,255,0.5)" text-anchor="middle">playstation.com/redeem</text>
+</svg>

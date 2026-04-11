@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "Gametime",
+    "slug": "gametime-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gametime.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Gametime needs camera access for task evidence uploads.",
+        "NSPhotoLibraryUsageDescription": "Gametime needs photo library access for task evidence uploads.",
+        "NSMicrophoneUsageDescription": "Gametime needs microphone access for video evidence uploads."
+      }
+    },
+    "android": {
+      "package": "com.gametime.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#7C3AED"
+      }
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#7C3AED",
+          "sounds": [],
+          "mode": "production"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Gametime needs photo library access for task evidence uploads.",
+          "cameraPermission": "Gametime needs camera access for task evidence uploads."
+        }
+      ]
+    ],
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    },
+    "_instructions": {
+      "eas_setup": "Run `eas init` in the mobile/ directory to replace YOUR_EAS_PROJECT_ID with your real project ID. This links the app to your Expo account for EAS Build and push notifications."
+    }
+  }
+}

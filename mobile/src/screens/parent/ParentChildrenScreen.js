@@ -1,0 +1,487 @@
+import { useCallback, useEffect, useState } from 'react';
+import {
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import InputField from '../../components/InputField';
+import Button from '../../components/Button';
+import Banner from '../../components/Banner';
+import EmptyState from '../../components/EmptyState';
+import Spinner from '../../components/Spinner';
+import { useAuth } from '../../context/AuthContext';
+import { apiRequest, getApiUrl } from '../../api/client';
+import { colors } from '../../theme/colors';
+import { spacing, radius } from '../../theme/spacing';
+import { getErrorMessage, sanitizeText } from '../../utils/format';
+import { DEFAULT_PARENT_SETTINGS, loadParentSettings, saveParentSettings } from '../../utils/parentSettings';
+
+// Avatar colour palette — cycle through these for initial circles
+const AVATAR_COLORS = [
+  { bg: '#EDE9FE', text: '#6D28D9' },
+  { bg: '#DBEAFE', text: '#1D4ED8' },
+  { bg: '#D1FAE5', text: '#065F46' },
+  { bg: '#FEF3C7', text: '#92400E' },
+  { bg: '#FCE7F3', text: '#9D174D' },
+  { bg: '#E0E7FF', text: '#3730A3' }
+];
+
+function avatarColors(name) {
+  const code = (name || 'A').charCodeAt(0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[code];
+}
+
+function getAgeYears(dateOfBirth) {
+  const dob = new Date(dateOfBirth);
+  const now = new Date();
+  let age = now.getUTCFullYear() - dob.getUTCFullYear();
+  const m = now.getUTCMonth() - dob.getUTCMonth();
+  if (m < 0 || (m === 0 && now.getUTCDate() < dob.getUTCDate())) age -= 1;
+  return age;
+}
+
+const initialForm = { name: '', dateOfBirth: '', email: '', password: '', pin: '' };
+
+export default function ParentChildrenScreen() {
+  const { token, loginWithToken } = useAuth();
+  const [children, setChildren]             = useState([]);
+  const [uploadingChildId, setUploadingChildId] = useState(null);
+  const [apiBase, setApiBase]               = useState('');
+  const [message, setMessage]               = useState('');
+  const [error, setError]                   = useState('');
+  const [loading, setLoading]               = useState(false);
+  const [refreshing, setRefreshing]         = useState(false);
+  const [showAddForm, setShowAddForm]       = useState(false);
+  const [showSettings, setShowSettings]     = useState(false);
+  const [form, setForm]                     = useState(initialForm);
+  const [parentSettings, setParentSettings] = useState(DEFAULT_PARENT_SETTINGS);
+
+  const loadChildren = useCallback(async () => {
+    const list = await apiRequest('/children/list', { token });
+    setChildren(list);
+  }, [token]);
+
+  useEffect(() => {
+    loadChildren().catch((e) => setError(getErrorMessage(e)));
+    getApiUrl().then(setApiBase).catch(() => {});
+    loadParentSettings().then(setParentSettings).catch(() => {});
+  }, [loadChildren]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await loadChildren(); } catch (e) { setError(getErrorMessage(e)); }
+    finally { setRefreshing(false); }
+  }
+
+  async function uploadAvatar(childId) {
+    setMessage(''); setError('');
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) throw new Error('Media library permission required.');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7
+      });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      setUploadingChildId(childId);
+      const mime = asset.mimeType || 'image/jpeg';
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.Base64 });
+      await apiRequest(`/children/${childId}/avatar`, {
+        method: 'POST', token,
+        body: { avatarData: `data:${mime};base64,${base64}`, avatarMime: mime }
+      });
+      setMessage("Avatar updated!");
+      await loadChildren();
+    } catch (e) { setError(getErrorMessage(e)); }
+    finally { setUploadingChildId(null); }
+  }
+
+  async function switchToChild(childId, childName) {
+    setError('');
+    try {
+      const data = await apiRequest('/auth/child-login', { method: 'POST', token, body: { childId } });
+      await loginWithToken(data.token);
+    } catch (e) { setError(getErrorMessage(e)); }
+  }
+
+  async function createChild() {
+    setLoading(true); setMessage(''); setError('');
+    try {
+      const name = sanitizeText(form.name);
+      const dateOfBirth = form.dateOfBirth.trim();
+      const email = form.email.trim().toLowerCase();
+      const password = form.password;
+      const pin = form.pin.trim();
+      if (!name) throw new Error('Child name is required.');
+      const parsedDob = new Date(dateOfBirth);
+      if (!dateOfBirth || Number.isNaN(parsedDob.getTime()))
+        throw new Error('Date of birth must be a valid date (YYYY-MM-DD).');
+      const age = getAgeYears(dateOfBirth);
+      if (age < 6 || age > 13) throw new Error('Child age must be between 6 and 13 years.');
+      const hasEmail = Boolean(email);
+      const hasPassword = Boolean(password);
+      const hasPin = Boolean(pin);
+      if (hasEmail !== hasPassword) throw new Error('Email and password must be provided together.');
+      if (hasPin && !/^\d{4}$/.test(pin)) throw new Error('PIN must be exactly 4 digits.');
+      if (age <= 9 && !hasPin && !(hasEmail && hasPassword))
+        throw new Error('For younger children, provide PIN or email/password.');
+      if (age > 9 && (!hasEmail || !hasPassword))
+        throw new Error('For children age 10+, email and password are required.');
+      if (age > 9 && hasPin) throw new Error('PIN mode is for younger children only (age 9 and below).');
+      await apiRequest('/children/create', {
+        method: 'POST', token,
+        body: { name, dateOfBirth, email: hasEmail ? email : null, password: hasPassword ? password : null, pin: hasPin ? pin : null }
+      });
+      setMessage(`${name} added!`);
+      setForm(initialForm);
+      setShowAddForm(false);
+      await loadChildren();
+    } catch (e) { setError(getErrorMessage(e)); }
+    finally { setLoading(false); }
+  }
+
+  async function saveSettings() {
+    setMessage(''); setError('');
+    const points = Number(parentSettings.defaultTaskPoints);
+    if (!Number.isInteger(points) || points < 5 || points > 50) {
+      setError('Default task points must be between 5 and 50.');
+      return;
+    }
+    try {
+      const saved = await saveParentSettings({ ...parentSettings, defaultTaskPoints: points });
+      setParentSettings(saved);
+      setMessage('Settings saved.');
+    } catch (e) { setError(getErrorMessage(e)); }
+  }
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
+    >
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Family</Text>
+          <Text style={styles.headerSub}>{children.length} child{children.length !== 1 ? 'ren' : ''} in your account</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => { setShowAddForm((v) => !v); setError(''); setMessage(''); }}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.addBtnText}>{showAddForm ? '✕ Cancel' : '+ Add Child'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Banner message={message} tone="success" style={styles.bannerPad} />
+      <Banner message={error} style={styles.bannerPad} />
+
+      {/* ── Add child form ── */}
+      {showAddForm && (
+        <View style={styles.formCard}>
+          <Text style={styles.formTitle}>Add New Child</Text>
+          <InputField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
+          <InputField label="Date of Birth (YYYY-MM-DD)" value={form.dateOfBirth} onChangeText={(v) => setForm({ ...form, dateOfBirth: v })} />
+          <View style={styles.formHint}>
+            <Text style={styles.formHintText}>💡 Ages 6–9 can use a PIN. Ages 10–13 need email + password.</Text>
+          </View>
+          <InputField label="Child Email (optional for age 6–9)" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} autoCapitalize="none" keyboardType="email-address" />
+          <InputField label="Child Password (required for age 10+)" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} secureTextEntry />
+          <InputField label="4-digit PIN (age 6–9 only)" value={form.pin} onChangeText={(v) => setForm({ ...form, pin: v })} keyboardType="number-pad" maxLength={4} />
+          <Button title={loading ? 'Creating…' : 'Create Child Account'} onPress={createChild} loading={loading} disabled={!form.name || !form.dateOfBirth} />
+        </View>
+      )}
+
+      {/* ── Children list ── */}
+      {children.length === 0 && !showAddForm ? (
+        <View style={styles.emptyWrap}>
+          <EmptyState icon="👧" title="No children yet" message="Tap + Add Child to create your first child account." />
+        </View>
+      ) : (
+        <View style={styles.childrenList}>
+          {children.map((child) => {
+            const ac = avatarColors(child.name);
+            return (
+              <View key={child.id} style={styles.childCard}>
+                {/* Avatar + name row */}
+                <View style={styles.childTop}>
+                  <View style={styles.avatarWrap}>
+                    {child.avatarUrl && apiBase ? (
+                      <Image
+                        source={{ uri: `${apiBase}/children/${child.id}/avatar` }}
+                        style={styles.avatarImg}
+                      />
+                    ) : (
+                      <View style={[styles.avatarCircle, { backgroundColor: ac.bg }]}>
+                        <Text style={[styles.avatarInitial, { color: ac.text }]}>
+                          {(child.name || '?').charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={styles.avatarEditBtn}
+                      onPress={() => uploadAvatar(child.id)}
+                      disabled={uploadingChildId === child.id}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.avatarEditIcon}>{uploadingChildId === child.id ? '…' : '📷'}</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.childMeta}>
+                    <Text style={styles.childName}>{child.name}</Text>
+                    <View style={styles.loginBadges}>
+                      {child.hasPasswordLogin && (
+                        <View style={styles.loginBadge}>
+                          <Text style={styles.loginBadgeText}>Email</Text>
+                        </View>
+                      )}
+                      {child.hasPinLogin && (
+                        <View style={[styles.loginBadge, { backgroundColor: colors.childAccentLight }]}>
+                          <Text style={[styles.loginBadgeText, { color: colors.childAccent }]}>PIN</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Balance row */}
+                <View style={styles.balanceRow}>
+                  <View style={styles.balanceItem}>
+                    <Text style={styles.balanceValue}>{child.pointsBalance ?? 0}</Text>
+                    <Text style={styles.balanceLabel}>RP</Text>
+                  </View>
+                  <View style={styles.balanceDivider} />
+                  <View style={styles.balanceItem}>
+                    <Text style={[styles.balanceValue, { color: colors.xpGold }]}>{child.giftcardPointsBalance ?? 0}</Text>
+                    <Text style={styles.balanceLabel}>GP</Text>
+                  </View>
+                  {child.dateOfBirth && (
+                    <>
+                      <View style={styles.balanceDivider} />
+                      <View style={styles.balanceItem}>
+                        <Text style={styles.balanceValue}>{getAgeYears(child.dateOfBirth)}</Text>
+                        <Text style={styles.balanceLabel}>yrs old</Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+
+                {/* Actions */}
+                <TouchableOpacity
+                  style={styles.switchBtn}
+                  onPress={() => switchToChild(child.id, child.name)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.switchBtnText}>Open Child View →</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      {/* ── Parent Settings (collapsible) ── */}
+      <TouchableOpacity
+        style={styles.settingsToggle}
+        onPress={() => setShowSettings((v) => !v)}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.settingsToggleText}>⚙️  Parent Settings</Text>
+        <Text style={styles.settingsToggleChevron}>{showSettings ? '▲' : '▼'}</Text>
+      </TouchableOpacity>
+
+      {showSettings && (
+        <View style={styles.settingsCard}>
+          <InputField
+            label="Default task points (5–50)"
+            value={String(parentSettings.defaultTaskPoints)}
+            onChangeText={(v) => setParentSettings((p) => ({ ...p, defaultTaskPoints: v }))}
+            keyboardType="number-pad"
+          />
+          <Text style={styles.settingsLabel}>Require notes on approval</Text>
+          <View style={styles.toggleRow}>
+            <TouchableOpacity
+              style={[styles.toggleBtn, parentSettings.requireApprovalNotes && styles.toggleBtnActive]}
+              onPress={() => setParentSettings((p) => ({ ...p, requireApprovalNotes: true }))}
+            >
+              <Text style={[styles.toggleBtnText, parentSettings.requireApprovalNotes && styles.toggleBtnTextActive]}>Required</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toggleBtn, !parentSettings.requireApprovalNotes && styles.toggleBtnActive]}
+              onPress={() => setParentSettings((p) => ({ ...p, requireApprovalNotes: false }))}
+            >
+              <Text style={[styles.toggleBtnText, !parentSettings.requireApprovalNotes && styles.toggleBtnTextActive]}>Optional</Text>
+            </TouchableOpacity>
+          </View>
+          <Button title="Save Settings" onPress={saveSettings} />
+        </View>
+      )}
+
+      <View style={{ height: spacing.xl }} />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.md, gap: spacing.md },
+  bannerPad: { marginHorizontal: 0 },
+
+  // ── Header ──
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  headerTitle: { fontSize: 22, fontWeight: '900', color: colors.text },
+  headerSub: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  addBtn: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 9,
+    borderRadius: radius.full
+  },
+  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+
+  // ── Add form ──
+  formCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm
+  },
+  formTitle: { fontSize: 16, fontWeight: '800', color: colors.text },
+  formHint: {
+    backgroundColor: colors.primarySurface,
+    borderRadius: radius.md,
+    padding: spacing.sm
+  },
+  formHintText: { fontSize: 12, color: colors.primaryDark },
+
+  // ── Children list ──
+  childrenList: { gap: spacing.md },
+  emptyWrap: { marginTop: spacing.xl },
+
+  // ── Child card ──
+  childCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2
+  },
+  childTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  avatarWrap: { position: 'relative', width: 56, height: 56 },
+  avatarImg: { width: 56, height: 56, borderRadius: 28 },
+  avatarCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  avatarInitial: { fontSize: 24, fontWeight: '900' },
+  avatarEditBtn: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  avatarEditIcon: { fontSize: 13 },
+
+  childMeta: { flex: 1, gap: 6 },
+  childName: { fontSize: 18, fontWeight: '900', color: colors.text },
+  loginBadges: { flexDirection: 'row', gap: 6 },
+  loginBadge: {
+    backgroundColor: colors.primarySurface,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full
+  },
+  loginBadgeText: { fontSize: 11, fontWeight: '700', color: colors.primary },
+
+  // ── Balance row ──
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface2,
+    borderRadius: radius.lg,
+    padding: spacing.sm,
+    gap: spacing.sm
+  },
+  balanceItem: { flex: 1, alignItems: 'center', gap: 2 },
+  balanceValue: { fontSize: 20, fontWeight: '900', color: colors.text },
+  balanceLabel: { fontSize: 11, color: colors.textMuted, fontWeight: '600' },
+  balanceDivider: { width: 1, height: 32, backgroundColor: colors.border },
+
+  // ── Switch btn ──
+  switchBtn: {
+    paddingVertical: 11,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    alignItems: 'center'
+  },
+  switchBtnText: { color: colors.primary, fontWeight: '700', fontSize: 14 },
+
+  // ── Settings ──
+  settingsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md
+  },
+  settingsToggleText: { fontWeight: '700', color: colors.textSecondary, fontSize: 14 },
+  settingsToggleChevron: { color: colors.textMuted, fontSize: 12 },
+  settingsCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+    marginTop: -spacing.sm
+  },
+  settingsLabel: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+  toggleRow: { flexDirection: 'row', gap: spacing.sm },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center'
+  },
+  toggleBtnActive: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
+  toggleBtnText: { fontWeight: '600', color: colors.textMuted, fontSize: 13 },
+  toggleBtnTextActive: { color: colors.primary }
+});

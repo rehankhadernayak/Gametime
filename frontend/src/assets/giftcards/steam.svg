@@ -1,0 +1,18 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="36" fill="url(#g)"/>
+  <circle cx="980" cy="160" r="150" fill="#66C0F4" fill-opacity="0.22"/>
+  <circle cx="210" cy="620" r="190" fill="#1B9FFF" fill-opacity="0.16"/>
+  <text x="90" y="250" fill="#FFFFFF" font-size="84" font-family="Arial, sans-serif" font-weight="700">Steam</text>
+  <text x="90" y="340" fill="#BFE7FF" font-size="58" font-family="Arial, sans-serif">Wallet Code</text>
+  <circle cx="860" cy="420" r="120" stroke="#BFE7FF" stroke-width="14"/>
+  <circle cx="860" cy="420" r="32" fill="#BFE7FF"/>
+  <path d="M460 510L750 438" stroke="#BFE7FF" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="410" cy="520" r="64" stroke="#BFE7FF" stroke-width="14"/>
+  <circle cx="410" cy="520" r="18" fill="#BFE7FF"/>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102844"/>
+      <stop offset="1" stop-color="#1E4A76"/>
+    </linearGradient>
+  </defs>
+</svg>

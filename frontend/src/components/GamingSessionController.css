@@ -1,0 +1,299 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Gaming Session Controller — real-time countdown bar
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Session bar ────────────────────────────────────────────────────── */
+.gsc-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-success-surface);
+  border: 1px solid var(--color-success);
+  transition: background var(--duration-normal), border-color var(--duration-normal);
+  flex-wrap: wrap;
+}
+
+.gsc-bar-expiring {
+  background: var(--color-warning-surface);
+  border-color: var(--color-warning);
+  animation: gsc-pulse-border 1.5s ease-in-out infinite;
+}
+
+@keyframes gsc-pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.0); }
+  50%       { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18); }
+}
+
+.gsc-bar-paused {
+  background: var(--bg-panel-2);
+  border-color: var(--line);
+  animation: none;
+}
+
+/* ── Ring ───────────────────────────────────────────────────────────── */
+.gsc-ring-svg {
+  flex-shrink: 0;
+}
+
+/* ── Timer display ──────────────────────────────────────────────────── */
+.gsc-timer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.gsc-time {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+.gsc-bar-expiring .gsc-time { color: var(--color-warning-dark); }
+.gsc-bar-paused .gsc-time   { color: var(--text-dim); }
+
+.gsc-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+/* ── Status badges ──────────────────────────────────────────────────── */
+.gsc-paused-badge,
+.gsc-expiring-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.gsc-paused-badge {
+  background: var(--bg-panel-3);
+  color: var(--text-sub);
+  border: 1px solid var(--line);
+}
+
+.gsc-expiring-badge {
+  background: var(--color-warning-surface);
+  color: var(--color-warning-dark);
+  border: 1px solid var(--color-warning);
+}
+
+/* ── Controls (parent only) ─────────────────────────────────────────── */
+.gsc-controls {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────── */
+.gsc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  min-height: 36px;
+  min-width: 44px;
+  transition: background var(--duration-fast), opacity var(--duration-fast);
+}
+
+.gsc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.gsc-btn-pause {
+  background: var(--bg-shell);
+  color: var(--text-main);
+  border-color: var(--line);
+}
+
+.gsc-btn-pause:hover:not(:disabled) { background: var(--bg-panel-2); }
+
+.gsc-btn-end {
+  background: var(--color-error-surface);
+  color: var(--color-error-dark);
+  border-color: var(--color-error);
+}
+
+.gsc-btn-end:hover:not(:disabled) {
+  background: var(--color-error);
+  color: #fff;
+}
+
+.gsc-btn-secondary {
+  background: var(--bg-panel-2);
+  color: var(--text-main);
+  border-color: var(--line);
+}
+
+.gsc-btn-secondary:hover:not(:disabled) { background: var(--line); }
+
+.gsc-btn-danger {
+  background: var(--color-error);
+  color: #fff;
+  border-color: var(--color-error);
+}
+
+.gsc-btn-danger:hover:not(:disabled) { background: var(--color-error-dark); }
+
+/* ── Confirm end dialog ─────────────────────────────────────────────── */
+.gsc-confirm-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+  padding: 1.5rem;
+  animation: gsc-fade-in var(--duration-fast) var(--ease-out) both;
+}
+
+@keyframes gsc-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.gsc-confirm-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-xl);
+}
+
+.gsc-confirm-box h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.gsc-confirm-desc {
+  font-size: 0.86rem;
+  color: var(--text-sub);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.gsc-confirm-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+/* ── Session end overlay ────────────────────────────────────────────── */
+.gsc-end-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 2rem;
+  animation: gsc-fade-in var(--duration-normal) var(--ease-out) both;
+}
+
+.gsc-end-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  animation: gsc-bounce-in var(--duration-slow) var(--ease-spring) both;
+}
+
+@keyframes gsc-bounce-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.gsc-end-trophy {
+  font-size: 5rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 16px rgba(245, 158, 11, 0.5));
+}
+
+.gsc-end-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.gsc-end-sub {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+/* ── Skeleton ───────────────────────────────────────────────────────── */
+.gsc-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  background: var(--bg-panel-2);
+}
+
+.gsc-skeleton-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gsc-skeleton-text {
+  flex: 1;
+}
+
+/* ── Screen reader only ─────────────────────────────────────────────── */
+.gsc-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .gsc-bar-expiring { animation: none; }
+  .gsc-end-content  { animation: none; }
+  .gsc-confirm-dialog { animation: none; }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .gsc-bar { gap: 0.5rem; padding: 0.5rem 0.75rem; }
+  .gsc-time { font-size: 1.25rem; }
+  .gsc-controls { margin-left: 0; width: 100%; }
+  .gsc-btn { flex: 1; justify-content: center; }
+}

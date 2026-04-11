@@ -1,0 +1,256 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Child PIN Login — large numpad UI
+   Targets children age 6–13 — large touch targets, bold visuals
+   ══════════════════════════════════════════════════════════════════════ */
+
+.cpl-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  background: var(--bg-root);
+  position: relative;
+}
+
+/* ── Back / switch user button ──────────────────────────────────────── */
+.cpl-back-btn {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.25rem;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+  min-height: 44px;
+}
+
+.cpl-back-btn:hover { background: var(--line); }
+
+/* ── Avatar ─────────────────────────────────────────────────────────── */
+.cpl-avatar-wrap {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 3px solid var(--bg-action);
+}
+
+.cpl-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cpl-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--bg-action);
+}
+
+/* ── Child name ─────────────────────────────────────────────────────── */
+.cpl-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  text-align: center;
+}
+
+/* ── PIN dot row ────────────────────────────────────────────────────── */
+.cpl-dots {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+}
+
+.cpl-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--line-strong);
+  background: transparent;
+  transition: background var(--duration-fast), border-color var(--duration-fast), transform var(--duration-fast);
+}
+
+.cpl-dot-filled {
+  background: var(--bg-action);
+  border-color: var(--bg-action);
+  transform: scale(1.15);
+}
+
+.cpl-dot-error {
+  border-color: var(--color-error);
+  background: var(--color-error);
+}
+
+.cpl-dot-success {
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+/* Verifying pulse */
+@keyframes cpl-pulse {
+  0%, 100% { opacity: 1; transform: scale(1.15); }
+  50%       { opacity: 0.4; transform: scale(0.9); }
+}
+
+.cpl-dot-pulse {
+  animation: cpl-pulse 0.8s ease-in-out infinite;
+}
+
+.cpl-dot-pulse:nth-child(2) { animation-delay: 0.15s; }
+.cpl-dot-pulse:nth-child(3) { animation-delay: 0.30s; }
+.cpl-dot-pulse:nth-child(4) { animation-delay: 0.45s; }
+
+/* Shake animation */
+@keyframes cpl-shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-8px); }
+  30%  { transform: translateX(8px); }
+  45%  { transform: translateX(-6px); }
+  60%  { transform: translateX(6px); }
+  75%  { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+.cpl-dots-shake {
+  animation: cpl-shake 0.55s var(--ease-default) both;
+}
+
+.cpl-dots-error .cpl-dot {
+  border-color: var(--color-error);
+  background: var(--color-error);
+}
+
+/* ── Error / lockout messages ───────────────────────────────────────── */
+.cpl-error {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-error);
+  margin: 0;
+  text-align: center;
+  min-height: 1.3em;
+}
+
+.cpl-lockout {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-warning-dark);
+  background: var(--color-warning-surface);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1.25rem;
+  margin: 0;
+  text-align: center;
+  max-width: 280px;
+}
+
+/* ── Numpad ─────────────────────────────────────────────────────────── */
+.cpl-numpad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.cpl-numpad-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.cpl-key {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-shell);
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast), transform var(--duration-fast), box-shadow var(--duration-fast);
+  box-shadow: var(--shadow-sm);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cpl-key:hover:not(:disabled) {
+  background: var(--bg-panel-2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.cpl-key:active:not(:disabled) {
+  transform: scale(0.94);
+  box-shadow: none;
+}
+
+.cpl-key:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cpl-key-digit {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.cpl-key-del {
+  background: var(--bg-panel-2);
+  color: var(--text-sub);
+}
+
+.cpl-key-del:hover:not(:disabled) {
+  background: var(--color-error-surface);
+  color: var(--color-error-dark);
+  border-color: var(--color-error);
+}
+
+.cpl-numpad-spacer {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 400px) {
+  .cpl-key { width: 70px; height: 70px; }
+  .cpl-numpad-spacer { width: 70px; height: 70px; }
+  .cpl-key-digit { font-size: 1.7rem; }
+}
+
+@media (min-width: 768px) {
+  .cpl-key { width: 90px; height: 90px; }
+  .cpl-numpad-spacer { width: 90px; height: 90px; }
+  .cpl-key-digit { font-size: 2.2rem; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .cpl-dots-shake { animation: none; }
+  .cpl-dot-pulse  { animation: none; }
+  .cpl-key:hover:not(:disabled) { transform: none; }
+  .cpl-key:active:not(:disabled) { transform: none; }
+}

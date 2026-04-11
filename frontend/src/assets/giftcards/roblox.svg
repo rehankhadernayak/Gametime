@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="rb-bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#CC0000"/><stop offset="100%" stop-color="#880000"/></linearGradient>
+  </defs>
+  <rect width="400" height="250" rx="14" fill="url(#rb-bg)"/>
+  <rect width="400" height="250" rx="14" fill="url(#rb-bg)" opacity="0.6"/>
+  <!-- Cube logo -->
+  <g transform="translate(28,55)">
+    <rect x="8" y="28" width="64" height="64" fill="white" rx="4"/>
+    <polygon points="8,28 28,8 92,8 72,28" fill="#eeeeee"/>
+    <polygon points="72,28 92,8 92,72 72,92" fill="#cccccc"/>
+    <rect x="22" y="42" width="36" height="36" fill="#CC0000" rx="2"/>
+  </g>
+  <text x="210" y="118" font-family="Arial Black,Arial,sans-serif" font-size="46" font-weight="900" fill="white" text-anchor="middle" letter-spacing="1">ROBLOX</text>
+  <text x="210" y="148" font-family="Arial,sans-serif" font-size="14" fill="rgba(255,255,255,0.75)" text-anchor="middle" letter-spacing="5">GIFT CARD</text>
+  <line x1="120" y1="168" x2="300" y2="168" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+  <text x="210" y="208" font-family="Arial,sans-serif" font-size="12" fill="rgba(255,255,255,0.55)" text-anchor="middle">roblox.com/redeem</text>
+</svg>

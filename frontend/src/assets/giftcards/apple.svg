@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="ap-bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1C1C1E"/><stop offset="100%" stop-color="#2C2C2E"/></linearGradient>
+  </defs>
+  <rect width="400" height="250" rx="14" fill="url(#ap-bg)"/>
+  <!-- Apple logo path (simplified) -->
+  <g transform="translate(30,55)" fill="white" opacity="0.9">
+    <path d="M80 25 C80 10 70 0 55 0 C45 0 38 8 28 8 C18 8 10 0 0 0 C-15 0 -25 12 -25 30 C-25 58 -5 90 15 90 C25 90 32 83 42 83 C52 83 58 90 68 90 C90 90 105 55 105 30 C90 28 80 40 80 25 Z" transform="translate(20,20)"/>
+    <ellipse cx="60" cy="12" rx="18" ry="22" transform="rotate(-10,60,12)"/>
+  </g>
+  <text x="240" y="108" font-family="-apple-system,Arial,sans-serif" font-size="26" font-weight="600" fill="white" text-anchor="middle">App Store</text>
+  <text x="240" y="140" font-family="Arial,sans-serif" font-size="14" fill="rgba(255,255,255,0.65)" text-anchor="middle" letter-spacing="4">GIFT CARD</text>
+  <line x1="145" y1="162" x2="335" y2="162" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="240" y="205" font-family="Arial,sans-serif" font-size="12" fill="rgba(255,255,255,0.4)" text-anchor="middle">apple.com/shop/gift-cards</text>
+</svg>

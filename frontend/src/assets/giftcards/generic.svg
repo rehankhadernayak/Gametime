@@ -1,0 +1,16 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="36" fill="url(#g)"/>
+  <circle cx="1040" cy="150" r="150" fill="#A6D2FF" fill-opacity="0.2"/>
+  <circle cx="150" cy="620" r="160" fill="#D6E9FF" fill-opacity="0.14"/>
+  <text x="90" y="260" fill="#FFFFFF" font-size="84" font-family="Arial, sans-serif" font-weight="700">Gametime</text>
+  <text x="90" y="350" fill="#D8EBFF" font-size="58" font-family="Arial, sans-serif">Gift Card</text>
+  <rect x="660" y="230" width="420" height="250" rx="28" fill="#D8EBFF" fill-opacity="0.36"/>
+  <rect x="702" y="282" width="336" height="42" rx="10" fill="#D8EBFF"/>
+  <rect x="702" y="350" width="240" height="42" rx="10" fill="#D8EBFF" fill-opacity="0.86"/>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173258"/>
+      <stop offset="1" stop-color="#2F619C"/>
+    </linearGradient>
+  </defs>
+</svg>

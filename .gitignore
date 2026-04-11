@@ -1,0 +1,12 @@
+.env
+.env.local
+.env.production
+*.db
+*.sqlite
+node_modules/
+dist/
+build/
+.expo/
+.DS_Store
+Gametime-Product-Build-Web.zip
+demo_build/

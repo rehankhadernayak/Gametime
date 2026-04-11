@@ -1,0 +1,531 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Reward Store — filter/sort/cards/sheets/confetti
+   ══════════════════════════════════════════════════════════════════════ */
+
+.rs-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+}
+
+/* ── Header: balances + sort ────────────────────────────────────────── */
+.rs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rs-balances {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.rs-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line);
+  background: var(--bg-panel-2);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.rs-balance-rp {
+  border-color: var(--color-warning);
+  background: var(--color-warning-surface);
+  color: var(--color-warning-dark);
+}
+
+.rs-balance-gp {
+  border-color: var(--color-success);
+  background: var(--color-success-surface);
+  color: var(--color-success-dark);
+}
+
+.rs-bal-icon { font-size: 1rem; }
+.rs-bal-val  { font-variant-numeric: tabular-nums; }
+.rs-bal-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7; }
+
+.rs-sort-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.rs-sort-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-shell);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+/* ── Filter tabs ────────────────────────────────────────────────────── */
+.rs-filter-tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.rs-tab {
+  padding: 0.42rem 0.85rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--line);
+  background: var(--bg-panel-2);
+  color: var(--text-sub);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+  white-space: nowrap;
+}
+
+.rs-tab:hover { background: var(--bg-muted-action); color: var(--bg-action); border-color: var(--bg-action); }
+
+.rs-tab-active {
+  background: var(--bg-action);
+  color: #fff;
+  border-color: var(--bg-action);
+}
+
+/* ── Reward grid ────────────────────────────────────────────────────── */
+.rs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.85rem;
+}
+
+/* ── Reward card ────────────────────────────────────────────────────── */
+.rs-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  transition: box-shadow var(--duration-normal), transform var(--duration-normal), border-color var(--duration-normal);
+  padding: 0;
+}
+
+.rs-card:hover:not(.rs-card-locked) {
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+  border-color: var(--bg-action);
+}
+
+.rs-card-locked {
+  opacity: 0.75;
+  cursor: pointer; /* still focusable */
+}
+
+.rs-card-image-wrap {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: var(--bg-panel-2);
+  overflow: hidden;
+}
+
+.rs-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rs-card-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: var(--text-dim);
+}
+
+.rs-gp-badge {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  background: var(--bg-panel);
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.35rem;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.rs-locked-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rs-lock-icon { font-size: 1.8rem; }
+
+.rs-card-body {
+  padding: 0.6rem 0.7rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.rs-card-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.rs-card-platform {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+}
+
+.rs-card-cost {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--color-success-dark);
+  margin-top: 0.25rem;
+}
+
+.rs-card-cost-locked {
+  color: var(--color-error);
+}
+
+/* ── Card skeleton ──────────────────────────────────────────────────── */
+.rs-card-skeleton {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-panel);
+}
+
+.rs-skel-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 0;
+  height: auto;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────── */
+.rs-empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-sub);
+}
+
+.rs-empty-state span { font-size: 3rem; }
+.rs-empty-state p { font-size: 0.9rem; max-width: 28ch; line-height: 1.5; margin: 0; }
+
+/* ── Error state ────────────────────────────────────────────────────── */
+.rs-error-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-sub);
+}
+
+.rs-error-icon { font-size: 2.5rem; }
+
+/* ── Backdrop ───────────────────────────────────────────────────────── */
+.rs-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: rs-fade-in var(--duration-fast) var(--ease-out) both;
+}
+
+@keyframes rs-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Detail / locked sheet ──────────────────────────────────────────── */
+.rs-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--bg-panel);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  position: relative;
+  animation: rs-sheet-up var(--duration-normal) var(--ease-spring) both;
+}
+
+@keyframes rs-sheet-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.rs-sheet-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-panel-2);
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--duration-fast);
+  z-index: 1;
+}
+
+.rs-sheet-close:hover { background: var(--line); }
+
+.rs-sheet-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+}
+
+.rs-sheet-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.rs-sheet-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+  padding-right: 2rem;
+}
+
+.rs-sheet-platform {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  display: block;
+}
+
+.rs-sheet-desc {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.rs-cost-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 0.9rem;
+  font-weight: 800;
+  align-self: flex-start;
+}
+
+.rs-cost-pill-rp {
+  background: var(--color-warning-surface);
+  color: var(--color-warning-dark);
+  border: 1px solid var(--color-warning);
+}
+
+.rs-cost-pill-gp {
+  background: var(--color-success-surface);
+  color: var(--color-success-dark);
+  border: 1px solid var(--color-success);
+}
+
+.rs-redeem-btn {
+  background: var(--bg-action);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 48px;
+  transition: background var(--duration-fast), opacity var(--duration-fast);
+  margin-top: 0.25rem;
+}
+
+.rs-redeem-btn:hover:not(:disabled) { background: var(--bg-action-hover); }
+.rs-redeem-btn:disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg-panel-2); color: var(--text-dim); border: 1px solid var(--line); }
+
+/* ── Locked sheet specifics ─────────────────────────────────────────── */
+.rs-sheet-locked {
+  text-align: center;
+  padding-top: 1.5rem;
+}
+
+.rs-locked-icon { font-size: 3rem; }
+
+.rs-locked-msg {
+  font-size: 1rem;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.rs-locked-hint {
+  font-size: 0.86rem;
+  color: var(--text-sub);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.rs-sheet-close-btn {
+  background: var(--bg-action);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 48px;
+  margin-top: 0.5rem;
+  transition: background var(--duration-fast);
+}
+
+.rs-sheet-close-btn:hover { background: var(--bg-action-hover); }
+
+/* ── Confirm dialog ─────────────────────────────────────────────────── */
+.rs-confirm-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-xl);
+  align-self: center;
+}
+
+.rs-confirm-box h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.rs-confirm-desc {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.rs-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.rs-btn-secondary {
+  background: var(--bg-panel-2);
+  color: var(--text-main);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background var(--duration-fast);
+}
+
+.rs-btn-secondary:hover { background: var(--line); }
+
+/* ── Redeemed success state ─────────────────────────────────────────── */
+.rs-redeemed {
+  position: relative;
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+}
+
+.rs-confetti-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rs-redeemed-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 2.5rem 1.5rem;
+}
+
+.rs-redeemed-icon { font-size: 4rem; }
+
+.rs-redeemed-content h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.rs-redeemed-msg {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin: 0;
+  max-width: 28ch;
+  line-height: 1.5;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .rs-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 400px) {
+  .rs-grid { grid-template-columns: 1fr; }
+}

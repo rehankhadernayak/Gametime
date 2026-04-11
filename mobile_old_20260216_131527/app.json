@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "SideQuest",
+    "slug": "sidequest-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sidequest.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SideQuest needs camera access for task evidence uploads.",
+        "NSPhotoLibraryUsageDescription": "SideQuest needs photo access for task evidence uploads.",
+        "NSMicrophoneUsageDescription": "SideQuest needs microphone access for video evidence uploads."
+      }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-image-picker"
+    ],
+    "extra": {
+      "apiBaseUrl": "http://localhost:4000"
+    }
+  }
+}
