@@ -21,7 +21,7 @@ function AiRecommendationBadge({ recommendation, confidence, reason, aiStatus })
   if (!aiStatus || aiStatus === 'Pending') {
     return (
       <View style={[aiBadgeStyles.wrap, aiBadgeStyles.pending]}>
-        <Text style={aiBadgeStyles.label}>⏳ AI analysis in progress…</Text>
+        <Text style={aiBadgeStyles.label}>AI analysis in progress…</Text>
       </View>
     );
   }
@@ -29,7 +29,7 @@ function AiRecommendationBadge({ recommendation, confidence, reason, aiStatus })
   if (aiStatus === 'Unavailable' || aiStatus === 'Error') {
     return (
       <View style={[aiBadgeStyles.wrap, aiBadgeStyles.unavailable]}>
-        <Text style={aiBadgeStyles.label}>⚙️ Local advisory: {recommendation || '—'}</Text>
+        <Text style={aiBadgeStyles.label}>Local advisory: {recommendation || '—'}</Text>
         {reason ? <Text style={aiBadgeStyles.reason}>{reason}</Text> : null}
       </View>
     );
@@ -47,10 +47,10 @@ function AiRecommendationBadge({ recommendation, confidence, reason, aiStatus })
     : aiBadgeStyles.review;
 
   const label = isApprove
-    ? `🤖 Approve — ${pct}% confident`
+    ? `Approve — ${pct}% confident`
     : isReject
-    ? `🤖 Reject — ${pct}% confident`
-    : `🤖 Needs your review — ${pct}% confident`;
+    ? `Reject — ${pct}% confident`
+    : `Needs your review — ${pct}% confident`;
 
   return (
     <View style={[aiBadgeStyles.wrap, badgeStyle]}>
@@ -143,12 +143,12 @@ function ApprovalCard({ task, token, parentSettings, decisionNote, onNoteChange,
           <Image source={{ uri: evidenceUri }} style={styles.evidenceImage} resizeMode="cover" />
         ) : (
           <View style={styles.videoPlaceholder}>
-            <Text style={styles.videoLabel}>📷 Could not load photo</Text>
+            <Text style={styles.videoLabel}>Could not load photo</Text>
           </View>
         )
       ) : task.evidenceType === 'Video' && task.hasEvidence ? (
         <View style={styles.videoPlaceholder}>
-          <Text style={styles.videoLabel}>🎬 Video evidence attached</Text>
+          <Text style={styles.videoLabel}>Video evidence attached</Text>
         </View>
       ) : (
         <View style={styles.videoPlaceholder}>
@@ -260,7 +260,6 @@ export default function ParentApprovalsScreen() {
         <Spinner full />
       ) : pending.length === 0 ? (
         <EmptyState
-          icon="✅"
           title="All caught up!"
           message="No tasks are waiting for your approval right now."
         />

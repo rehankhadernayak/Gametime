@@ -16,12 +16,12 @@ import { colors } from '../../theme/colors';
 import { fmtDateTime, getErrorMessage } from '../../utils/format';
 
 const PLATFORM_ICONS = {
-  roblox: '🎮',
-  steam: '🖥️',
-  razer: '🐍',
-  playstation: '🎮',
-  xbox: '🟩',
-  default: '🎁',
+  roblox: 'ROB',
+  steam: 'STM',
+  razer: 'RZR',
+  playstation: 'PS',
+  xbox: 'XBX',
+  default: 'GC',
 };
 
 function platformIcon(title) {
@@ -154,7 +154,7 @@ export default function ChildRewardsScreen() {
         {revealedCode ? (
           <View style={styles.revealCard}>
             <LinearGradient colors={['#F59E0B', '#D97706']} style={styles.revealGradient}>
-              <Text style={styles.revealTitle}>🎁 Your Gift Card</Text>
+              <Text style={styles.revealTitle}>Your Gift Card</Text>
               <Text style={styles.revealName}>{revealedCode.rewardTitle || revealedCode.giftcardName || 'Gift Card'}</Text>
               {revealedCode.skuName ? <Text style={styles.revealSku}>{revealedCode.skuName}</Text> : null}
             </LinearGradient>
@@ -179,7 +179,6 @@ export default function ChildRewardsScreen() {
         <Text style={styles.sectionHeader}>Gift Cards <Text style={styles.sectionBadge}>GP</Text></Text>
         {gpRewards.length === 0 ? (
           <View style={styles.emptySection}>
-            <Text style={styles.emptyIcon}>🎮</Text>
             <Text style={styles.emptyText}>No gift cards yet — ask your parent to add some!</Text>
           </View>
         ) : (
@@ -199,7 +198,6 @@ export default function ChildRewardsScreen() {
         <Text style={[styles.sectionHeader, { marginTop: 20 }]}>Rewards <Text style={styles.sectionBadgeRP}>RP</Text></Text>
         {rpRewards.length === 0 ? (
           <View style={styles.emptySection}>
-            <Text style={styles.emptyIcon}>⭐</Text>
             <Text style={styles.emptyText}>No RP rewards yet — ask your parent to add some!</Text>
           </View>
         ) : (
@@ -218,7 +216,7 @@ export default function ChildRewardsScreen() {
         {/* ── Gift Card Wallet ── */}
         {giftcardCodes.length > 0 ? (
           <>
-            <Text style={[styles.sectionHeader, { marginTop: 20 }]}>My Wallet 💳</Text>
+            <Text style={[styles.sectionHeader, { marginTop: 20 }]}>My Wallet</Text>
             {giftcardCodes.map((gc) => (
               <View key={gc.id} style={styles.walletCard}>
                 <View style={styles.walletTop}>

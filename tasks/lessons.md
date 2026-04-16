@@ -90,3 +90,15 @@
 ### 2026-04-08 — EvidenceReviewPanel called non-existent backend routes
 **What happened:** The web EvidenceReviewPanel was fully built but called `GET /tasks/:taskId/submission` and `POST /tasks/:taskId/review` — neither existed in the backend. The component was broken in production.
 **Rule:** After building a new component that calls custom API routes, immediately verify those routes exist in `backend/src/routes/`. If they're new, add both the controller function in `controllers/` and the route registration in `routes/`. Don't assume existing approve/reject routes will be called under a different URL.
+
+---
+
+### 2026-04-11 — Tab screen name mismatch in navigate()
+**What happened:** `ParentHomeScreen` called `navigation.navigate('ParentAi')` but the bottom-tab screen is registered as `'ParentAiTab'`. The navigate call silently failed at runtime.
+**Rule:** When a tab screen is inside a bottom-tab navigator, its registered name (e.g. `'ParentAiTab'`) must be used exactly when navigating to it. For nested navigation from a sibling stack screen, use `navigate('ParentTabs', { screen: 'ParentAiTab' })`. Audit all navigate() calls against the actual screen names in RootNavigator.js after any nav refactor.
+
+---
+
+### 2026-04-11 — headerShown: true on tabs with gradient-header screens causes double headers
+**What happened:** Adding `headerShown: true` to the tab navigator screenOptions produces a double header for screens that draw their own LinearGradient header (e.g. ParentTasksScreen, ChildTasksScreen, ChildRewardsScreen). The internal gradient header was designed for `headerShown: false`.
+**Rule:** If any tab screen has an internal gradient/branded header, keep `headerShown: false` on the tab navigator and add notification/account nav within the screens' own header rows instead. Only use the tab navigator header for screens that use the generic `Screen` component (no visual header).

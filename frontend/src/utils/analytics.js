@@ -19,7 +19,6 @@ export function trackEvent(name, payload = {}) {
   };
   appendEvent(event);
   // Local analytics hook; wire to real provider later.
-  console.info('[analytics]', event);
 }
 
 export function getTrackedEvents() {

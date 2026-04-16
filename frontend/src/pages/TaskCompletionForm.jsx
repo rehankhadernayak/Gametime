@@ -196,7 +196,7 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
             </div>
           ) : (
             <div className="evidence-coaching-card evidence-coaching-warn">
-              <span className="evidence-coaching-icon">⚠</span>
+              <span className="evidence-coaching-icon">!</span>
               <div className="evidence-coaching-body">
                 <p className="evidence-coaching-text">{coaching.coaching}</p>
                 <button

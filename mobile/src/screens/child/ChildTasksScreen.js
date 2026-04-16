@@ -22,13 +22,13 @@ import { fmtDateTime, getErrorMessage } from '../../utils/format';
 const STATUS_TABS = ['All', 'Active', 'Pending', 'Done'];
 
 const TASK_ICONS = {
-  Active: '⚡',
-  PendingApproval: '⏳',
-  Approved: '✅',
-  Completed: '✅',
-  Rejected: '❌',
-  Expired: '💤',
-  Cancelled: '🚫',
+  Active: '▶',
+  PendingApproval: '...',
+  Approved: 'OK',
+  Completed: 'OK',
+  Rejected: 'No',
+  Expired: 'Exp',
+  Cancelled: 'X',
 };
 
 function stateConfig(state) {
@@ -277,7 +277,7 @@ export default function ChildTasksScreen() {
         {/* ── Task List ── */}
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>{activeTab === 'Active' ? '⚡' : activeTab === 'Pending' ? '⏳' : '✨'}</Text>
+            <Text style={styles.emptyIcon}>{activeTab === 'Active' ? '—' : activeTab === 'Pending' ? '—' : '—'}</Text>
             <Text style={styles.emptyTitle}>
               {activeTab === 'Active' ? 'No active tasks' : activeTab === 'Pending' ? 'None pending review' : 'Nothing here yet'}
             </Text>
@@ -293,7 +293,7 @@ export default function ChildTasksScreen() {
               <View key={task.id} style={[styles.taskCard, { borderLeftColor: cfg.color }]}>
                 <View style={styles.taskTop}>
                   <View style={styles.taskMeta}>
-                    <Text style={styles.taskIcon}>{TASK_ICONS[task.state] || '📋'}</Text>
+                    <Text style={styles.taskIcon}>{TASK_ICONS[task.state] || '?'}</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.taskTitle}>{task.title}</Text>
                       {task.dueDate ? (
@@ -346,7 +346,7 @@ export default function ChildTasksScreen() {
                     })}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.proofBtnText}>📸  Submit Proof</Text>
+                    <Text style={styles.proofBtnText}>Submit Proof</Text>
                   </TouchableOpacity>
                 ) : null}
 
@@ -356,7 +356,7 @@ export default function ChildTasksScreen() {
                       style={styles.disputeToggle}
                       onPress={() => setExpandedDispute(isDisputing ? null : task.id)}
                     >
-                      <Text style={styles.disputeToggleText}>{isDisputing ? '▲ Hide dispute' : '⚠ Dispute rejection'}</Text>
+                      <Text style={styles.disputeToggleText}>{isDisputing ? 'Hide dispute' : 'Dispute rejection'}</Text>
                     </TouchableOpacity>
                     {isDisputing ? (
                       <>

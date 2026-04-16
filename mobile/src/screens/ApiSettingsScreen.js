@@ -58,7 +58,6 @@ export default function ApiSettingsScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 40 }]}>
-          <Text style={styles.heroIcon}>⚙️</Text>
           <Text style={styles.heroTitle}>Connection Settings</Text>
           <Text style={styles.heroSub}>Point the app at your Gametime backend server</Text>
         </LinearGradient>

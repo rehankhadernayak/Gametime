@@ -41,7 +41,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
-          <Text style={styles.sentIconLg}>📧</Text>
+          <Text style={styles.sentIconLg}>Email sent</Text>
           <Text style={styles.heroTitle}>Check your email</Text>
         </LinearGradient>
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
@@ -60,7 +60,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
-          <Text style={styles.heroIcon}>🔐</Text>
+          <Text style={styles.heroIcon}>Reset</Text>
           <Text style={styles.heroTitle}>Reset password</Text>
           <Text style={styles.heroSub}>Enter your email and we'll send a reset link</Text>
         </LinearGradient>

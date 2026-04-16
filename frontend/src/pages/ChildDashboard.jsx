@@ -750,7 +750,7 @@ export default function ChildDashboard({ token }) {
           {revealedCode && (
             <section className="panel giftcard-reveal-panel" aria-live="polite">
               <div className="giftcard-reveal-header">
-                <h2>🎁 Your Gift Card Code</h2>
+                <h2>Your Gift Card Code</h2>
                 <button
                   type="button"
                   className="close-btn"
@@ -890,7 +890,6 @@ export default function ChildDashboard({ token }) {
             <h2>Achievements</h2>
             {streak > 0 && (
               <div className="streak-chip">
-                <span className="streak-flame">🔥</span>
                 <span className="streak-count">{streak}</span>
                 <span className="streak-label">day streak</span>
               </div>

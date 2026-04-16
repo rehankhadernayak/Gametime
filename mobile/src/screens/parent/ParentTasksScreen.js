@@ -36,12 +36,12 @@ function stateConfig(state) {
 
 // Quick-select task templates
 const TASK_TEMPLATES = [
-  { icon: '🧹', title: 'Clean bedroom',       description: 'Tidy up and vacuum the bedroom.', points: 20 },
-  { icon: '📚', title: 'Finish homework',     description: 'Complete all assigned homework.', points: 15 },
-  { icon: '🍽️', title: 'Clear the table',    description: 'Clear and wipe the dining table after dinner.', points: 10 },
-  { icon: '🌿', title: 'Water the plants',   description: 'Water all indoor plants.', points: 10 },
-  { icon: '🛏️', title: 'Make the bed',       description: 'Make bed neatly every morning.', points: 5 },
-  { icon: '📖', title: 'Read for 20 min',    description: 'Read a book for at least 20 minutes.', points: 15 }
+  { icon: '', title: 'Clean bedroom',       description: 'Tidy up and vacuum the bedroom.', points: 20 },
+  { icon: '', title: 'Finish homework',     description: 'Complete all assigned homework.', points: 15 },
+  { icon: '', title: 'Clear the table',    description: 'Clear and wipe the dining table after dinner.', points: 10 },
+  { icon: '', title: 'Water the plants',   description: 'Water all indoor plants.', points: 10 },
+  { icon: '', title: 'Make the bed',       description: 'Make bed neatly every morning.', points: 5 },
+  { icon: '', title: 'Read for 20 min',    description: 'Read a book for at least 20 minutes.', points: 15 }
 ];
 
 const STATUS_TABS = ['All', 'Active', 'Pending', 'Done'];
@@ -328,7 +328,7 @@ export default function ParentTasksScreen() {
         </ScrollView>
 
         {filteredTasks.length === 0 ? (
-          <EmptyState icon="📋" title="No tasks" message="Create a task to get started." />
+          <EmptyState title="No tasks" message="Create a task to get started." />
         ) : (
           <View style={styles.taskList}>
             {filteredTasks.map((task) => {

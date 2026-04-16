@@ -183,7 +183,7 @@ function ChildTabs() {
           }),
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginBottom: 4 },
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           const tab = CHILD_TABS.find((t) => t.name === route.name);
           return (
             <Ionicons

@@ -172,6 +172,30 @@ export async function leaderboard(req, res, next) {
 }
 
 /**
+ * DELETE /children/:id
+ * Permanently removes a child profile owned by the requesting parent.
+ * All child data (tasks, points, sessions) is removed via DB CASCADE.
+ */
+export async function deleteChild(req, res, next) {
+  try {
+    const { id } = req.params;
+    const db = await getDb();
+
+    const child = await db.get(
+      'SELECT id, name FROM child_profiles WHERE id = ? AND parent_id = ?',
+      [id, req.auth.parentId]
+    );
+    if (!child) throw new ApiError(404, 'Child not found');
+
+    await db.run('DELETE FROM child_profiles WHERE id = ?', [id]);
+
+    return res.json({ message: `${child.name} has been removed.` });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * POST /children/:id/avatar
  * Body: { avatarData: "data:image/jpeg;base64,...", avatarMime: "image/jpeg" }
  * Parent only — can only upload for their own children.

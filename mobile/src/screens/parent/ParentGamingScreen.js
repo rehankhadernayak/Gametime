@@ -18,7 +18,7 @@ import { getErrorMessage, sanitizeText } from '../../utils/format';
 
 const ALLOWED_PLATFORMS = ['iOS', 'Android', 'Windows', 'macOS', 'Web', 'Console', 'Other', 'Unknown'];
 
-const PLATFORM_ICONS = { iOS: '📱', Android: '📱', Windows: '💻', macOS: '💻', Web: '🌐', Console: '🎮', Other: '🕹️', Unknown: '🕹️' };
+const PLATFORM_ICONS = { iOS: 'MOB', Android: 'MOB', Windows: 'PC', macOS: 'PC', Web: 'WEB', Console: 'CON', Other: 'CTL', Unknown: 'CTL' };
 
 function CapBar({ used, cap, color }) {
   const pct = cap > 0 ? Math.min(1, used / cap) : 0;
@@ -325,7 +325,7 @@ export default function ParentGamingScreen() {
                 onPress={() => setGameForm((p) => ({ ...p, status }))}
               >
                 <Text style={[styles.ruleToggleText, gameForm.status === status && styles.ruleToggleTextActive]}>
-                  {status === 'Blocked' ? '🚫 Block' : '✅ Allow'}
+                  {status === 'Blocked' ? 'Block' : 'Allow'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -341,7 +341,7 @@ export default function ParentGamingScreen() {
               <View style={styles.divider} />
               {games.map((game) => (
                 <View key={game.id} style={styles.gameRow}>
-                  <Text style={styles.gamePlatformIcon}>{PLATFORM_ICONS[game.platform] || '🕹️'}</Text>
+                  <Text style={styles.gamePlatformIcon}>{PLATFORM_ICONS[game.platform] || 'CTL'}</Text>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.gameName}>{game.name}</Text>
                     <Text style={styles.gamePlatform}>{game.platform}</Text>
@@ -352,18 +352,18 @@ export default function ParentGamingScreen() {
                     disabled={toggleBusy === game.id}
                   >
                     <Text style={styles.statusToggleBtnText}>
-                      {toggleBusy === game.id ? '…' : game.status === 'Blocked' ? '🚫 Blocked' : '✅ Allowed'}
+                      {toggleBusy === game.id ? '…' : game.status === 'Blocked' ? 'Blocked' : 'Allowed'}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteGame(game.id)} disabled={deleteBusy === game.id}>
-                    <Text style={styles.deleteBtnText}>{deleteBusy === game.id ? '…' : '🗑'}</Text>
+                    <Text style={styles.deleteBtnText}>{deleteBusy === game.id ? '…' : 'Del'}</Text>
                   </TouchableOpacity>
                 </View>
               ))}
             </>
           ) : (
             <View style={styles.emptyGames}>
-              <Text style={styles.emptyGamesText}>🎮 No game rules yet — all games allowed by default.</Text>
+              <Text style={styles.emptyGamesText}>No game rules yet — all games allowed by default.</Text>
             </View>
           )}
         </SectionCard>

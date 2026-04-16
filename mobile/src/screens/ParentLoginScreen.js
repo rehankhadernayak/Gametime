@@ -45,7 +45,7 @@ export default function ParentLoginScreen({ navigation }) {
         {/* Gradient header */}
         <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
           <View style={styles.logoWrap}>
-            <Text style={styles.logoEmoji}>🎮</Text>
+            <Text style={styles.logoEmoji}>GT</Text>
           </View>
           <Text style={styles.heroTitle}>Welcome back</Text>
           <Text style={styles.heroSub}>Sign in to manage your family</Text>

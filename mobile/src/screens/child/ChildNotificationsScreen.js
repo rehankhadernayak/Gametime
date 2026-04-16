@@ -16,15 +16,15 @@ import { colors } from '../../theme/colors';
 import { fmtDateTime, getErrorMessage } from '../../utils/format';
 
 const TYPE_ICONS = {
-  task_approved:   '✅',
-  task_rejected:   '❌',
-  task_expired:    '💤',
-  task_dispute:    '⚠️',
-  reward_redeemed: '🎁',
-  achievement:     '🏆',
-  gaming_cap:      '🎮',
-  gp_received:     '💰',
-  default:         '🔔',
+  task_approved:   'OK',
+  task_rejected:   'NO',
+  task_expired:    'EXP',
+  task_dispute:    '!',
+  reward_redeemed: 'RWD',
+  achievement:     'ACH',
+  gaming_cap:      'GAM',
+  gp_received:     'GP',
+  default:         'NTF',
 };
 
 function notifIcon(type) {
@@ -126,7 +126,6 @@ export default function ChildNotificationsScreen() {
 
         {notifications.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🔔</Text>
             <Text style={styles.emptyTitle}>No notifications yet</Text>
             <Text style={styles.emptySub}>Your parent will send you updates here.</Text>
           </View>

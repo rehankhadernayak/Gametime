@@ -44,7 +44,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <LinearGradient colors={['#22C55E', '#16A34A']} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
-          <Text style={styles.doneIcon}>✅</Text>
+          <Text style={styles.doneIcon}>Done</Text>
           <Text style={styles.heroTitle}>Password updated!</Text>
         </LinearGradient>
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
@@ -63,7 +63,6 @@ export default function ResetPasswordScreen({ route, navigation }) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
-          <Text style={styles.heroIcon}>🔑</Text>
           <Text style={styles.heroTitle}>New password</Text>
           <Text style={styles.heroSub}>Enter the reset token from your email</Text>
         </LinearGradient>

@@ -119,7 +119,7 @@ export default function ChildLoginScreen() {
         {/* Gradient header */}
         <LinearGradient colors={['#7C3AED', '#6D28D9']} style={[styles.hero, { paddingTop: insets.top + 36 }]}>
           <View style={styles.logoWrap}>
-            <Text style={styles.logoEmoji}>🎮</Text>
+            <Text style={styles.logoEmoji}>GT</Text>
           </View>
           <Text style={styles.heroTitle}>Child Login</Text>
           <Text style={styles.heroSub}>Sign in to see your tasks and rewards</Text>
@@ -130,13 +130,13 @@ export default function ChildLoginScreen() {
               style={[styles.tab, mode === 'pin' && styles.tabActive]}
               onPress={() => setMode('pin')}
             >
-              <Text style={[styles.tabLabel, mode === 'pin' && styles.tabLabelActive]}>🔢 PIN (ages 6–9)</Text>
+              <Text style={[styles.tabLabel, mode === 'pin' && styles.tabLabelActive]}>PIN (ages 6–9)</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.tab, mode === 'email' && styles.tabActive]}
               onPress={() => setMode('email')}
             >
-              <Text style={[styles.tabLabel, mode === 'email' && styles.tabLabelActive]}>✉️ Email</Text>
+              <Text style={[styles.tabLabel, mode === 'email' && styles.tabLabelActive]}>Email</Text>
             </TouchableOpacity>
           </View>
         </LinearGradient>

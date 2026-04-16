@@ -238,7 +238,6 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
               className="ai-workspace-btn"
               onClick={() => navigate('/parent/ai')}
             >
-              <span className="ai-workspace-btn-spark" aria-hidden="true">✨</span>
               AI Mode
               <span className="ai-workspace-btn-arrow" aria-hidden="true">→</span>
             </button>
@@ -253,7 +252,6 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
               className="ai-workspace-btn child"
               onClick={() => navigate('/child/ai')}
             >
-              <span className="ai-workspace-btn-spark" aria-hidden="true">🤖</span>
               Study Buddy
               <span className="ai-workspace-btn-arrow" aria-hidden="true">→</span>
             </button>

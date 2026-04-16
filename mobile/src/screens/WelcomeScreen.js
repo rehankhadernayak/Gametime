@@ -4,10 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 
 const FEATURES = [
-  { icon: '✅', label: 'Complete tasks', sub: 'Earn Reward Points (RP)' },
-  { icon: '🎮', label: 'Convert to gaming time', sub: 'RP → playable minutes' },
-  { icon: '🎁', label: 'Redeem gift cards', sub: 'Roblox, Steam & more' },
-  { icon: '🤖', label: 'AI reviews evidence', sub: 'Photo & video proof' },
+  { icon: '', label: 'Complete tasks', sub: 'Earn Reward Points (RP)' },
+  { icon: '', label: 'Convert to gaming time', sub: 'RP → playable minutes' },
+  { icon: '', label: 'Redeem gift cards', sub: 'Roblox, Steam & more' },
+  { icon: '', label: 'AI reviews evidence', sub: 'Photo & video proof' },
 ];
 
 export default function WelcomeScreen({ navigation }) {
@@ -26,7 +26,7 @@ export default function WelcomeScreen({ navigation }) {
         <View style={styles.logoWrap}>
           <View style={styles.logoOuter}>
             <View style={styles.logoInner}>
-              <Text style={styles.logoEmoji}>🎮</Text>
+              <Text style={styles.logoEmoji}>GT</Text>
             </View>
           </View>
         </View>

@@ -55,11 +55,11 @@ function TypingIndicator({ color }) {
 // ─── Break timer modal ────────────────────────────────────────────────────────
 
 const BREAK_ICONS = {
-  eye_rest:  '👁️',
-  stretch:   '🧘',
-  hydration: '💧',
-  snack:     '🍎',
-  walk:      '🚶',
+  eye_rest:  'EYE',
+  stretch:   'STR',
+  hydration: 'H2O',
+  snack:     'SNK',
+  walk:      'WLK',
 };
 
 function BreakTimerModal({ timerData, onDismiss }) {
@@ -80,7 +80,7 @@ function BreakTimerModal({ timerData, onDismiss }) {
   const secs = String(secsLeft % 60).padStart(2, '0');
   const progress = ((totalSecs - secsLeft) / totalSecs) * 100;
 
-  const icon = BREAK_ICONS[timerData.breakType] || '⏱️';
+  const icon = BREAK_ICONS[timerData.breakType] || 'TMR';
   const msg = timerData.message || 'Time to take a break!';
 
   return (
@@ -91,7 +91,7 @@ function BreakTimerModal({ timerData, onDismiss }) {
           <Text style={styles.timerMsg}>{msg}</Text>
 
           {done ? (
-            <Text style={styles.timerDone}>✅ Break complete!</Text>
+            <Text style={styles.timerDone}>Break complete!</Text>
           ) : (
             <Text style={styles.timerDisplay}>{mins}:{secs}</Text>
           )}
@@ -102,7 +102,7 @@ function BreakTimerModal({ timerData, onDismiss }) {
           </View>
 
           <TouchableOpacity style={styles.timerBtn} onPress={onDismiss}>
-            <Text style={styles.timerBtnText}>{done ? '🎉 Done!' : 'Skip'}</Text>
+            <Text style={styles.timerBtnText}>{done ? 'Done!' : 'Skip'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -124,7 +124,7 @@ function StatsCard({ stats }) {
 
   return (
     <View style={styles.statsCard}>
-      <Text style={styles.statsTitle}>📊 Your Stats</Text>
+      <Text style={styles.statsTitle}>Your Stats</Text>
       <View style={styles.statsGrid}>
         {items.map((item) => (
           <View key={item.label} style={styles.statItem}>
@@ -145,7 +145,7 @@ function ChatMessage({ msg }) {
     <View style={[styles.msgRow, isUser ? styles.msgRowUser : styles.msgRowAssistant]}>
       {!isUser && (
         <View style={styles.avatarDot}>
-          <Text style={styles.avatarDotText}>🤖</Text>
+          <Text style={styles.avatarDotText}>AI</Text>
         </View>
       )}
       <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
@@ -227,7 +227,7 @@ export default function ChildAiScreen() {
     setMessages([
       {
         role: 'assistant',
-        content: `Hey ${name}! 👋 I'm your Study Buddy. I can help with homework, start break timers, or check your gaming stats. What do you need?`,
+        content: `Hey ${name}! I'm your Study Buddy. I can help with homework, start break timers, or check your gaming stats. What do you need?`,
       },
     ]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -340,7 +340,7 @@ export default function ChildAiScreen() {
       {/* Streak banner */}
       {showStreakBanner && (
         <View style={styles.streakBanner}>
-          <Text style={styles.streakBannerText}>🔥 {displayStreak}-day streak! Keep it going!</Text>
+          <Text style={styles.streakBannerText}>{displayStreak}-day streak! Keep it going!</Text>
         </View>
       )}
 
@@ -374,15 +374,15 @@ export default function ChildAiScreen() {
                 <ActivityIndicator size="small" color={colors.childAccentDark} />
                 <Text style={styles.toolBadgeText}>
                   {activeTool === 'get_my_stats'
-                    ? '📊 Fetching your stats…'
+                    ? 'Fetching your stats…'
                     : activeTool === 'start_break_timer'
-                    ? '⏱️ Setting up your break…'
-                    : `⚙️ ${activeTool}…`}
+                    ? 'Setting up your break…'
+                    : `${activeTool}…`}
                 </Text>
               </View>
             ) : (streaming && !streamingText) ? (
               <View style={[styles.msgRow, styles.msgRowAssistant]}>
-                <View style={styles.avatarDot}><Text style={styles.avatarDotText}>🤖</Text></View>
+                <View style={styles.avatarDot}><Text style={styles.avatarDotText}>AI</Text></View>
                 <View style={[styles.bubble, styles.bubbleAssistant]}>
                   <TypingIndicator color={colors.childAccent} />
                 </View>

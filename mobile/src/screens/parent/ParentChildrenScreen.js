@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import InputField from '../../components/InputField';
@@ -49,6 +50,7 @@ function getAgeYears(dateOfBirth) {
 const initialForm = { name: '', dateOfBirth: '', email: '', password: '', pin: '' };
 
 export default function ParentChildrenScreen() {
+  const navigation = useNavigation();
   const { token, loginWithToken } = useAuth();
   const [children, setChildren]             = useState([]);
   const [uploadingChildId, setUploadingChildId] = useState(null);
@@ -182,6 +184,19 @@ export default function ParentChildrenScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ── Quick links ── */}
+      <View style={styles.quickLinks}>
+        <TouchableOpacity style={styles.quickLink} onPress={() => navigation.navigate('ParentGaming')} activeOpacity={0.8}>
+          <Text style={styles.quickLinkLabel}>Gaming</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickLink} onPress={() => navigation.navigate('ParentRewards')} activeOpacity={0.8}>
+          <Text style={styles.quickLinkLabel}>Rewards</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.quickLink} onPress={() => navigation.navigate('ParentHome')} activeOpacity={0.8}>
+          <Text style={styles.quickLinkLabel}>Dashboard</Text>
+        </TouchableOpacity>
+      </View>
+
       <Banner message={message} tone="success" style={styles.bannerPad} />
       <Banner message={error} style={styles.bannerPad} />
 
@@ -192,7 +207,7 @@ export default function ParentChildrenScreen() {
           <InputField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
           <InputField label="Date of Birth (YYYY-MM-DD)" value={form.dateOfBirth} onChangeText={(v) => setForm({ ...form, dateOfBirth: v })} />
           <View style={styles.formHint}>
-            <Text style={styles.formHintText}>💡 Ages 6–9 can use a PIN. Ages 10–13 need email + password.</Text>
+            <Text style={styles.formHintText}>Ages 6–9 can use a PIN. Ages 10–13 need email + password.</Text>
           </View>
           <InputField label="Child Email (optional for age 6–9)" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} autoCapitalize="none" keyboardType="email-address" />
           <InputField label="Child Password (required for age 10+)" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} secureTextEntry />
@@ -204,7 +219,7 @@ export default function ParentChildrenScreen() {
       {/* ── Children list ── */}
       {children.length === 0 && !showAddForm ? (
         <View style={styles.emptyWrap}>
-          <EmptyState icon="👧" title="No children yet" message="Tap + Add Child to create your first child account." />
+          <EmptyState title="No children yet" message="Tap + Add Child to create your first child account." />
         </View>
       ) : (
         <View style={styles.childrenList}>
@@ -233,7 +248,7 @@ export default function ParentChildrenScreen() {
                       disabled={uploadingChildId === child.id}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.avatarEditIcon}>{uploadingChildId === child.id ? '…' : '📷'}</Text>
+                      <Text style={styles.avatarEditIcon}>{uploadingChildId === child.id ? '…' : 'Edit'}</Text>
                     </TouchableOpacity>
                   </View>
 
@@ -296,7 +311,7 @@ export default function ParentChildrenScreen() {
         onPress={() => setShowSettings((v) => !v)}
         activeOpacity={0.8}
       >
-        <Text style={styles.settingsToggleText}>⚙️  Parent Settings</Text>
+        <Text style={styles.settingsToggleText}>Parent Settings</Text>
         <Text style={styles.settingsToggleChevron}>{showSettings ? '▲' : '▼'}</Text>
       </TouchableOpacity>
 
@@ -352,6 +367,25 @@ const styles = StyleSheet.create({
     borderRadius: radius.full
   },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+
+  // ── Quick links ──
+  quickLinks: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  quickLink: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: 10,
+    alignItems: 'center',
+    gap: 4,
+  },
+  quickLinkIcon: { fontSize: 20 },
+  quickLinkLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted },
 
   // ── Add form ──
   formCard: {

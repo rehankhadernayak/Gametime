@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Animated,
   ActivityIndicator,
@@ -13,6 +14,8 @@ import {
   View,
   StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest, getApiUrl } from '../../api/client';
 import { streamSSE } from '../../utils/sse';
@@ -55,16 +58,16 @@ function TypingIndicator({ color }) {
 // ─── Tool badge (shown while Claude calls a function) ────────────────────────
 
 const TOOL_LABELS = {
-  get_family_overview:   '👨‍👩‍👧 Loading family overview…',
-  get_pending_approvals: '📋 Loading pending approvals…',
-  approve_task:          '✅ Approving task…',
-  reject_task:           '❌ Rejecting task…',
-  create_task:           '📝 Creating task…',
-  create_reward:         '🎁 Creating reward…',
+  get_family_overview:   'Loading family overview…',
+  get_pending_approvals: 'Loading pending approvals…',
+  approve_task:          'Approving task…',
+  reject_task:           'Rejecting task…',
+  create_task:           'Creating task…',
+  create_reward:         'Creating reward…',
 };
 
 function ToolBadge({ tool }) {
-  const label = TOOL_LABELS[tool] || `⚙️ Running ${tool}…`;
+  const label = TOOL_LABELS[tool] || `Running ${tool}…`;
   return (
     <View style={styles.toolBadge}>
       <ActivityIndicator size="small" color={colors.primaryDark} style={{ marginRight: 8 }} />
@@ -96,11 +99,11 @@ function ChatMessage({ msg }) {
 // ─── Quick action chips ────────────────────────────────────────────────────────
 
 const AI_CHIPS = [
-  { label: '🔔 What needs attention?', prompt: 'What needs my attention right now? Check for pending approvals.' },
-  { label: '👨‍👩‍👧 Family overview',     prompt: 'Show me an overview of my family — children, their balances, and current tasks.' },
-  { label: '⚔️ Create a quest',         prompt: 'I want to create a new quest for one of my children.' },
-  { label: '🎁 Add a reward',           prompt: 'I want to create a reward my children can redeem with their points.' },
-  { label: '📅 Plan this week',         prompt: "Help me plan this week's quests and gaming limits for my children." },
+  { label: 'What needs attention?', prompt: 'What needs my attention right now? Check for pending approvals.' },
+  { label: 'Family overview',       prompt: 'Show me an overview of my family — children, their balances, and current tasks.' },
+  { label: 'Create a quest',        prompt: 'I want to create a new quest for one of my children.' },
+  { label: 'Add a reward',          prompt: 'I want to create a reward my children can redeem with their points.' },
+  { label: 'Plan this week',        prompt: "Help me plan this week's quests and gaming limits for my children." },
 ];
 
 function ChipsBar({ onChip, disabled }) {
@@ -238,8 +241,8 @@ function ChatTab({ token }) {
         const brief = await apiRequest('/ai/family-briefing', { token });
         if (brief?.briefing) {
           const { briefing, stats, actions } = brief;
-          const streakWarning = (stats?.streakRisk?.length ?? 0) > 0 ? ' · ⚠ streak risk' : '';
-          const briefingMsg = `${briefing}\n\n📊 ${stats?.pendingApprovals ?? 0} pending · ${stats?.weeklyRp ?? 0} RP this week${streakWarning}`;
+          const streakWarning = (stats?.streakRisk?.length ?? 0) > 0 ? ' · streak risk' : '';
+          const briefingMsg = `${briefing}\n\n${stats?.pendingApprovals ?? 0} pending · ${stats?.weeklyRp ?? 0} RP this week${streakWarning}`;
           initialMessages = [{ role: 'assistant', content: briefingMsg, _briefing: true }, ...initialMessages];
           if (Array.isArray(actions) && actions.length > 0) {
             setBriefingActions(actions);
@@ -385,7 +388,7 @@ function ChatTab({ token }) {
         onLayout={scrollToBottom}
         ListEmptyComponent={
           <View style={styles.emptyWrap}>
-            <Text style={styles.emptyIcon}>✨</Text>
+            <Text style={styles.emptyIcon}>AI</Text>
             <Text style={styles.emptyTitle}>Gametime AI</Text>
             <Text style={styles.emptyDesc}>
               Ask me anything — gaming rules, task ideas, your family's weekly summary, or how to
@@ -493,14 +496,14 @@ function ChildCard({ child }) {
       <HealthBar score={score} />
 
       <View style={styles.childStats}>
-        <Text style={styles.childStat}>🎮 {child.totalGamingMinutes ?? 0} min this week</Text>
-        <Text style={styles.childStat}>✅ {child.tasksCompletedThisWeek ?? 0} tasks done</Text>
+        <Text style={styles.childStat}>{child.totalGamingMinutes ?? 0} min gaming this week</Text>
+        <Text style={styles.childStat}>{child.tasksCompletedThisWeek ?? 0} tasks done</Text>
         {child.lateNightSessions > 0 && (
           <Text style={[styles.childStat, { color: colors.warning }]}>
-            🌙 {child.lateNightSessions} late-night session{child.lateNightSessions !== 1 ? 's' : ''}
+            {child.lateNightSessions} late-night session{child.lateNightSessions !== 1 ? 's' : ''}
           </Text>
         )}
-        {topGames ? <Text style={styles.childStat}>🎯 {topGames}</Text> : null}
+        {topGames ? <Text style={styles.childStat}>Top games: {topGames}</Text> : null}
       </View>
     </View>
   );
@@ -527,7 +530,7 @@ function InsightsTab({ token }) {
   if (!data) {
     return (
       <View style={styles.insightsEmpty}>
-        <Text style={styles.insightsEmptyIcon}>📊</Text>
+        <Text style={styles.insightsEmptyIcon}>AI</Text>
         <Text style={styles.insightsEmptyTitle}>Family Insights</Text>
         <Text style={styles.insightsEmptyDesc}>
           Get an AI-powered snapshot of your children's gaming habits and task performance this week.
@@ -536,7 +539,7 @@ function InsightsTab({ token }) {
         <TouchableOpacity style={styles.genBtn} onPress={generate} disabled={loading}>
           {loading
             ? <ActivityIndicator color="#fff" size="small" />
-            : <Text style={styles.genBtnText}>✨ Generate Insights</Text>}
+            : <Text style={styles.genBtnText}>Generate Insights</Text>}
         </TouchableOpacity>
       </View>
     );
@@ -571,18 +574,30 @@ const TAB_INSIGHTS = 'insights';
 
 export default function ParentAiScreen() {
   const { token } = useAuth();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [tab, setTab] = useState(TAB_CHAT);
 
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
-      {/* AI header */}
-      <View style={styles.aiHeader}>
-        <View style={styles.aiBrand}>
-          <View style={styles.aiBrandDot} />
-          <Text style={styles.aiBrandName}>Gametime AI</Text>
-          <View style={styles.aiBetaPill}><Text style={styles.aiBetaText}>Beta</Text></View>
+      {/* AI header — paddingTop accounts for notch / Dynamic Island */}
+      <View style={[styles.aiHeader, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.aiBrandRow}>
+          <View style={styles.aiBrand}>
+            <View style={styles.aiBrandDot} />
+            <Text style={styles.aiBrandName}>Gametime AI</Text>
+            <View style={styles.aiBetaPill}><Text style={styles.aiBetaText}>Beta</Text></View>
+          </View>
+          <View style={styles.aiHeaderActions}>
+            <TouchableOpacity onPress={() => navigation.navigate('ParentNotifications')} style={styles.aiHeaderBtn} accessibilityLabel="Notifications">
+              <Ionicons name="notifications-outline" size={20} color={colors.primaryDark} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Account')} style={styles.aiHeaderBtn} accessibilityLabel="Account">
+              <Ionicons name="person-circle-outline" size={22} color={colors.primaryDark} />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.tabs}>
           <TouchableOpacity
@@ -618,19 +633,35 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  // AI header
+  // AI header — paddingTop is applied dynamically via insets.top + 12
   aiHeader: {
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingTop: 12,
+  },
+  aiBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  aiHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  aiHeaderBtn: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
   },
   aiBrand: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 16,
-    marginBottom: 10,
   },
   aiBrandDot: {
     width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary,

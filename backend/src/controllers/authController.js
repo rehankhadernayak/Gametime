@@ -419,6 +419,43 @@ export async function resetPassword(req, res, next) {
 }
 
 /**
+ * POST /auth/change-password
+ * Allows an authenticated parent to change their own password.
+ * Requires currentPassword + newPassword in the request body.
+ */
+export async function changePassword(req, res, next) {
+  try {
+    const db = await getDb();
+    const parentId = req.auth.parentId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || typeof currentPassword !== 'string') {
+      throw new ApiError(400, 'Current password is required.');
+    }
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      throw new ApiError(400, 'New password must be at least 8 characters.');
+    }
+    if (currentPassword === newPassword) {
+      throw new ApiError(400, 'New password must be different from your current password.');
+    }
+
+    const parent = await db.get('SELECT password_hash FROM parent_accounts WHERE id = ?', [parentId]);
+    if (!parent) throw new ApiError(404, 'Account not found');
+
+    const matches = await bcrypt.compare(currentPassword, parent.password_hash);
+    if (!matches) throw new ApiError(403, 'Current password is incorrect.');
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db.run('UPDATE parent_accounts SET password_hash = ?, updated_at = ? WHERE id = ?', [newHash, new Date().toISOString(), parentId]);
+
+    logger.info({ parentId }, 'Password changed');
+    return res.json({ message: 'Password changed successfully.' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * GET /auth/export-data
  * PDPA-compliant full data export for the requesting parent.
  * Returns JSON of everything stored for this account — no passwords.

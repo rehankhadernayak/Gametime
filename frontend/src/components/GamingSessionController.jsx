@@ -81,7 +81,6 @@ function SessionEndOverlay({ rpCost, onDismiss }) {
   return (
     <div className="gsc-end-overlay" role="status" aria-live="assertive">
       <div className="gsc-end-content">
-        <div className="gsc-end-trophy" aria-hidden="true">🏆</div>
         <h2 className="gsc-end-title">GG! Well played!</h2>
         <p className="gsc-end-sub">
           Session complete · <strong>{rpCost} RP</strong> spent
@@ -317,7 +316,7 @@ export default function GamingSessionController({ childId, role, onSessionEnd, t
 
         {isExpiring && !isPaused && (
           <span className="gsc-expiring-badge" aria-label="Session almost over">
-            ⚠️ Almost done
+            Almost done
           </span>
         )}
 
@@ -333,7 +332,7 @@ export default function GamingSessionController({ childId, role, onSessionEnd, t
               aria-busy={submitting}
               aria-label={isPaused ? 'Resume session' : 'Pause session'}
             >
-              {isPaused ? '▶ Resume' : '⏸ Pause'}
+              {isPaused ? 'Resume' : 'Pause'}
             </button>
             <button
               type="button"
@@ -342,7 +341,7 @@ export default function GamingSessionController({ childId, role, onSessionEnd, t
               disabled={submitting}
               aria-label="End session early"
             >
-              🚩 End Early
+              End Early
             </button>
           </div>
         )}

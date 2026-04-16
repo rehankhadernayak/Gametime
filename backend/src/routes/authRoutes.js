@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  changePassword,
   childDirectLogin,
   childLogin,
   childPinLogin,
@@ -29,6 +30,7 @@ router.get('/me', requireAnyAuth, me);
 router.post('/logout', requireAnyAuth, logout);
 router.post('/forgot-password', resetLimiter, forgotPassword);
 router.post('/reset-password', resetLimiter, resetPassword);
+router.post('/change-password', requireParentAuth, authLimiter, changePassword);
 router.get('/export-data', requireParentAuth, authLimiter, exportData);
 router.delete('/account', requireParentAuth, authLimiter, deleteAccount);
 

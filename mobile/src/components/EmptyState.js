@@ -5,11 +5,11 @@ import { spacing } from '../theme/spacing';
 /**
  * EmptyState — shown when a list has no items.
  * Props:
- *   icon     {string} — emoji or short text (default '📭')
+ *   icon     {string} — short text label shown above the title (default '—')
  *   title    {string} — required
  *   message  {string} — optional supporting text
  */
-export default function EmptyState({ icon = '📭', title, message }) {
+export default function EmptyState({ icon = '—', title, message }) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.icon}>{icon}</Text>

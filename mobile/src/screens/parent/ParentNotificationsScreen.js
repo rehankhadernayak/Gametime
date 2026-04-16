@@ -16,17 +16,17 @@ import { colors } from '../../theme/colors';
 import { fmtDateTime, getErrorMessage } from '../../utils/format';
 
 const TYPE_ICONS = {
-  task_submitted:    { icon: '📸', label: 'Evidence submitted' },
-  task_approved:     { icon: '✅', label: 'Task approved' },
-  task_rejected:     { icon: '❌', label: 'Task rejected' },
-  task_dispute:      { icon: '⚠️', label: 'Dispute raised' },
-  task_expired:      { icon: '💤', label: 'Task expired' },
-  reward_redeemed:   { icon: '🎁', label: 'Reward redeemed' },
-  gaming_cap:        { icon: '🎮', label: 'Gaming cap' },
-  gaming_session:    { icon: '🕹️', label: 'Gaming session' },
-  achievement:       { icon: '🏆', label: 'Achievement' },
-  gp_received:       { icon: '💰', label: 'GP received' },
-  default:           { icon: '🔔', label: 'Notification' },
+  task_submitted:    { icon: 'Sub', label: 'Evidence submitted' },
+  task_approved:     { icon: 'OK',  label: 'Task approved' },
+  task_rejected:     { icon: 'No',  label: 'Task rejected' },
+  task_dispute:      { icon: '!',   label: 'Dispute raised' },
+  task_expired:      { icon: 'Exp', label: 'Task expired' },
+  reward_redeemed:   { icon: 'Rwd', label: 'Reward redeemed' },
+  gaming_cap:        { icon: 'Cap', label: 'Gaming cap' },
+  gaming_session:    { icon: 'Gm',  label: 'Gaming session' },
+  achievement:       { icon: 'Ach', label: 'Achievement' },
+  gp_received:       { icon: 'GP',  label: 'GP received' },
+  default:           { icon: 'i',   label: 'Notification' },
 };
 
 function notifIcon(type) {
@@ -128,7 +128,7 @@ export default function ParentNotificationsScreen() {
 
         {notifications.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🔔</Text>
+            <Text style={styles.emptyIcon}>—</Text>
             <Text style={styles.emptyTitle}>No notifications yet</Text>
             <Text style={styles.emptySub}>Updates about tasks and rewards will appear here.</Text>
           </View>

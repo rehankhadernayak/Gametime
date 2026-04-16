@@ -119,7 +119,6 @@ function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
         <View style={s1.rpPill}>
           <Text style={s1.rpText}>+{taskPoints} RP</Text>
         </View>
-        <Text style={s1.cardEmoji}>🧹</Text>
         <Text style={s1.cardTitle}>{taskTitle}</Text>
         <Text style={s1.cardSub}>Take a photo or short video showing your completed task</Text>
       </View>
@@ -129,7 +128,7 @@ function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
       {/* Photo button */}
       <TouchableOpacity style={[s1.choiceBtn, s1.photoBtn]} onPress={onPhoto} activeOpacity={0.8}>
         <View style={[s1.choiceIcon, { backgroundColor: '#F3E8FF' }]}>
-          <Text style={s1.choiceIconText}>📷</Text>
+          <Text style={s1.choiceIconText}>CAM</Text>
         </View>
         <View style={s1.choiceText}>
           <Text style={s1.choiceTitle}>Take a Photo</Text>
@@ -141,7 +140,7 @@ function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
       {/* Video button */}
       <TouchableOpacity style={[s1.choiceBtn, s1.videoBtn]} onPress={onVideo} activeOpacity={0.8}>
         <View style={[s1.choiceIcon, { backgroundColor: '#DBEAFE' }]}>
-          <Text style={s1.choiceIconText}>🎥</Text>
+          <Text style={s1.choiceIconText}>VID</Text>
         </View>
         <View style={s1.choiceText}>
           <Text style={s1.choiceTitle}>Record a Video</Text>
@@ -292,7 +291,7 @@ function CameraCapture({ captureType, capturedAsset, onCapture, onRetake, onUse 
       {/* Controls */}
       <View style={s2.controls}>
         <TouchableOpacity style={s2.sideBtn} onPress={() => onCapture('library')}>
-          <Text style={s2.sideBtnIcon}>🖼</Text>
+          <Text style={s2.sideBtnIcon}>LIB</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -308,7 +307,7 @@ function CameraCapture({ captureType, capturedAsset, onCapture, onRetake, onUse 
           onPress={() => setCountdown(3)}
           disabled={countdown !== null}
         >
-          <Text style={s2.sideBtnIcon}>{countdown !== null ? `${countdown}` : '⏱'}</Text>
+          <Text style={s2.sideBtnIcon}>{countdown !== null ? `${countdown}` : '3s'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -464,12 +463,12 @@ function AiCoachingStep({ coaching, recommendation, onContinue, onRetake }) {
   const isGood = recommendation === 'submit';
   const panelBg = isGood ? colors.successSurface : colors.warningSurface;
   const panelBorder = isGood ? colors.success : colors.warning;
-  const panelIcon = isGood ? '✅' : '📸';
+  const panelIcon = isGood ? 'OK' : 'TIP';
 
   return (
     <ScrollView contentContainerStyle={sCoach.container} showsVerticalScrollIndicator={false}>
       <View style={sCoach.iconWrap}>
-        <Text style={sCoach.icon}>🤖</Text>
+        <Text style={sCoach.icon}>AI</Text>
       </View>
       <Text style={sCoach.title}>AI Coaching</Text>
       <Text style={sCoach.subtitle}>Here's what I noticed about your photo:</Text>
@@ -502,7 +501,7 @@ function AiCoachingStep({ coaching, recommendation, onContinue, onRetake }) {
 function AiCoachingLoading() {
   return (
     <View style={sCoach.loadingWrap}>
-      <Text style={sCoach.loadingIcon}>🤖</Text>
+      <Text style={sCoach.loadingIcon}>AI</Text>
       <Text style={sCoach.loadingTitle}>AI is reviewing your photo…</Text>
       <Text style={sCoach.loadingSubtitle}>Give me a moment!</Text>
     </View>
@@ -628,7 +627,6 @@ function ReviewSubmit({ taskTitle, taskPoints, capturedAsset, onChangePhoto, onS
                   <Text style={s3.recapRpText}>+{taskPoints} RP</Text>
                 </View>
               </View>
-              <Text style={{ fontSize: 36 }}>🧹</Text>
             </View>
             <Text style={s3.recapNote}>Your photo will be reviewed by AI and then your parent</Text>
           </View>
@@ -676,9 +674,6 @@ function ReviewSubmit({ taskTitle, taskPoints, capturedAsset, onChangePhoto, onS
       {submitting ? (
         <View style={s3.overlay}>
           <View style={s3.overlayCard}>
-            <Animated.Text style={[s3.overlaySparkle, { transform: [{ rotate: spin }] }]}>
-              ✨
-            </Animated.Text>
             <Text style={s3.overlayTitle}>AI is checking your evidence…</Text>
             <Text style={s3.overlaySubtitle}>This takes about 5 seconds</Text>
             <View style={s3.progressTrack}>

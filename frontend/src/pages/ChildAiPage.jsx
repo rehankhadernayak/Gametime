@@ -69,7 +69,7 @@ function ChatBubble({ msg }) {
   const isUser = msg.role === 'user';
   return (
     <div className={`aws-message ${isUser ? 'user' : 'assistant'}`}>
-      {!isUser && <span className="aws-avatar child-avatar" aria-hidden="true">🤖</span>}
+      {!isUser && <span className="aws-avatar child-avatar" aria-hidden="true" />}
       <div className={`aws-bubble${msg.isError ? ' error' : ''}`}>
         {msg.toolEvents?.map((te, i) => <ToolBadge key={i} event={te} />)}
         {isUser
@@ -84,7 +84,7 @@ function ChatBubble({ msg }) {
 function StreamingBubble({ text, toolEvents }) {
   return (
     <div className="aws-message assistant">
-      <span className="aws-avatar child-avatar" aria-hidden="true">🤖</span>
+      <span className="aws-avatar child-avatar" aria-hidden="true" />
       <div className="aws-bubble">
         {toolEvents.map((te, i) => <ToolBadge key={i} event={te} />)}
         {text
@@ -100,11 +100,11 @@ function StreamingBubble({ text, toolEvents }) {
    Break timer canvas card
    ───────────────────────────────────────────────────────────────────────── */
 const BREAK_ICONS = {
-  eye_rest:    '👁️',
-  study_break: '📚',
-  stretch:     '🧘',
-  water:       '💧',
-  custom:      '⏱️'
+  eye_rest:    'EYE',
+  study_break: 'STD',
+  stretch:     'STR',
+  water:       'H2O',
+  custom:      'TMR'
 };
 
 function BreakTimerCard({ timerData, onDismiss }) {
@@ -124,11 +124,11 @@ function BreakTimerCard({ timerData, onDismiss }) {
 
   return (
     <div className="child-timer-card">
-      <div className="child-timer-emoji">{BREAK_ICONS[timerData.breakType] || '⏱️'}</div>
+      <div className="child-timer-emoji">{BREAK_ICONS[timerData.breakType] || 'TMR'}</div>
       <p className="child-timer-type">{timerData.breakType.replace('_', ' ').toUpperCase()}</p>
       {!done
         ? <div className="child-timer-display">{mm}:{ss}</div>
-        : <div className="child-timer-done-msg">Done! 🎉</div>
+        : <div className="child-timer-done-msg">Done!</div>
       }
       <p className="child-timer-message">{timerData.message}</p>
       <div className="child-timer-progress">
@@ -149,7 +149,6 @@ function StatsCard({ data }) {
   return (
     <div className="child-stats-card">
       <div className="child-stats-header">
-        <span className="child-stats-icon">📊</span>
         <span className="child-stats-title">My Stats</span>
         <span className="child-stats-badge">Live</span>
       </div>
@@ -189,14 +188,13 @@ function StatsCard({ data }) {
 function ChildCanvasEmpty() {
   return (
     <div className="child-canvas-empty">
-      <div className="child-canvas-empty-emoji">🎮</div>
       <h3>Hey! I'm Buddy</h3>
       <p>Your personal study and gaming coach. Ask me anything!</p>
       <div className="child-canvas-hints">
-        <span>📚 Homework help</span>
-        <span>👁️ Eye rest timer</span>
-        <span>🎮 Gaming check</span>
-        <span>🧠 Quiz me</span>
+        <span>Homework help</span>
+        <span>Eye rest timer</span>
+        <span>Gaming check</span>
+        <span>Quiz me</span>
       </div>
     </div>
   );
@@ -206,11 +204,11 @@ function ChildCanvasEmpty() {
    Quick action chips
    ───────────────────────────────────────────────────────────────────────── */
 const CHILD_CHIPS = [
-  { label: '📚 Help with homework',      prompt: 'I need help with my homework. What subject should we start with?' },
-  { label: '🎮 How much play time left?', prompt: 'How much gaming time do I have available right now?' },
-  { label: '👁️ Eye rest timer',          prompt: 'Give me a 20-20-20 eye rest break right now.' },
-  { label: '🧠 Quiz me!',                prompt: 'I want to do a quick quiz. Ask me a fun question on any school subject.' },
-  { label: '🏃 Stretch break',           prompt: 'I need a stretch break. Set a 5-minute timer and tell me what to do.' },
+  { label: 'Help with homework',      prompt: 'I need help with my homework. What subject should we start with?' },
+  { label: 'How much play time left?', prompt: 'How much gaming time do I have available right now?' },
+  { label: 'Eye rest timer',          prompt: 'Give me a 20-20-20 eye rest break right now.' },
+  { label: 'Quiz me!',                prompt: 'I want to do a quick quiz. Ask me a fun question on any school subject.' },
+  { label: 'Stretch break',           prompt: 'I need a stretch break. Set a 5-minute timer and tell me what to do.' },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -417,7 +415,6 @@ export default function ChildAiPage({ token, childName }) {
             <BackIcon /> Dashboard
           </button>
           <div className="child-ai-brand">
-            <span className="child-ai-brand-emoji" aria-hidden="true">✨</span>
             <span className="child-ai-brand-name">Study Buddy</span>
             <span className="aws-brand-badge">Beta</span>
           </div>
@@ -428,7 +425,6 @@ export default function ChildAiPage({ token, childName }) {
         <div className="aws-messages" role="log" aria-live="polite" aria-atomic="false">
           {messages.length === 0 && !isActive && (
             <div className="aws-chat-empty">
-              <div className="child-ai-empty-emoji">🤖</div>
               <p className="aws-chat-empty-greeting">Hey {firstName}! I'm Buddy!</p>
               <p className="aws-chat-empty-sub">
                 I can help with homework, gaming checks, study breaks, and more. What do you need?

@@ -9,7 +9,7 @@ function fmtCost(cost, currency) {
 }
 
 function categoryLabel(cat) {
-  const map = { gaming_time: '⏱ Gaming Time', giftcard: '🎮 Gift Cards', custom: '⭐ Custom' };
+  const map = { gaming_time: 'Gaming Time', giftcard: 'Gift Cards', custom: 'Custom' };
   return map[cat] || cat;
 }
 
@@ -83,11 +83,11 @@ function RewardCard({ reward, canAfford, onClick }) {
           ? <img src={reward.imageUrl} alt={reward.platform ? `${reward.platform} reward` : ''} className="rs-card-img" />
           : <div className="rs-card-img-placeholder" aria-hidden="true">{categoryLabel(reward.category)[0]}</div>}
         {reward.pointsType === 'GP' && (
-          <span className="rs-gp-badge" aria-label="GP reward">💰</span>
+          <span className="rs-gp-badge" aria-label="GP reward">GP</span>
         )}
         {locked && (
           <div className="rs-locked-overlay" aria-hidden="true">
-            <span className="rs-lock-icon">🔒</span>
+            <span className="rs-lock-icon">LOCK</span>
           </div>
         )}
       </div>
@@ -141,7 +141,7 @@ function RewardDetailSheet({ reward, canAfford, onRedeem, onClose, redeeming }) 
           {reward.platform && <span className="rs-sheet-platform">{reward.platform}</span>}
           {reward.description && <p className="rs-sheet-desc">{reward.description}</p>}
           <div className={`rs-cost-pill rs-cost-pill-${reward.pointsType.toLowerCase()}`}>
-            {reward.pointsType === 'GP' ? '💰' : '⭐'} {fmtCost(reward.pointsCost, reward.pointsType)}
+            {fmtCost(reward.pointsCost, reward.pointsType)}
           </div>
           <button
             type="button"
@@ -174,7 +174,7 @@ function LockedSheet({ reward, balance, onClose }) {
     <div className="rs-sheet-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="rs-sheet rs-sheet-locked" role="dialog" aria-modal="true" aria-label="Locked reward">
         <button type="button" className="rs-sheet-close" onClick={onClose} aria-label="Close">✕</button>
-        <div className="rs-locked-icon" aria-hidden="true">🔒</div>
+        <div className="rs-locked-icon" aria-hidden="true">LOCK</div>
         <h2 className="rs-sheet-title">Keep earning!</h2>
         <p className="rs-locked-msg">
           You need <strong>{needed} {reward.pointsType}</strong> more to unlock <strong>{reward.title}</strong>.
@@ -226,7 +226,6 @@ function RedemptionSuccess({ redemption, onBack }) {
     <div className="rs-redeemed">
       <ConfettiLayer />
       <div className="rs-redeemed-content">
-        <div className="rs-redeemed-icon" aria-hidden="true">🎮</div>
         <h2>Reward sent!</h2>
         <p className="rs-redeemed-msg">{redemption?.message || 'Your parent will fulfill this reward soon.'}</p>
         <button type="button" className="rs-btn-secondary" onClick={onBack}>Back to Store</button>
@@ -350,12 +349,10 @@ export default function RewardStore({ childId, token, onBalanceChange }) {
       <div className="rs-header">
         <div className="rs-balances">
           <output className="rs-balance rs-balance-rp" aria-live="polite" aria-label={`${balance.rpBalance} Reward Points`}>
-            <span className="rs-bal-icon" aria-hidden="true">⭐</span>
             <span className="rs-bal-val">{balance.rpBalance}</span>
             <span className="rs-bal-label">RP</span>
           </output>
           <output className="rs-balance rs-balance-gp" aria-live="polite" aria-label={`${(balance.gpBalance / 100).toFixed(2)} Gift Card Points`}>
-            <span className="rs-bal-icon" aria-hidden="true">💰</span>
             <span className="rs-bal-val">${(balance.gpBalance / 100).toFixed(2)}</span>
             <span className="rs-bal-label">GP</span>
           </output>
@@ -374,9 +371,9 @@ export default function RewardStore({ childId, token, onBalanceChange }) {
       <div className="rs-filter-tabs" role="tablist" aria-label="Filter rewards by category">
         {[
           { value: 'all', label: 'All' },
-          { value: 'gaming_time', label: '⏱ Gaming Time' },
-          { value: 'giftcard', label: '🎮 Gift Cards' },
-          { value: 'custom', label: '⭐ Custom' },
+          { value: 'gaming_time', label: 'Gaming Time' },
+          { value: 'giftcard', label: 'Gift Cards' },
+          { value: 'custom', label: 'Custom' },
         ].map((tab) => (
           <button
             key={tab.value}
@@ -396,7 +393,6 @@ export default function RewardStore({ childId, token, onBalanceChange }) {
 
       {phase === 'error' && (
         <div className="rs-error-state">
-          <span className="rs-error-icon" aria-hidden="true">🚫</span>
           <p>{errorMessage}</p>
           <button type="button" className="rs-btn-secondary" onClick={load}>Try Again</button>
         </div>
@@ -406,7 +402,6 @@ export default function RewardStore({ childId, token, onBalanceChange }) {
         sorted.length === 0
           ? (
             <div className="rs-empty-state">
-              <span aria-hidden="true">{filter === 'all' ? '🏆' : '🔍'}</span>
               <p>
                 {filter === 'all'
                   ? 'No rewards set up yet. Ask a parent!'

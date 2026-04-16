@@ -101,7 +101,7 @@ export default function AccountScreen() {
         {user?.email ? <Text style={styles.profileEmail}>{user.email}</Text> : null}
 
         <View style={styles.rolePill}>
-          <Text style={styles.rolePillText}>{isParent ? '👨‍👩‍👧 Parent' : '👦 Child'}</Text>
+          <Text style={styles.rolePillText}>{isParent ? 'Parent' : 'Child'}</Text>
         </View>
 
         {/* Balance chips */}
@@ -150,7 +150,7 @@ export default function AccountScreen() {
             disabled={refreshBusy}
             activeOpacity={0.8}
           >
-            <Text style={styles.actionIcon}>🔄</Text>
+            <Text style={styles.actionIcon}>↺</Text>
             <Text style={styles.actionLabel}>{refreshBusy ? 'Refreshing…' : 'Refresh profile'}</Text>
             <Text style={styles.actionChevron}>›</Text>
           </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function AccountScreen() {
 
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutRow} onPress={handleLogout} activeOpacity={0.85}>
-          <Text style={styles.signOutIcon}>🚪</Text>
+          <Text style={styles.signOutIcon}>→</Text>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>

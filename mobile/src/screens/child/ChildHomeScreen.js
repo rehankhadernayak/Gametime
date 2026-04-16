@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import Card from '../../components/Card';
@@ -132,7 +133,7 @@ function AiHeroPanel({ user, tasks, streak, navigation }) {
   if (pendingCount > 0) {
     greeting = `Hey ${firstName}! You have ${pendingCount} task${pendingCount !== 1 ? 's' : ''} waiting. Want to tackle the easiest one first?`;
   } else if (streak > 0) {
-    greeting = `You're on a ${streak}-day streak! Keep it going today 🔥`;
+    greeting = `You're on a ${streak}-day streak! Keep it going today!`;
   } else {
     greeting = `All caught up! Ask me anything or I can suggest some tasks.`;
   }
@@ -153,7 +154,7 @@ function AiHeroPanel({ user, tasks, streak, navigation }) {
       {/* Avatar + greeting */}
       <View style={styles.aiHeroTop}>
         <View style={styles.aiHeroAvatar}>
-          <Text style={styles.aiHeroAvatarEmoji}>🤖</Text>
+          <Text style={styles.aiHeroAvatarEmoji}>AI</Text>
         </View>
         <View style={styles.aiHeroBubble}>
           <Text style={styles.aiHeroGreeting}>{greeting}</Text>
@@ -254,6 +255,20 @@ export default function ChildHomeScreen() {
 
   return (
     <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      {/* Top bar — greeting + nav icons */}
+      <View style={styles.topBar}>
+        <Text style={styles.topGreeting}>Hi, {user?.name?.split(' ')[0] ?? 'there'}</Text>
+        <View style={styles.topActions}>
+          <TouchableOpacity onPress={() => navigation.navigate('ChildNotifications')} style={styles.topBtn} accessibilityLabel="Notifications">
+            <Ionicons name="notifications-outline" size={20} color={colors.childAccentDark} />
+            {unread.length > 0 && <View style={styles.topBtnBadge} />}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Account')} style={styles.topBtn} accessibilityLabel="Account">
+            <Ionicons name="person-circle-outline" size={22} color={colors.childAccentDark} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {loading ? (
         <Spinner full />
       ) : (
@@ -282,7 +297,7 @@ export default function ChildHomeScreen() {
                 <Text style={styles.cardLabel}>Achievements</Text>
                 {streak > 0 ? (
                   <View style={styles.streakChip}>
-                    <Text style={styles.streakText}>🔥 {streak} day streak</Text>
+                    <Text style={styles.streakText}>{streak} day streak</Text>
                   </View>
                 ) : null}
               </View>
@@ -301,7 +316,12 @@ export default function ChildHomeScreen() {
           {/* Notifications */}
           {unread.length > 0 ? (
             <Card>
-              <Text style={styles.cardLabel}>Notifications ({unread.length} new)</Text>
+              <View style={styles.notifHeader}>
+                <Text style={styles.cardLabel}>Notifications ({unread.length} new)</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ChildNotifications')}>
+                  <Text style={styles.seeAll}>See all →</Text>
+                </TouchableOpacity>
+              </View>
               {unread.slice(0, 5).map((n) => (
                 <View key={n.id} style={styles.notifItem}>
                   <View style={styles.notifDot} />
@@ -319,6 +339,33 @@ export default function ChildHomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  // ── Top bar ──
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  topGreeting: { fontSize: 18, fontWeight: '800', color: colors.text },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  topBtn: {
+    width: 34, height: 34,
+    alignItems: 'center', justifyContent: 'center',
+    borderRadius: 17,
+  },
+  topBtnBadge: {
+    position: 'absolute',
+    top: 5, right: 4,
+    width: 8, height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.danger,
+    borderWidth: 1.5,
+    borderColor: colors.background,
+  },
+
+  notifHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  seeAll: { fontSize: 12, fontWeight: '700', color: colors.childAccent },
+
   cardLabel: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   gamingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

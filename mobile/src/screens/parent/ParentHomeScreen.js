@@ -42,7 +42,7 @@ function ApprovalRow({ task, children, onReview }) {
   const verdictLabel =
     task.aiRecommendation === 'Approve' ? '✓ Approve' :
     task.aiRecommendation === 'Reject'  ? '✗ Reject' :
-    '⚠ Review';
+    'Review';
 
   return (
     <TouchableOpacity style={styles.approvalRow} onPress={onReview} activeOpacity={0.75}>
@@ -102,7 +102,7 @@ function ChildCard({ child, tasks, onSwitchToChild }) {
         </View>
         {(child.currentStreakDays ?? child.streak ?? 0) > 0 && (
           <View style={styles.streakPill}>
-            <Text style={styles.streakPillText}>🔥 {child.currentStreakDays ?? child.streak}d</Text>
+            <Text style={styles.streakPillText}>{child.currentStreakDays ?? child.streak}d streak</Text>
           </View>
         )}
       </View>
@@ -202,11 +202,11 @@ export default function ParentHomeScreen() {
       .slice(0, 6)
       .map((n) => ({
         id: n.id,
-        icon: n.type === 'task_submitted'   ? '📋' :
-              n.type === 'task_approved'    ? '✅' :
-              n.type === 'reward_redeemed'  ? '🎁' :
-              n.type === 'achievement_unlocked' ? '🏆' :
-              '🔔',
+        icon: n.type === 'task_submitted'       ? 'Sub' :
+              n.type === 'task_approved'         ? 'OK'  :
+              n.type === 'reward_redeemed'       ? 'Rwd' :
+              n.type === 'achievement_unlocked'  ? 'Ach' :
+              'i',
         text: n.message,
         time: timeAgo(n.createdAt)
       }));
@@ -248,10 +248,10 @@ export default function ParentHomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.aiBubble}
-            onPress={() => navigation.navigate('ParentAi')}
+            onPress={() => navigation.navigate('ParentTabs', { screen: 'ParentAiTab' })}
             activeOpacity={0.8}
           >
-            <Text style={styles.aiBubbleIcon}>✨</Text>
+            <Text style={styles.aiBubbleIcon}>AI</Text>
             <Text style={styles.aiBubbleLabel}>AI</Text>
           </TouchableOpacity>
         </View>
@@ -285,7 +285,7 @@ export default function ParentHomeScreen() {
       {/* ── Active gaming session banner ── */}
       {activeSessions.length > 0 && (
         <View style={styles.sessionBanner}>
-          <Text style={styles.sessionBannerIcon}>🎮</Text>
+          <Text style={styles.sessionBannerIcon}>Live</Text>
           <View style={{ flex: 1 }}>
             <Text style={styles.sessionBannerTitle}>Gaming session active</Text>
             <Text style={styles.sessionBannerDesc}>
@@ -320,7 +320,7 @@ export default function ParentHomeScreen() {
 
         {pendingTasks.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>✅</Text>
+            <Text style={styles.emptyIcon}>All clear</Text>
             <Text style={styles.emptyText}>All caught up! No tasks waiting for review.</Text>
           </View>
         ) : (
@@ -350,7 +350,7 @@ export default function ParentHomeScreen() {
 
         {children.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyIcon}>👶</Text>
+            <Text style={styles.emptyIcon}>—</Text>
             <Text style={styles.emptyText}>Add a child to get started.</Text>
           </View>
         ) : (
@@ -386,8 +386,8 @@ export default function ParentHomeScreen() {
       {insights?.narrative ? (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>✨ Family Insights</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('ParentAi')}>
+            <Text style={styles.sectionTitle}>Family Insights</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('ParentTabs', { screen: 'ParentAiTab' })}>
               <Text style={styles.sectionLink}>Ask AI →</Text>
             </TouchableOpacity>
           </View>

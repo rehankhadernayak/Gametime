@@ -8,12 +8,12 @@ import './ParentOnboarding.css';
 const AGES = Array.from({ length: 8 }, (_, i) => i + 6); // 6–13
 
 const TASK_TILES = [
-  { icon: '🧹', title: 'Clean your bedroom',    description: 'Tidy up and make the bed.',           points: 20, category: 'chores'     },
-  { icon: '📚', title: 'Finish homework',         description: 'Complete all school assignments.',     points: 15, category: 'school'     },
-  { icon: '🍽️', title: 'Clear the table',        description: 'Clear and wipe the dining table.',     points: 10, category: 'chores'     },
-  { icon: '🌿', title: 'Water the plants',        description: 'Water all plants in the house.',       points: 10, category: 'chores'     },
-  { icon: '🛏️', title: 'Make the bed',           description: 'Make your bed neatly every morning.',  points: 5,  category: 'chores'     },
-  { icon: '✏️', title: 'Read for 20 minutes',    description: 'Read any book for at least 20 min.',   points: 15, category: 'school'     },
+  { icon: '', title: 'Clean your bedroom',    description: 'Tidy up and make the bed.',           points: 20, category: 'chores'     },
+  { icon: '', title: 'Finish homework',         description: 'Complete all school assignments.',     points: 15, category: 'school'     },
+  { icon: '', title: 'Clear the table',        description: 'Clear and wipe the dining table.',     points: 10, category: 'chores'     },
+  { icon: '', title: 'Water the plants',        description: 'Water all plants in the house.',       points: 10, category: 'chores'     },
+  { icon: '', title: 'Make the bed',           description: 'Make your bed neatly every morning.',  points: 5,  category: 'chores'     },
+  { icon: '', title: 'Read for 20 minutes',    description: 'Read any book for at least 20 min.',   points: 15, category: 'school'     },
 ];
 
 const POINTS_OPTIONS = [5, 10, 15, 20, 25, 30, 40, 50];
@@ -253,15 +253,14 @@ export default function ParentOnboarding({ token, onComplete }) {
       <div className="ob-backdrop">
         <Confetti />
         <div className="ob-card ob-card--success">
-          <div className="ob-success-icon" aria-hidden="true">✅</div>
-          <h1 className="ob-success-title">You're all set! 🎉</h1>
+          <h1 className="ob-success-title">You're all set!</h1>
           <p className="ob-success-sub">
             {createdChild?.name}'s first task is live. Share the app with them to get started.
           </p>
           <div className="ob-success-recap">
-            {createdChild && <span className="ob-recap-pill">👶 {createdChild.name}</span>}
-            {createdTask && <span className="ob-recap-pill">✅ {createdTask.title}</span>}
-            {createdReward && <span className="ob-recap-pill">🎁 {createdReward.title}</span>}
+            {createdChild && <span className="ob-recap-pill">{createdChild.name}</span>}
+            {createdTask && <span className="ob-recap-pill">{createdTask.title}</span>}
+            {createdReward && <span className="ob-recap-pill">{createdReward.title}</span>}
           </div>
           {childPin && (
             <p className="ob-success-pin">
@@ -283,8 +282,7 @@ export default function ParentOnboarding({ token, onComplete }) {
         {step === 1 && (
           <>
             <ProgressBar step={1} total={4} />
-            <div className="ob-icon" aria-hidden="true">🏠</div>
-            <h1 className="ob-heading">Welcome to Gametime! 🎉</h1>
+            <h1 className="ob-heading">Welcome to Gametime!</h1>
             <p className="ob-sub">Let's set up your family in under 5 minutes so your child can start earning rewards today.</p>
             <div className="ob-callout">
               <strong>How it works:</strong> You create tasks → your child submits photo proof → AI reviews it → you approve → they earn points → they redeem for gaming time or gift cards.
@@ -302,7 +300,6 @@ export default function ParentOnboarding({ token, onComplete }) {
         {step === 2 && (
           <>
             <ProgressBar step={2} total={4} />
-            <div className="ob-icon" aria-hidden="true">👶</div>
             <h1 className="ob-heading">Add your first child</h1>
             <p className="ob-sub">You can add more children later from the Family tab.</p>
 
@@ -360,7 +357,6 @@ export default function ParentOnboarding({ token, onComplete }) {
         {step === 3 && (
           <>
             <ProgressBar step={3} total={4} />
-            <div className="ob-icon" aria-hidden="true">📋</div>
             <h1 className="ob-heading">Give {createdChild?.name} their first task</h1>
             <p className="ob-sub">They'll submit photo proof when done. You approve and they earn points.</p>
 
@@ -436,7 +432,7 @@ export default function ParentOnboarding({ token, onComplete }) {
             )}
 
             <div className="ob-callout ob-callout--info">
-              💡 <strong>What are RP?</strong> Regular Points — your child earns these by completing tasks and spends them on rewards you create.
+              <strong>What are RP?</strong> Regular Points — your child earns these by completing tasks and spends them on rewards you create.
             </div>
 
             <div className="ob-actions">
@@ -453,7 +449,6 @@ export default function ParentOnboarding({ token, onComplete }) {
         {step === 4 && (
           <>
             <ProgressBar step={4} total={4} />
-            <div className="ob-icon" aria-hidden="true">🎁</div>
             <h1 className="ob-heading">What does {createdChild?.name} want to earn?</h1>
             <p className="ob-sub">Pick a reward to give them something to work towards.</p>
 
@@ -465,7 +460,6 @@ export default function ParentOnboarding({ token, onComplete }) {
                 className={`ob-reward-card${rewardType === 'gaming' ? ' ob-reward-card--selected' : ''}`}
                 onClick={() => setRewardType('gaming')}
               >
-                <span className="ob-reward-icon">⏱️</span>
                 <strong className="ob-reward-name">Gaming Time (RP)</strong>
                 <span className="ob-reward-desc">Let {createdChild?.name} earn extra gaming sessions using Regular Points — no money needed.</span>
               </button>
@@ -474,7 +468,6 @@ export default function ParentOnboarding({ token, onComplete }) {
                 className={`ob-reward-card${rewardType === 'giftcard' ? ' ob-reward-card--selected' : ''}`}
                 onClick={() => setRewardType('giftcard')}
               >
-                <span className="ob-reward-icon">🎮</span>
                 <strong className="ob-reward-name">Gift Card (GP)</strong>
                 <span className="ob-reward-desc">Roblox, Steam, Razer Gold and more — funded by you via the Wallet tab.</span>
               </button>
@@ -514,7 +507,7 @@ export default function ParentOnboarding({ token, onComplete }) {
                 </div>
                 <div className="ob-preview-card">
                   <span className="ob-preview-label">Preview</span>
-                  <span className="ob-preview-title">⏱️ {gamingMinutes} min Gaming Session</span>
+                  <span className="ob-preview-title">{gamingMinutes} min Gaming Session</span>
                   <span className="ob-preview-cost">{gamingCost} RP</span>
                 </div>
               </div>
@@ -522,14 +515,14 @@ export default function ParentOnboarding({ token, onComplete }) {
 
             {rewardType === 'giftcard' && (
               <div className="ob-callout ob-callout--info">
-                💡 The reward listing will be created now. You fund it by topping up your GP wallet from the Dashboard → Wallet tab.
+                The reward listing will be created now. You fund it by topping up your GP wallet from the Dashboard → Wallet tab.
               </div>
             )}
 
             <div className="ob-actions">
               <button className="ob-btn ob-btn--ghost ob-btn--back" onClick={back}>← Back</button>
               <button className="ob-btn ob-btn--primary" onClick={() => handleStep4(false)} disabled={busy || !rewardType}>
-                {busy ? 'Finishing…' : 'Finish Setup 🎉'}
+                {busy ? 'Finishing…' : 'Finish Setup'}
               </button>
             </div>
             <button className="ob-btn ob-btn--ghost" onClick={() => handleStep4(true)}>

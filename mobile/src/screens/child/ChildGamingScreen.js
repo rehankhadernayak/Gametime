@@ -245,7 +245,7 @@ export default function ChildGamingScreen() {
               <Text style={styles.sectionTitle}>Blocked games</Text>
               {blockedGames.map((game) => (
                 <View key={game.id} style={styles.blockedItem}>
-                  <Text style={styles.blockedIcon}>🚫</Text>
+                  <Text style={styles.blockedIcon}>BLK</Text>
                   <Text style={styles.blockedName}>{game.name}</Text>
                   <Text style={styles.blockedPlatform}>{game.platform}</Text>
                 </View>
@@ -257,7 +257,7 @@ export default function ChildGamingScreen() {
           <Card>
             <Text style={styles.sectionTitle}>Recent sessions</Text>
             {sessions.length === 0 ? (
-              <EmptyState icon="🎮" title="No sessions yet" message="Start your first gaming session above." />
+              <EmptyState title="No sessions yet" message="Start your first gaming session above." />
             ) : (
               sessions.slice(0, 8).map((session) => (
                 <View key={session.id} style={styles.sessionItem}>

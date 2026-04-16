@@ -34,7 +34,6 @@ function EvidenceSkeleton() {
 function EvidenceError({ message, onRetry, onClose }) {
   return (
     <div className="erp-error-state" role="alert">
-      <span className="erp-error-icon" aria-hidden="true">⚠️</span>
       <p>{message || 'Failed to load evidence.'}</p>
       <div className="erp-error-actions">
         <button type="button" className="erp-btn erp-btn-secondary" onClick={onRetry}>
@@ -54,7 +53,6 @@ function MediaViewer({ mediaType, mediaUrl, thumbnailUrl, title }) {
   if (!mediaUrl) {
     return (
       <div className="erp-media-placeholder">
-        <span aria-hidden="true">📎</span>
         <p>No media attached</p>
       </div>
     );
@@ -149,11 +147,11 @@ function AIVerdictCard({ verdict, score, note }) {
   }[verdict] || 'erp-verdict-pending';
 
   const icon = {
-    approve: '✅',
-    review:  '⚠️',
-    return:  '🔴',
-    pending: '⏳',
-  }[verdict] || '⏳';
+    approve: 'OK',
+    review:  '!',
+    return:  'X',
+    pending: '...',
+  }[verdict] || '...';
 
   return (
     <div className={`erp-ai-card ${isPending ? 'erp-ai-pulsing' : ''}`}>
@@ -441,7 +439,7 @@ export default function EvidenceReviewPanel({ submissionId, taskId, onClose, onR
                     aria-busy={isBusy}
                     title={isAIPending ? 'Waiting for AI review' : undefined}
                   >
-                    ✅ Approve (+{sub.pointValue} RP)
+                    Approve (+{sub.pointValue} RP)
                   </button>
                   <button
                     type="button"
@@ -450,7 +448,7 @@ export default function EvidenceReviewPanel({ submissionId, taskId, onClose, onR
                     disabled={isBusy}
                     aria-busy={isBusy}
                   >
-                    ✏️ Request Changes
+                    Request Changes
                   </button>
                   <button
                     type="button"
@@ -459,16 +457,16 @@ export default function EvidenceReviewPanel({ submissionId, taskId, onClose, onR
                     disabled={isBusy}
                     aria-busy={isBusy}
                   >
-                    ❌ Fail Task
+                    Fail Task
                   </button>
                 </div>
               )}
 
               {s.status === 'success' && (
                 <div className="erp-success-banner" role="status" aria-live="polite">
-                  {s.decision === 'approve' && '✅ Approved!'}
-                  {s.decision === 'request_revision' && '✏️ Revision requested.'}
-                  {s.decision === 'reject' && '❌ Task failed.'}
+                  {s.decision === 'approve' && 'Approved!'}
+                  {s.decision === 'request_revision' && 'Revision requested.'}
+                  {s.decision === 'reject' && 'Task failed.'}
                   <span className="erp-success-sub">Closing…</span>
                 </div>
               )}

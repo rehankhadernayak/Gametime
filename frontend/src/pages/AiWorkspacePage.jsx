@@ -352,7 +352,6 @@ function ApprovalsArtifact({ tasks, token, onTaskDone }) {
   return (
     <div className="aws-artifact aws-artifact--approvals">
       <div className="aws-artifact-header">
-        <span className="aws-artifact-icon">📋</span>
         <span className="aws-artifact-title">Pending Approvals</span>
         <span className="aws-artifact-badge">{remaining.length} left</span>
       </div>
@@ -401,11 +400,11 @@ function CanvasEmpty() {
    Quick action chips — context-aware suggestions
    ───────────────────────────────────────────────────────────────────────── */
 const INITIAL_CHIPS = [
-  { label: '🌅 Morning briefing', action: 'morning_briefing' },
-  { label: '🔔 What needs my attention?', prompt: "What needs my attention right now? Check for pending approvals and anything urgent." },
-  { label: '👨‍👩‍👧 Show family overview',     prompt: 'Show me an overview of my family — children, their balances, and current tasks.' },
-  { label: '✏️ Create a task',              action: 'create_task' },
-  { label: '🎁 Set up a reward',             prompt: 'I want to create a reward my children can redeem with their points.' },
+  { label: 'Morning briefing', action: 'morning_briefing' },
+  { label: 'What needs my attention?', prompt: "What needs my attention right now? Check for pending approvals and anything urgent." },
+  { label: 'Show family overview',     prompt: 'Show me an overview of my family — children, their balances, and current tasks.' },
+  { label: 'Create a task',              action: 'create_task' },
+  { label: 'Set up a reward',             prompt: 'I want to create a reward my children can redeem with their points.' },
 ];
 
 function buildChips(artifacts, familyData) {
@@ -417,21 +416,21 @@ function buildChips(artifacts, familyData) {
   if (!hasFamilyArtifact && !hasApprovals) return INITIAL_CHIPS;
 
   const childChips = children.slice(0, 3).map((c) => ({
-    label: `⚔️ Quest for ${c.name}`,
+    label: `Quest for ${c.name}`,
     prompt: `Create a quest for ${c.name}.`
   }));
 
   const base = [
     ...childChips,
-    { label: '🎁 Add a reward',    prompt: 'Create a new reward item for my children.' },
-    { label: '📅 Plan this week',  prompt: "Help me plan this week's quests and gaming schedule." },
+    { label: 'Add a reward',    prompt: 'Create a new reward item for my children.' },
+    { label: 'Plan this week',  prompt: "Help me plan this week's quests and gaming schedule." },
   ];
 
   if (hasTask) {
-    base.unshift({ label: '⚔️ Another quest', prompt: 'Create another quest for one of my children.' });
+    base.unshift({ label: 'Another quest', prompt: 'Create another quest for one of my children.' });
   }
   if (!hasApprovals) {
-    base.unshift({ label: '🔔 Check approvals', prompt: 'Show me any pending task approvals.' });
+    base.unshift({ label: 'Check approvals', prompt: 'Show me any pending task approvals.' });
   }
 
   return base.slice(0, 5);
@@ -491,7 +490,7 @@ function ChildInsightCard({ child }) {
         <div className="insights-stat">
           <span className="insights-stat-label">Late-Night Sessions</span>
           <span className={`insights-stat-val${child.lateNightSessions > 0 ? ' warn' : ''}`}>
-            {child.lateNightSessions > 0 ? `⚠ ${child.lateNightSessions}` : '0'}
+            {child.lateNightSessions > 0 ? child.lateNightSessions : '0'}
           </span>
         </div>
         <div className="insights-stat">
@@ -538,7 +537,6 @@ function InsightsPanel({ token }) {
   if (!generated) {
     return (
       <div className="insights-empty">
-        <div className="insights-empty-icon">📊</div>
         <h3>Weekly Family Insights</h3>
         <p>Get an AI-powered summary of your children's gaming and task activity this week.</p>
         <button
@@ -569,7 +567,6 @@ function InsightsPanel({ token }) {
     <div className="insights-panel">
       {insights?.narrative && (
         <div className="insights-narrative">
-          <span className="insights-narrative-icon">✨</span>
           <p>{insights.narrative}</p>
         </div>
       )}
@@ -1061,7 +1058,7 @@ export default function AiWorkspacePage({ token, parentName }) {
         {/* Hint text — shown only when canvas is empty */}
         {historyLoaded && messages.length === 0 && !isActive && (
           <p className="ai-hint-text">
-            💡 Try: &ldquo;Create a task for Ethan to clean his room by Sunday worth 15 RP&rdquo;<br />
+            Try: &ldquo;Create a task for Ethan to clean his room by Sunday worth 15 RP&rdquo;<br />
             &ldquo;What needs my attention today?&rdquo; &nbsp;&bull;&nbsp; &ldquo;Give Sophia a 5 RP bonus for helping with dinner&rdquo;
           </p>
         )}

@@ -419,7 +419,7 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
         <p className="settings-save-note">
           {notifSaveStatus === 'saving' && 'Saving…'}
           {notifSaveStatus === 'saved'  && '✓ Saved'}
-          {notifSaveStatus === 'error'  && '⚠ Could not save preferences'}
+          {notifSaveStatus === 'error'  && 'Could not save preferences'}
           {!notifSaveStatus             && 'Preferences sync automatically.'}
         </p>
       </div>

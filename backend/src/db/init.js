@@ -223,17 +223,33 @@ export async function initDb() {
   // Seed achievements (INSERT OR IGNORE so re-runs are safe)
   await db.exec(`
     INSERT OR IGNORE INTO achievements (id, key, name, description, icon, type, threshold) VALUES
-      ('ach_01', 'first_task',  'First Step',      'Complete your first task',           '🌟', 'task_count', 1),
-      ('ach_02', 'tasks_5',     'Getting Started',  'Complete 5 tasks',                   '🔥', 'task_count', 5),
-      ('ach_03', 'tasks_10',    'Taskmaster Jr.',   'Complete 10 tasks',                  '💪', 'task_count', 10),
-      ('ach_04', 'tasks_25',    'Consistent',       'Complete 25 tasks',                  '🏅', 'task_count', 25),
-      ('ach_05', 'tasks_50',    'Half-Century',     'Complete 50 tasks',                  '🥈', 'task_count', 50),
-      ('ach_06', 'tasks_100',   'Century Club',     'Complete 100 tasks',                 '🏆', 'task_count', 100),
-      ('ach_07', 'streak_3',    'Hat-Trick',        'Complete tasks 3 days in a row',     '📅', 'streak',     3),
-      ('ach_08', 'streak_7',    'Week Warrior',     'Complete tasks 7 days in a row',     '⚡', 'streak',     7),
-      ('ach_09', 'streak_30',   'Unstoppable',      'Complete tasks 30 days in a row',    '🌈', 'streak',     30),
-      ('ach_10', 'points_100',  'Point Collector',  'Earn 100 Reward Points',             '💰', 'points',     100),
-      ('ach_11', 'points_500',  'High Scorer',      'Earn 500 Reward Points',             '💎', 'points',     500),
-      ('ach_12', 'points_1000', 'RP Legend',        'Earn 1000 Reward Points',            '👑', 'points',     1000)
+      ('ach_01', 'first_task',  'First Step',      'Complete your first task',           '1st', 'task_count', 1),
+      ('ach_02', 'tasks_5',     'Getting Started',  'Complete 5 tasks',                   'x5',  'task_count', 5),
+      ('ach_03', 'tasks_10',    'Taskmaster Jr.',   'Complete 10 tasks',                  'x10', 'task_count', 10),
+      ('ach_04', 'tasks_25',    'Consistent',       'Complete 25 tasks',                  'x25', 'task_count', 25),
+      ('ach_05', 'tasks_50',    'Half-Century',     'Complete 50 tasks',                  'x50', 'task_count', 50),
+      ('ach_06', 'tasks_100',   'Century Club',     'Complete 100 tasks',                 '100', 'task_count', 100),
+      ('ach_07', 'streak_3',    'Hat-Trick',        'Complete tasks 3 days in a row',     '3d',  'streak',     3),
+      ('ach_08', 'streak_7',    'Week Warrior',     'Complete tasks 7 days in a row',     '7d',  'streak',     7),
+      ('ach_09', 'streak_30',   'Unstoppable',      'Complete tasks 30 days in a row',    '30d', 'streak',     30),
+      ('ach_10', 'points_100',  'Point Collector',  'Earn 100 Reward Points',             '100', 'points',     100),
+      ('ach_11', 'points_500',  'High Scorer',      'Earn 500 Reward Points',             '500', 'points',     500),
+      ('ach_12', 'points_1000', 'RP Legend',        'Earn 1000 Reward Points',            '1k',  'points',     1000)
+  `);
+
+  // Fix icon values for any existing rows that still have the old emoji icons
+  await db.exec(`
+    UPDATE achievements SET icon = '1st' WHERE id = 'ach_01' AND icon = '🌟';
+    UPDATE achievements SET icon = 'x5'  WHERE id = 'ach_02' AND icon = '🔥';
+    UPDATE achievements SET icon = 'x10' WHERE id = 'ach_03' AND icon = '💪';
+    UPDATE achievements SET icon = 'x25' WHERE id = 'ach_04' AND icon = '🏅';
+    UPDATE achievements SET icon = 'x50' WHERE id = 'ach_05' AND icon = '🥈';
+    UPDATE achievements SET icon = '100' WHERE id = 'ach_06' AND icon = '🏆';
+    UPDATE achievements SET icon = '3d'  WHERE id = 'ach_07' AND icon = '📅';
+    UPDATE achievements SET icon = '7d'  WHERE id = 'ach_08' AND icon = '⚡';
+    UPDATE achievements SET icon = '30d' WHERE id = 'ach_09' AND icon = '🌈';
+    UPDATE achievements SET icon = '100' WHERE id = 'ach_10' AND icon = '💰';
+    UPDATE achievements SET icon = '500' WHERE id = 'ach_11' AND icon = '💎';
+    UPDATE achievements SET icon = '1k'  WHERE id = 'ach_12' AND icon = '👑';
   `);
 }

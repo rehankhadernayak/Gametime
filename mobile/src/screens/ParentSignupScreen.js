@@ -48,12 +48,12 @@ export default function ParentSignupScreen({ navigation }) {
         {/* Gradient header */}
         <LinearGradient colors={['#3B5BDB', '#7C3AED']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.hero, { paddingTop: insets.top + 40 }]}>
           <View style={styles.logoWrap}>
-            <Text style={styles.logoEmoji}>🎮</Text>
+            <Text style={styles.logoEmoji}>GT</Text>
           </View>
           <Text style={styles.heroTitle}>Create account</Text>
           <Text style={styles.heroSub}>Set up your parent account to get started</Text>
           <View style={styles.heroPill}>
-            <Text style={styles.heroPillText}>Singapore families 🇸🇬</Text>
+            <Text style={styles.heroPillText}>For Singapore families</Text>
           </View>
         </LinearGradient>
 

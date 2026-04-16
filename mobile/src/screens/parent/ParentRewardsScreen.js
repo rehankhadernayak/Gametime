@@ -312,7 +312,7 @@ export default function ParentRewardsScreen() {
                 {rewards.map((reward) => (
                   <View key={reward.id} style={styles.rewardRow}>
                     <View style={styles.rewardIconWrap}>
-                      <Text style={styles.rewardIcon}>{reward.isGiftcard ? '🎁' : '⭐'}</Text>
+                      <Text style={styles.rewardIcon}>{reward.isGiftcard ? 'GC' : 'RP'}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.rewardTitle}>{reward.title}</Text>
@@ -326,7 +326,7 @@ export default function ParentRewardsScreen() {
                       onPress={() => handleDeleteReward(reward.id)}
                       disabled={deleteBusy === reward.id}
                     >
-                      <Text style={styles.deleteBtnText}>{deleteBusy === reward.id ? '…' : '🗑'}</Text>
+                      <Text style={styles.deleteBtnText}>{deleteBusy === reward.id ? '…' : 'Del'}</Text>
                     </TouchableOpacity>
                   </View>
                 ))}

@@ -550,7 +550,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           {briefing && (
             <div className="briefing-card">
               <div className="briefing-header">
-                <div className="briefing-avatar" aria-hidden="true">✨</div>
+                <div className="briefing-avatar" aria-hidden="true"></div>
                 <div>
                   <strong>Good morning, {parentName?.split(' ')[0] || 'there'}</strong>
                 </div>
@@ -728,11 +728,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                             <td>
                               <div className="ai-review-box" aria-live="polite">
                                 {!task.aiStatus ? (
-                                  <p className="ai-pending">⏳ Analysis pending…</p>
+                                  <p className="ai-pending">Analysis pending…</p>
                                 ) : (
                                   <>
                                     <p>
-                                      <strong>{task.aiStatus === 'Unavailable' ? '⚙️ Local advisory' : '🤖 AI'}:</strong>{' '}
+                                      <strong>{task.aiStatus === 'Unavailable' ? 'Local advisory' : 'AI'}:</strong>{' '}
                                       {task.aiRecommendation || 'NeedsParentReview'}
                                       {task.aiStatus === 'Unavailable' ? <span className="ai-badge"> (no AI key)</span> : null}
                                     </p>
@@ -1241,14 +1241,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 {leaderboard.map((child) => (
                   <div key={child.id} className={`leaderboard-row leaderboard-rank-${Math.min(child.rank, 4)}`}>
                     <span className="leaderboard-rank">
-                      {child.rank === 1 ? '🥇' : child.rank === 2 ? '🥈' : child.rank === 3 ? '🥉' : `#${child.rank}`}
+                      {`#${child.rank}`}
                     </span>
                     <div className="leaderboard-name">{child.name}</div>
                     <div className="leaderboard-stats">
                       <span className="leaderboard-stat"><strong>{child.rpBalance}</strong> RP</span>
                       <span className="leaderboard-stat"><strong>{child.weeklyTasks}</strong> tasks this week</span>
                       {child.streak > 0 && (
-                        <span className="leaderboard-stat streak-stat">🔥 {child.streak}d streak</span>
+                        <span className="leaderboard-stat streak-stat">{child.streak}d streak</span>
                       )}
                     </div>
                   </div>

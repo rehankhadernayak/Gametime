@@ -205,7 +205,7 @@ function ConfirmStep({ amountCents, allocations, children }) {
       </div>
 
       <p className="topup-payment-note">
-        🔒 Powered by Stripe · Secured by Gametime
+        Powered by Stripe · Secured by Gametime
       </p>
     </div>
   );
@@ -419,7 +419,7 @@ export default function GpTopUpFlow({ children, onClose, onSuccess, token }) {
 
           {error && (
             <div className="topup-error-banner" role="alert">
-              <span aria-hidden="true">⚠</span> {error}
+              {error}
               <button
                 type="button"
                 className="topup-btn topup-btn-ghost"
