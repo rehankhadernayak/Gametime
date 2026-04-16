@@ -11,3 +11,4 @@ build/
 Gametime-Product-Build-Web.zip
 demo_build/
 .aider*
+.env*
