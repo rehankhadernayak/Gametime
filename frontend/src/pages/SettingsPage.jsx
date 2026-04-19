@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { apiRequest } from '../api/client.js';
+import { API_BASE, apiRequest } from '../api/client.js';
 import ChildCreation from './ChildCreation.jsx';
 
 /* ── Icons ──────────────────────────────────────────────────────────── */
@@ -177,7 +177,6 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
   async function handleExportData() {
     setExportBusy(true);
     try {
-      const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
       const res = await fetch(`${API_BASE}/auth/export-data`, {
         credentials: 'include',
         headers: { Authorization: `Bearer ${token}` }

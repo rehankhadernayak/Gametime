@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { API_BASE } from '../api/client.js';
 
-const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 
 /* ── Send icon ──────────────────────────────────────────────────────── */
 function SendIcon() {

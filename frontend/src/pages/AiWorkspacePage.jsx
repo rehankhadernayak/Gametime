@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiRequest } from '../api/client.js';
-
-const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+import { API_BASE, apiRequest } from '../api/client.js';
 
 /* ─────────────────────────────────────────────────────────────────────────
    Icons

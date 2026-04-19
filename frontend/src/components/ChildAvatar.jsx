@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './ChildAvatar.css';
-
-const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+import { API_BASE } from '../api/client.js';
 
 /**
  * ChildAvatar - displays a child's avatar photo or a fallback initial-letter circle.

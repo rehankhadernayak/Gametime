@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+import { API_BASE } from '../api/client.js';
 
 export default function TaskCompletionForm({ tasks, onComplete, token }) {
   const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024; // 10 MB - matches backend validation limit

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiRequest } from '../api/client.js';
+import { API_BASE, apiRequest } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
 import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
 import ChildAvatar from '../components/ChildAvatar.jsx';
@@ -11,7 +11,6 @@ import ChildAvatar from '../components/ChildAvatar.jsx';
    sending the raw base64 in the task-list response and works regardless of
    whether the frontend and backend run on the same origin.
    ──────────────────────────────────────────────────────────────────────── */
-const EVIDENCE_API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 
 function EvidenceMedia({ completionId, evidenceType, evidenceMime, token, title }) {
   const [src,     setSrc]     = useState(null);
@@ -26,7 +25,7 @@ function EvidenceMedia({ completionId, evidenceType, evidenceMime, token, title 
     setErrored(false);
     setSrc(null);
 
-    fetch(`${EVIDENCE_API_BASE}/tasks/evidence/${completionId}`, {
+    fetch(`${API_BASE}/tasks/evidence/${completionId}`, {
       credentials: 'include',
       headers: { Authorization: `Bearer ${token}` }
     })
