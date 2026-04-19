@@ -1,5 +1,5 @@
 import { trackEvent } from '../utils/analytics.js';
-export const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+export const API_BASE = String(import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 const REQUEST_TIMEOUT_MS = 15000;
 
 export class ApiRequestError extends Error {
