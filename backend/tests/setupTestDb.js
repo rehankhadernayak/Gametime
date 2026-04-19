@@ -24,6 +24,7 @@ export function setupTestEnv() {
   process.env.ATHENA_API_VERSION = 'v2';
   process.env.ATHENA_GIFTCODE_SECRET = 'test-athena-giftcode-secret';
   process.env.ATHENA_WEBHOOK_SECRET = 'test-athena-webhook-secret';
+  process.env.EMAIL_CHECK_MODE = 'mx';
 }
 
 export async function resetTestDb() {

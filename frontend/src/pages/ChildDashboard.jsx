@@ -724,7 +724,7 @@ export default function ChildDashboard({ token }) {
                                         type: 'success',
                                         title: 'Redeemed!',
                                         message: response?.fulfilled
-                                          ? 'Gift card code is ready — see below!'
+                                          ? 'Gift card code is ready - see below!'
                                           : 'Successfully redeemed. Parent will fulfill it soon.'
                                       }
                                     })
@@ -762,7 +762,7 @@ export default function ChildDashboard({ token }) {
               </div>
               <p className="giftcard-reveal-title">{revealedCode.rewardTitle}</p>
               {revealedCode.giftcardName && (
-                <p className="giftcard-reveal-meta">{revealedCode.giftcardName}{revealedCode.skuName ? ` — ${revealedCode.skuName}` : ''}</p>
+                <p className="giftcard-reveal-meta">{revealedCode.giftcardName}{revealedCode.skuName ? ` - ${revealedCode.skuName}` : ''}</p>
               )}
               <div className="giftcard-code-box">
                 <span className="giftcard-code-label">Code</span>

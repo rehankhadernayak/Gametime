@@ -114,7 +114,7 @@ const FEATURES = [
   {
     icon: <IconGift />,
     title: 'Real Gift Cards',
-    description: 'Kids redeem GP for actual gift cards — Roblox, Steam, Razer Gold — delivered instantly via the Athena network.',
+    description: 'Kids redeem GP for actual gift cards - Roblox, Steam, Razer Gold - delivered instantly via the Athena network.',
     color: 'purple',
   },
   {
@@ -136,7 +136,7 @@ const HOW_IT_WORKS = [
     number: '01',
     icon: <IconQuest />,
     title: 'Set Quests',
-    description: 'Parents create tasks — clean your room, finish homework, read for 20 minutes — each worth a set number of RP points.',
+    description: 'Parents create tasks - clean your room, finish homework, read for 20 minutes - each worth a set number of RP points.',
   },
   {
     number: '02',
@@ -148,7 +148,7 @@ const HOW_IT_WORKS = [
     number: '03',
     icon: <IconShieldCheck />,
     title: 'AI Reviews, Parent Approves',
-    description: 'Claude Vision analyses the evidence for completeness. Parent gets a smart summary and one-tap approve — child earns their RP.',
+    description: 'Claude Vision analyses the evidence for completeness. Parent gets a smart summary and one-tap approve - child earns their RP.',
   },
 ];
 

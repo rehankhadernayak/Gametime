@@ -85,7 +85,7 @@ export const taskScheduleUpdateSchema = z.object({
 
 // Evidence is stored as base64 in SQLite. Cap at ~10 MB (base64 ≈ 13.3 MB on wire).
 // This accommodates a high-quality mobile photo while preventing DB bloat.
-// Videos are intentionally capped at the same limit — encourage short clips.
+// Videos are intentionally capped at the same limit - encourage short clips.
 const EVIDENCE_MAX_BYTES = 10_000_000;
 
 export const taskCompleteSchema = z.object({

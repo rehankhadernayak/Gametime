@@ -16,7 +16,7 @@ function getStripe() {
 /**
  * Creates a Stripe Checkout session for a one-time GP purchase.
  * @param {string} parentId
- * @param {number} amountSgd  – whole SGD integer (e.g. 10 = S$10)
+ * @param {number} amountSgd  - whole SGD integer (e.g. 10 = S$10)
  * @returns {{ url: string }}
  */
 export async function createCheckoutSession(parentId, amountSgd) {
@@ -31,7 +31,7 @@ export async function createCheckoutSession(parentId, amountSgd) {
         price_data: {
           currency: 'sgd',
           product_data: {
-            name: `Gametime GP — S$${amountSgd} Gaming Funds`,
+            name: `Gametime GP - S$${amountSgd} Gaming Funds`,
             description: 'Giftcard Points for your children to spend on gaming rewards'
           },
           unit_amount: amountCents
@@ -92,16 +92,16 @@ export async function handleWebhook(rawBody, signature) {
   const { parentId, amountCents } = session.metadata;
   const db = await getDb();
 
-  // Idempotency check — skip if already credited
+  // Idempotency check - skip if already credited
   const existing = await db.get(
     `SELECT status FROM stripe_sessions WHERE id = ?`,
     [session.id]
   );
   if (!existing) {
-    // Session not found in our DB — log and continue safely
+    // Session not found in our DB - log and continue safely
     logger.warn({ sessionId: session.id }, 'Stripe webhook for unknown session; crediting anyway');
   } else if (existing.status === 'completed') {
-    logger.info({ sessionId: session.id }, 'Stripe webhook duplicate — already credited; skipping');
+    logger.info({ sessionId: session.id }, 'Stripe webhook duplicate - already credited; skipping');
     return { received: true };
   }
 
@@ -135,7 +135,7 @@ export async function handleWebhook(rawBody, signature) {
     logger.info({ parentId, amountCents, sessionId: session.id }, 'GP top-up credited via Stripe');
   } catch (err) {
     await db.exec('ROLLBACK');
-    logger.error({ err, sessionId: session.id }, 'Failed to credit GP after Stripe payment — will retry on next webhook');
+    logger.error({ err, sessionId: session.id }, 'Failed to credit GP after Stripe payment - will retry on next webhook');
     throw err;
   }
 

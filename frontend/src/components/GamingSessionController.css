@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   Gaming Session Controller — real-time countdown bar
+   Gaming Session Controller - real-time countdown bar
    ══════════════════════════════════════════════════════════════════════ */
 
 /* ── Session bar ────────────────────────────────────────────────────── */
@@ -132,7 +132,7 @@
 
 .gsc-btn-end:hover:not(:disabled) {
   background: var(--color-error);
-  color: #fff;
+  color: var(--text-main);
 }
 
 .gsc-btn-secondary {
@@ -145,7 +145,7 @@
 
 .gsc-btn-danger {
   background: var(--color-error);
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--color-error);
 }
 
@@ -240,7 +240,7 @@
 .gsc-end-title {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-main);
   margin: 0;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }

@@ -151,7 +151,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
     setSidebarOpen(false);
   }
 
-  /* In AI mode, clicking any section just navigates normally — the AI panel
+  /* In AI mode, clicking any section just navigates normally - the AI panel
      stays visible on the right regardless of which section is active. */
   function handleMenuClick(sectionId) {
     goToSection(sectionId);
@@ -230,7 +230,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
           )}
         </nav>
 
-        {/* ── AI Mode button (parent) — opens the AI workspace ── */}
+        {/* ── AI Mode button (parent) - opens the AI workspace ── */}
         {variant === 'parent' && (
           <div className="ai-mode-row">
             <button
@@ -244,7 +244,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
           </div>
         )}
 
-        {/* ── Study Buddy button (child) — opens the child AI workspace ── */}
+        {/* ── Study Buddy button (child) - opens the child AI workspace ── */}
         {variant === 'child' && (
           <div className="ai-mode-row">
             <button

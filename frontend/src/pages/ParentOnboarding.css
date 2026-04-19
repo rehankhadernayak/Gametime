@@ -63,7 +63,7 @@
 }
 
 .ob-progress-seg--done {
-  background: var(--color-primary, #3B5BDB);
+  background: var(--color-primary, var(--bg-action));
 }
 
 /* ── Headings ─────────────────────────────────────────────────────────────── */
@@ -76,7 +76,7 @@
 .ob-heading {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--color-primary, #3B5BDB);
+  color: var(--color-primary, var(--bg-action));
   line-height: 1.2;
   margin: 0;
 }
@@ -92,7 +92,7 @@
 
 .ob-callout {
   background: #eff6ff;
-  border-left: 3px solid var(--color-primary, #3B5BDB);
+  border-left: 3px solid var(--color-primary, var(--bg-action));
   border-radius: 10px;
   padding: 0.75rem 1rem;
   font-size: 0.88rem;
@@ -102,7 +102,7 @@
 
 .ob-callout--info {
   background: #f0fdf4;
-  border-left-color: #22c55e;
+  border-left-color: var(--color-success);
 }
 
 /* ── Error ────────────────────────────────────────────────────────────────── */
@@ -150,7 +150,7 @@
 }
 
 .ob-input:focus {
-  border-color: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, var(--bg-action));
   box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
 }
 
@@ -175,11 +175,11 @@
   transition: all 0.12s;
 }
 
-.ob-age-btn:hover { border-color: var(--color-primary, #3B5BDB); }
+.ob-age-btn:hover { border-color: var(--color-primary, var(--bg-action)); }
 
 .ob-age-btn--selected {
-  background: var(--color-primary, #3B5BDB);
-  border-color: var(--color-primary, #3B5BDB);
+  background: var(--color-primary, var(--bg-action));
+  border-color: var(--color-primary, var(--bg-action));
   color: #fff;
 }
 
@@ -205,7 +205,7 @@
 }
 
 .ob-pin-box:focus {
-  border-color: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, var(--bg-action));
   box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
 }
 
@@ -232,10 +232,10 @@
   transition: all 0.12s;
 }
 
-.ob-tile:hover { border-color: var(--color-primary, #3B5BDB); }
+.ob-tile:hover { border-color: var(--color-primary, var(--bg-action)); }
 
 .ob-tile--selected {
-  border-color: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, var(--bg-action));
   background: #eff6ff;
 }
 
@@ -251,7 +251,7 @@
 .ob-tile-points {
   font-size: 0.68rem;
   font-weight: 700;
-  color: var(--color-primary, #3B5BDB);
+  color: var(--color-primary, var(--bg-action));
   background: #eff6ff;
   border-radius: 999px;
   padding: 1px 7px;
@@ -263,7 +263,7 @@
   right: 7px;
   font-size: 0.68rem;
   font-weight: 900;
-  color: var(--color-primary, #3B5BDB);
+  color: var(--color-primary, var(--bg-action));
 }
 
 /* ── Points selector ──────────────────────────────────────────────────────── */
@@ -287,8 +287,8 @@
 }
 
 .ob-points-btn--selected {
-  background: var(--color-primary, #3B5BDB);
-  border-color: var(--color-primary, #3B5BDB);
+  background: var(--color-primary, var(--bg-action));
+  border-color: var(--color-primary, var(--bg-action));
   color: #fff;
 }
 
@@ -313,8 +313,8 @@
 }
 
 .ob-seg-btn--selected {
-  background: var(--color-primary, #3B5BDB);
-  border-color: var(--color-primary, #3B5BDB);
+  background: var(--color-primary, var(--bg-action));
+  border-color: var(--color-primary, var(--bg-action));
   color: #fff;
 }
 
@@ -339,10 +339,10 @@
   transition: all 0.15s;
 }
 
-.ob-reward-card:hover { border-color: var(--color-primary, #3B5BDB); }
+.ob-reward-card:hover { border-color: var(--color-primary, var(--bg-action)); }
 
 .ob-reward-card--selected {
-  border-color: var(--color-primary, #3B5BDB);
+  border-color: var(--color-primary, var(--bg-action));
   background: #eff6ff;
   box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.1);
 }
@@ -365,9 +365,9 @@
   padding: 0.65rem 1rem;
 }
 
-.ob-preview-label { font-size: 0.72rem; font-weight: 700; color: var(--color-primary, #3B5BDB); text-transform: uppercase; letter-spacing: 0.4px; }
+.ob-preview-label { font-size: 0.72rem; font-weight: 700; color: var(--color-primary, var(--bg-action)); text-transform: uppercase; letter-spacing: 0.4px; }
 .ob-preview-title { font-size: 0.88rem; font-weight: 700; color: var(--text-main, #1a1c20); }
-.ob-preview-cost { font-size: 0.88rem; font-weight: 700; color: var(--color-primary, #3B5BDB); background: #fff; border-radius: 999px; padding: 2px 10px; border: 1px solid #c7d2fe; }
+.ob-preview-cost { font-size: 0.88rem; font-weight: 700; color: var(--color-primary, var(--bg-action)); background: #fff; border-radius: 999px; padding: 2px 10px; border: 1px solid #c7d2fe; }
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
 
@@ -390,7 +390,7 @@
 .ob-btn:not(:disabled):active { transform: scale(0.98); }
 
 .ob-btn--primary {
-  background: var(--color-primary, #3B5BDB);
+  background: var(--color-primary, var(--bg-action));
   color: #fff;
   width: 100%;
   padding: 0.85rem 1.75rem;
@@ -417,7 +417,7 @@
 
 .ob-link {
   font-size: 0.85rem;
-  color: var(--color-primary, #3B5BDB);
+  color: var(--color-primary, var(--bg-action));
   text-decoration: underline;
   text-align: center;
 }
@@ -437,7 +437,7 @@
 }
 
 .ob-success-icon { font-size: 3.5rem; line-height: 1; }
-.ob-success-title { font-size: 1.8rem; font-weight: 800; color: var(--color-primary, #3B5BDB); margin: 0; }
+.ob-success-title { font-size: 1.8rem; font-weight: 800; color: var(--color-primary, var(--bg-action)); margin: 0; }
 .ob-success-sub { font-size: 0.95rem; color: var(--text-muted, #6b7280); line-height: 1.5; margin: 0; }
 
 .ob-success-recap {
@@ -454,7 +454,7 @@
   padding: 4px 12px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-primary, #3B5BDB);
+  color: var(--color-primary, var(--bg-action));
 }
 
 .ob-success-pin {

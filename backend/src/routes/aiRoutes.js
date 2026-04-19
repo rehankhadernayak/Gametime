@@ -18,10 +18,10 @@ const router = Router();
 
 const chatLimiter            = createRateLimiter({ windowMs: 60_000, maxRequests: 20 });
 const evidencePreviewLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 10 });
-// Public signup AI routes: strict limit — no auth means anyone on the internet can hit them
+// Public signup AI routes: strict limit - no auth means anyone on the internet can hit them
 const signupLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5  });
 
-/* ── Public routes (no auth — used during account creation) ─────────── */
+/* ── Public routes (no auth - used during account creation) ─────────── */
 router.post('/signup-start',  signupLimiter, signupStartController);
 router.post('/signup-chat',   signupLimiter, signupChatController);
 

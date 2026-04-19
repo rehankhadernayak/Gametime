@@ -198,7 +198,7 @@ export async function deleteChild(req, res, next) {
 /**
  * POST /children/:id/avatar
  * Body: { avatarData: "data:image/jpeg;base64,...", avatarMime: "image/jpeg" }
- * Parent only — can only upload for their own children.
+ * Parent only - can only upload for their own children.
  */
 export async function uploadChildAvatar(req, res, next) {
   try {

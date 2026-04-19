@@ -157,8 +157,8 @@ export async function cancelTaskRequestController(req, res, next) {
  *  - Child:  may view only their own submissions
  *
  * Handles both formats:
- *  - Legacy base64 data-URL (evidence_data starts with "data:") — decoded on the fly
- *  - New file-path format (e.g. "evidence/abc.jpg") — streamed from disk
+ *  - Legacy base64 data-URL (evidence_data starts with "data:") - decoded on the fly
+ *  - New file-path format (e.g. "evidence/abc.jpg") - streamed from disk
  */
 export async function serveEvidenceController(req, res, next) {
   try {
@@ -217,7 +217,7 @@ export async function serveEvidenceController(req, res, next) {
 /**
  * GET /tasks/:taskId/submission
  * Returns the task submission details for the EvidenceReviewPanel.
- * Parent auth required — verifies the task belongs to one of their children.
+ * Parent auth required - verifies the task belongs to one of their children.
  */
 export async function getSubmissionController(req, res, next) {
   try {

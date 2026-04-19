@@ -5,7 +5,7 @@ import { createCheckoutSessionController } from '../controllers/stripeController
 
 const router = Router();
 
-// 5 checkout attempts per 60 seconds per IP — financial operation
+// 5 checkout attempts per 60 seconds per IP - financial operation
 const checkoutLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 5 });
 
 // POST /stripe/checkout

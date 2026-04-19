@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   Evidence Review Panel — slide-in drawer from the right
+   Evidence Review Panel - slide-in drawer from the right
    ══════════════════════════════════════════════════════════════════════ */
 
 /* Backdrop / overlay */
@@ -375,7 +375,7 @@
 
 .erp-btn-success {
   background: var(--color-success);
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--color-success);
 }
 
@@ -386,7 +386,7 @@
 
 .erp-btn-warning {
   background: var(--color-warning);
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--color-warning);
 }
 
@@ -397,7 +397,7 @@
 
 .erp-btn-danger {
   background: var(--color-error);
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--color-error);
 }
 
@@ -554,7 +554,7 @@
   width: 28px;
   height: 28px;
   border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border-top-color: var(--text-main);
   border-radius: 50%;
   animation: erp-spin 0.8s linear infinite;
 }

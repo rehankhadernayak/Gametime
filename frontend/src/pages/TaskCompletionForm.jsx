@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 
 export default function TaskCompletionForm({ tasks, onComplete, token }) {
-  const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024; // 10 MB — matches backend validation limit
+  const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024; // 10 MB - matches backend validation limit
   const [taskId, setTaskId] = useState('');
   const [message, setMessage] = useState('');
   const [formError, setFormError] = useState('');
@@ -71,7 +71,7 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
         setCoaching(data);
       } catch (err) {
         if (err.name !== 'AbortError') {
-          // Fail silently — coaching is an enhancement only
+          // Fail silently - coaching is an enhancement only
           setCoaching(null);
         }
       } finally {

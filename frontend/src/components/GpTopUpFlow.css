@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   GP Top-Up Flow — 3-step modal wizard
+   GP Top-Up Flow - 3-step modal wizard
    ══════════════════════════════════════════════════════════════════════ */
 
 .topup-backdrop {
@@ -131,13 +131,13 @@
 .topup-step-active .topup-step-num {
   background: var(--bg-action);
   border-color: var(--bg-action);
-  color: #fff;
+  color: var(--text-main);
 }
 
 .topup-step-done .topup-step-num {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--text-main);
 }
 
 .topup-step-active .topup-step-label { color: var(--text-main); }
@@ -457,7 +457,7 @@
 
 .topup-btn-primary {
   background: var(--bg-action);
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--bg-action);
 }
 

@@ -17,7 +17,7 @@ export async function createCheckoutSessionController(req, res, next) {
 
 /**
  * POST /stripe/webhook
- * No auth — Stripe signs the payload. Raw body Buffer is required for signature verification.
+ * No auth - Stripe signs the payload. Raw body Buffer is required for signature verification.
  */
 export async function stripeWebhookController(req, res, next) {
   try {

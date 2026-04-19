@@ -22,9 +22,9 @@ router.post('/markRead', requireAnyAuth, markReadController);
 router.get('/preferences',   requireAnyAuth, prefsLimiter, getNotifPrefsController);
 router.patch('/preferences', requireAnyAuth, prefsLimiter, saveNotifPrefsController);
 
-// Push device token registration — called after mobile login
+// Push device token registration - called after mobile login
 router.post('/device-token',   requireAnyAuth, tokenLimiter, registerDeviceTokenController);
-// Unregistration — called before logout so device stops receiving notifications
+// Unregistration - called before logout so device stops receiving notifications
 router.delete('/device-token', requireAnyAuth, tokenLimiter, unregisterDeviceTokenController);
 
 export default router;

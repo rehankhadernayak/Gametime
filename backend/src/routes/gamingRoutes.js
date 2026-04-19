@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  checkGamingSessionController,
   childGamingOverviewController,
   createGamingGameController,
   deleteGamingGameController,
@@ -40,6 +41,7 @@ router.get('/sessions/audit',  requireParentAuth, listParentGamingAuditControlle
 router.get('/sessions',        requireAnyAuth,    listGamingSessionsController);
 router.post('/sessions/start', requireAnyAuth,    sessionLimiter, startGamingSessionController);
 router.post('/sessions/end',   requireAnyAuth,    sessionLimiter, endGamingSessionController);
+router.post('/sessions/check-in', requireAnyAuth, sessionLimiter, checkGamingSessionController);
 
 router.post('/usage/import',  requireParentAuth, actionLimiter, importGamingUsageController);
 router.get('/reports/weekly', requireAnyAuth,    weeklyGamingReportController);

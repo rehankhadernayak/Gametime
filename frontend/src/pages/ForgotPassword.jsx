@@ -45,7 +45,7 @@ export default function ForgotPassword() {
             </div>
             <h2 className="al-success-heading">Check your inbox</h2>
             <p className="al-success-sub">
-              If that email is registered, a reset link is on its way. Check your inbox — and your spam folder.
+              If that email is registered, a reset link is on its way. Check your inbox - and your spam folder.
             </p>
             <Link to="/login" className="al-back-link">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

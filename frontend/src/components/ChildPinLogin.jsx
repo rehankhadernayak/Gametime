@@ -122,7 +122,7 @@ export default function ChildPinLogin({ child, onSuccess, onSwitchUser, token })
         setErrorMessage('Too many tries. Wait 30s and try again.');
         setDigits([]);
       } else {
-        setErrorMessage(`Wrong PIN – ${remaining} tr${remaining === 1 ? 'y' : 'ies'} left`);
+        setErrorMessage(`Wrong PIN - ${remaining} tr${remaining === 1 ? 'y' : 'ies'} left`);
         setPhase('shaking');
         setTimeout(() => {
           setPhase('idle');

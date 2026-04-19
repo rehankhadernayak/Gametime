@@ -7,7 +7,7 @@ const expo = new Expo({ useFcmV1: true });
 /**
  * Send a push notification to all registered devices for a recipient.
  *
- * Non-blocking by design — callers should fire-and-forget via setImmediate.
+ * Non-blocking by design - callers should fire-and-forget via setImmediate.
  * Stale tokens flagged as DeviceNotRegistered are pruned automatically.
  *
  * @param {'Parent'|'Child'} recipientType
@@ -63,7 +63,7 @@ export async function sendPushToRecipient(recipientType, recipientId, title, bod
       }
     }
   } catch (err) {
-    // Never throw — push delivery is always best-effort.
+    // Never throw - push delivery is always best-effort.
     logger.error({ err }, '[push] sendPushToRecipient error');
   }
 }

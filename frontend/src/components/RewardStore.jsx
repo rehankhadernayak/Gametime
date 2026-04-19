@@ -26,8 +26,8 @@ function ConfettiLayer() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const COLORS = ['var(--color-success)', 'var(--color-warning)', 'var(--bg-action)', 'var(--color-energy)', '#f87171'];
-    const RESOLVED = ['#22c55e', '#f59e0b', '#3b5bdb', '#7c3aed', '#f87171'];
+    const COLORS = ['var(--color-success)', 'var(--color-warning)', 'var(--bg-action)', 'var(--color-energy)', '#FF3D5A'];
+    const RESOLVED = ['#06D3A8', '#FFA500', '#7C5BFF', '#22D8E7', '#FF3D5A'];
 
     const particles = Array.from({ length: 120 }, () => ({
       x: Math.random() * canvas.width,

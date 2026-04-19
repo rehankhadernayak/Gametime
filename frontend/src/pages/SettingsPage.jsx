@@ -122,7 +122,7 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
         const data = await apiRequest('/notifications/preferences', { token });
         setNotif(data);
       } catch {
-        // Fall back to defaults already in state — server may not have prefs yet
+        // Fall back to defaults already in state - server may not have prefs yet
       } finally {
         notifInitialised.current = true;
       }
@@ -507,11 +507,11 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
           </button>
         </div>
 
-        {/* Danger Zone — Delete Account */}
+        {/* Danger Zone - Delete Account */}
         <div className="settings-panel settings-danger-zone">
           <h3>Delete Account</h3>
           <p className="settings-panel-desc">
-            Permanently delete your Gametime account and all associated data — children, tasks, rewards, and
+            Permanently delete your Gametime account and all associated data - children, tasks, rewards, and
             points. <strong>This cannot be undone.</strong>
           </p>
           {!showDeleteConfirm ? (

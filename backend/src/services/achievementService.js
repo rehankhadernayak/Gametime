@@ -5,11 +5,11 @@ import { createNotification } from './notificationService.js';
 
 /**
  * Update the child's streak and check for newly unlocked achievements.
- * Called after a task is approved — must be invoked AFTER the DB transaction
+ * Called after a task is approved - must be invoked AFTER the DB transaction
  * commits so a failure here never rolls back the point award.
  *
  * @param {string} childId
- * @param {object} db — the already-open db connection (passed in to avoid extra getDb call)
+ * @param {object} db - the already-open db connection (passed in to avoid extra getDb call)
  */
 export async function checkAndUnlockAchievements(childId, db) {
   // ── 1. Update streak ────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ export async function checkAndUnlockAchievements(childId, db) {
   } else if (child.last_completion_date === yesterday) {
     newStreak = child.current_streak_days + 1; // extending streak
   } else {
-    newStreak = 1; // gap or first ever — reset
+    newStreak = 1; // gap or first ever - reset
   }
 
   await db.run(

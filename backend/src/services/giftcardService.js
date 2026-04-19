@@ -235,14 +235,26 @@ function normalizeManualGiftcodes(codes) {
 }
 
 export async function listGiftcardCatalog(query) {
+  // Athena catalog disabled for MVP launch - use manual giftcard entry instead
+  if (!env.athenaEnabled) {
+    return { giftcards: [], pageSize: 0, totalResults: 0, pageNumber: 1 };
+  }
   return listAthenaGiftcards(query);
 }
 
 export async function listGiftcardSkuCatalog(query) {
+  // Athena SKU catalog disabled for MVP launch - use manual giftcard entry instead
+  if (!env.athenaEnabled) {
+    return { skus: [], pageSize: 0, totalResults: 0, pageNumber: 1 };
+  }
   return listAthenaSkus(query);
 }
 
 export async function getGiftcardWalletBalance() {
+  // Athena wallet disabled for MVP launch
+  if (!env.athenaEnabled) {
+    return { balance: 0, currency: 'SGD' };
+  }
   return getAthenaWalletBalance();
 }
 

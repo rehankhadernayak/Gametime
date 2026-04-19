@@ -203,7 +203,7 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
       await apiRequest(`/tasks/${taskId}`, { method: 'DELETE', token });
       await onRefresh();
     } catch {
-      /* silent — onRefresh will show latest state */
+      /* silent - onRefresh will show latest state */
     } finally {
       setDeletingId(null);
     }
@@ -410,7 +410,7 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
                 <td>{task.points}</td>
                 <td>{task.gpPoints ?? 0}</td>
                 <td className="text-small">
-                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}
+                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
                 </td>
                 <td><StatusChip state={task.state} /></td>
                 <td>

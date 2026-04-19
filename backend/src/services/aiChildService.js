@@ -39,7 +39,7 @@ const CHILD_AI_TOOLS = [
   {
     name: 'get_my_achievements',
     description:
-      "Get the child's achievements — both unlocked ones (to celebrate) and locked ones (to set goals). Use when they ask about badges, achievements, or what to work towards next.",
+      "Get the child's achievements - both unlocked ones (to celebrate) and locked ones (to set goals). Use when they ask about badges, achievements, or what to work towards next.",
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
@@ -177,7 +177,7 @@ function buildChildSystemPrompt(ctx) {
   const taskList =
     activeTasks.length === 0
       ? 'No active tasks right now.'
-      : activeTasks.map((t) => `  ${t.title} (${t.points} RP) — due ${t.dueDate ? t.dueDate.slice(0, 10) : 'soon'}`).join('\n');
+      : activeTasks.map((t) => `  ${t.title} (${t.points} RP) - due ${t.dueDate ? t.dueDate.slice(0, 10) : 'soon'}`).join('\n');
 
   const recentGaming =
     recentSessions.length === 0
@@ -191,7 +191,7 @@ function buildChildSystemPrompt(ctx) {
   const streakDays  = child?.streakDays || 0;
   const streakText  = streakDays > 0
     ? `Current streak: ${streakDays} day${streakDays !== 1 ? 's' : ''} in a row!`
-    : 'No active streak yet — do a task today to start one!';
+    : 'No active streak yet - do a task today to start one!';
 
   return `You are Buddy, ${name}'s personal AI coach on Gametime. You know ${name} personally and genuinely care about their progress!
 
@@ -216,17 +216,17 @@ ${limitsText}
 
 ## Your Role as ${name}'s Coach
 You are warm, playful, and genuinely encouraging. Think of yourself as ${name}'s biggest fan and smartest friend. You help with:
-1. Homework and study help — break things down step by step, offer worked examples, make it fun
-2. Study breaks — use start_break_timer whenever suggesting a timed break so they see a real countdown on screen
-3. Eye rest (the 20-20-20 rule) — every 20 minutes of screen time, look 20 feet away for 20 seconds. Use break_type "eye_rest" and duration_minutes 0.33
-4. Healthy habits — stretch reminders, water breaks, posture checks (keep it light and fun, not preachy)
-5. Gaming awareness — celebrate responsible gaming, give gentle heads-up when approaching the cap
-6. Task motivation — celebrate every win, suggest which task to tackle next, make tasks feel like quests
-7. Focus sprints — challenge ${name} to earn more gaming time with a study sprint
-8. Quiz time — quiz them on topics they mention (ask, wait for answer, give warm feedback)
-9. Achievements and goals — use get_my_achievements to cheer wins and show what to unlock next
-10. Leaderboard — use get_leaderboard for friendly sibling competition and motivation
-11. Rewards planning — use get_available_rewards to help ${name} plan what to work towards
+1. Homework and study help - break things down step by step, offer worked examples, make it fun
+2. Study breaks - use start_break_timer whenever suggesting a timed break so they see a real countdown on screen
+3. Eye rest (the 20-20-20 rule) - every 20 minutes of screen time, look 20 feet away for 20 seconds. Use break_type "eye_rest" and duration_minutes 0.33
+4. Healthy habits - stretch reminders, water breaks, posture checks (keep it light and fun, not preachy)
+5. Gaming awareness - celebrate responsible gaming, give gentle heads-up when approaching the cap
+6. Task motivation - celebrate every win, suggest which task to tackle next, make tasks feel like quests
+7. Focus sprints - challenge ${name} to earn more gaming time with a study sprint
+8. Quiz time - quiz them on topics they mention (ask, wait for answer, give warm feedback)
+9. Achievements and goals - use get_my_achievements to cheer wins and show what to unlock next
+10. Leaderboard - use get_leaderboard for friendly sibling competition and motivation
+11. Rewards planning - use get_available_rewards to help ${name} plan what to work towards
 
 ## Tool Instructions
 Use get_my_stats to get live data before answering about RP, gaming time, tasks, or play minutes.
@@ -234,7 +234,7 @@ Use get_my_tasks when they ask what tasks they have, what's due, or if something
 Use get_available_rewards when they ask what they can redeem or what rewards exist.
 Use get_my_achievements when they ask about badges, progress, or what to unlock next.
 Use get_leaderboard for friendly sibling comparison or motivation.
-Use start_break_timer whenever suggesting any timed break — always include message, break_type, and duration_minutes.
+Use start_break_timer whenever suggesting any timed break - always include message, break_type, and duration_minutes.
 
 ## Tone and Style
 Warm, playful, and real. Use ${name}'s first name naturally. Keep it short and punchy like a friendly text. Celebrate wins with genuine excitement (but not over the top). Use simple words. If ${name} is stuck or struggling, be patient and encouraging. Never lecture or be negative about gaming.
@@ -265,7 +265,7 @@ async function executeChildTool(childId, name, input) {
       const ctx = await getChildContext(childId);
       return {
         success: true,
-        message: `Stats loaded — ${ctx.child?.rpBalance || 0} RP, ${ctx.gamingToday} min gaming today, ${ctx.playableMinutes} min available`,
+        message: `Stats loaded - ${ctx.child?.rpBalance || 0} RP, ${ctx.gamingToday} min gaming today, ${ctx.playableMinutes} min available`,
         data: ctx
       };
     }
@@ -274,7 +274,7 @@ async function executeChildTool(childId, name, input) {
       /* Frontend reads the tool_done event and renders the countdown */
       return {
         success: true,
-        message: `${input.break_type} timer started — ${input.duration_minutes} min`,
+        message: `${input.break_type} timer started - ${input.duration_minutes} min`,
         data: {
           durationMinutes: Number(input.duration_minutes),
           breakType:       input.break_type,
@@ -353,7 +353,7 @@ async function executeChildTool(childId, name, input) {
       const ranked = siblings.map((s, i) => ({ ...s, rank: i + 1, isMe: s.id === childId }));
       return {
         success: true,
-        message: `Leaderboard loaded — ${ranked.length} player${ranked.length !== 1 ? 's' : ''}.`,
+        message: `Leaderboard loaded - ${ranked.length} player${ranked.length !== 1 ? 's' : ''}.`,
         data: ranked
       };
     }
@@ -367,7 +367,7 @@ async function executeChildTool(childId, name, input) {
 /* ── Streaming chat function ──────────────────────────────────────────────── */
 /**
  * Streams the child AI response via onEvent(event).
- * No DB persistence — child sessions are ephemeral per component mount.
+ * No DB persistence - child sessions are ephemeral per component mount.
  *
  * Event shapes (same as parent streamAiChat):
  *   { type: 'text',       delta: string }

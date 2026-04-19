@@ -11,7 +11,7 @@
  * The value persisted in task_completions.evidence_data is the relative path,
  * e.g.  "evidence/abc123.jpg".  Legacy rows that still contain a data-URL are
  * identified by isLegacyDataUrl() and handled transparently by the serve
- * endpoint — no migration required.
+ * endpoint - no migration required.
  */
 
 import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
@@ -97,5 +97,5 @@ export async function readEvidenceFile(relPath) {
 export async function deleteEvidenceFile(relPath) {
   try {
     await unlink(path.join(DATA_DIR, relPath));
-  } catch { /* ignore — file may already be gone */ }
+  } catch { /* ignore - file may already be gone */ }
 }

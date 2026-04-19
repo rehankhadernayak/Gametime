@@ -4,14 +4,14 @@ import './ChildAvatar.css';
 const API_BASE = String(import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 
 /**
- * ChildAvatar — displays a child's avatar photo or a fallback initial-letter circle.
+ * ChildAvatar - displays a child's avatar photo or a fallback initial-letter circle.
  *
  * Props:
- *   childId   — number / string (required)
- *   name      — string — used for the fallback initial and alt text
- *   token     — JWT string
- *   size      — 'sm' | 'md' | 'lg'  (default 'md')
- *   onUpload  — optional callback(file) — when provided, clicking the avatar opens
+ *   childId   - number / string (required)
+ *   name      - string - used for the fallback initial and alt text
+ *   token     - JWT string
+ *   size      - 'sm' | 'md' | 'lg'  (default 'md')
+ *   onUpload  - optional callback(file) - when provided, clicking the avatar opens
  *               a file picker and calls onUpload with the selected File object.
  *               The parent is responsible for the actual POST request so it can
  *               show its own toasts / refresh its own state.
@@ -29,7 +29,7 @@ export default function ChildAvatar({ childId, name = '', token, size = 'md', on
     setSrc(null);
     setErrored(false);
 
-    fetch(`${API_BASE}/api/children/${childId}/avatar`, {
+    fetch(`${API_BASE}/children/${childId}/avatar`, {
       credentials: 'include',
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -71,7 +71,7 @@ export default function ChildAvatar({ childId, name = '', token, size = 'md', on
       // Re-fetch after a brief moment (parent may still be committing)
       setTimeout(() => {
         let objectUrl = null;
-        fetch(`${API_BASE}/api/children/${childId}/avatar`, {
+        fetch(`${API_BASE}/children/${childId}/avatar`, {
           credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         })

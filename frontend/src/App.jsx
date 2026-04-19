@@ -160,7 +160,7 @@ export default function App() {
             )
           }
         />
-        {/* AI is the primary parent landing — redirect /parent to it */}
+        {/* AI is the primary parent landing - redirect /parent to it */}
         <Route
           path="/parent"
           element={auth.role === 'parent' ? <Navigate to="/parent/ai" replace /> : <Navigate to="/login" replace />}

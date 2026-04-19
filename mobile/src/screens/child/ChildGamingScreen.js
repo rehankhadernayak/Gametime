@@ -9,6 +9,8 @@ import Banner from '../../components/Banner';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
 import StatusPill from '../../components/StatusPill';
+import { GamingBlockOverlay } from '../../components/GamingBlockOverlay';
+import { useGamingBlocker } from '../../hooks/useGamingBlocker';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../api/client';
 import { colors } from '../../theme/colors';
@@ -105,6 +107,11 @@ export default function ChildGamingScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const activeSession = sessions.find((s) => s.status === 'Started') || null;
+
+  const { isBlocked, blockCode, dismissBlock } = useGamingBlocker(activeSession?.id, (code, reason) => {
+    setError(reason || 'Gaming session blocked');
+    load(true); // Reload to update state
+  });
 
   const load = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
@@ -278,6 +285,8 @@ export default function ChildGamingScreen() {
           </Card>
         </>
       )}
+
+      <GamingBlockOverlay visible={isBlocked} code={blockCode} onDismiss={dismissBlock} />
     </Screen>
   );
 }

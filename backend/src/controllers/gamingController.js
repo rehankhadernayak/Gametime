@@ -1,4 +1,5 @@
 import {
+  checkGamingSessionActive,
   createParentGame,
   deleteParentGame,
   endGamingSession,
@@ -129,6 +130,19 @@ export async function endGamingSessionController(req, res, next) {
       return res.status(400).json({ error: 'childId is required' });
     }
     return res.json(await endGamingSession(req.auth.parentId, childId, payload));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function checkGamingSessionController(req, res, next) {
+  try {
+    const payload = { sessionId: req.body.sessionId }; // Simple schema, just sessionId
+    const childId = req.auth.role === 'child' ? req.auth.childId : req.body.childId;
+    if (!childId) {
+      return res.status(400).json({ error: 'childId is required' });
+    }
+    return res.json(await checkGamingSessionActive(req.auth.parentId, childId, payload.sessionId));
   } catch (error) {
     next(error);
   }

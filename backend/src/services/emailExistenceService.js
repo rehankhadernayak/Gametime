@@ -177,7 +177,7 @@ export async function verifyEmailExists(email) {
     return { ok: true, reason: 'check-disabled', message: null };
   }
 
-  if (RESERVED_TEST_DOMAINS.has(parsed.domain)) {
+  if (!env.skipMxValidation && RESERVED_TEST_DOMAINS.has(parsed.domain)) {
     return { ok: false, reason: 'reserved-domain', message: 'Please use a real email address.' };
   }
 
@@ -186,13 +186,19 @@ export async function verifyEmailExists(email) {
 
   const mailHosts = await resolveMailHosts(parsed.domain);
   if (!mailHosts.length) {
-    const result = {
-      ok: false,
-      reason: 'missing-mx',
-      message: 'This email domain cannot receive mail. Please use a real email address.'
-    };
-    setCached(parsed.normalized, result);
-    return result;
+    if (env.skipMxValidation) {
+      const result = { ok: true, reason: 'mx-skipped', message: null };
+      setCached(parsed.normalized, result);
+      return result;
+    } else {
+      const result = {
+        ok: false,
+        reason: 'missing-mx',
+        message: 'This email domain cannot receive mail. Please use a real email address.'
+      };
+      setCached(parsed.normalized, result);
+      return result;
+    }
   }
 
   if (env.emailCheckMode === 'mx') {

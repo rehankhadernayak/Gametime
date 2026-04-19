@@ -117,9 +117,9 @@ function EmptyState({ parentName }) {
 /* ── Main component ─────────────────────────────────────────────────── */
 /**
  * Props:
- *   token      — auth token (required)
- *   parentName — display name for greeting
- *   autoGreet  — when true + no prior history, calls POST /ai/greet to start onboarding
+ *   token      - auth token (required)
+ *   parentName - display name for greeting
+ *   autoGreet  - when true + no prior history, calls POST /ai/greet to start onboarding
  */
 export default function AiAssistant({ token, parentName, autoGreet }) {
   const [messages,         setMessages]         = useState([]);
@@ -149,7 +149,7 @@ export default function AiAssistant({ token, parentName, autoGreet }) {
           setMessages(data.messages || []);
         }
       } catch {
-        // silently fail — user starts fresh
+        // silently fail - user starts fresh
       } finally {
         setHistoryLoaded(true);
       }
@@ -327,7 +327,7 @@ export default function AiAssistant({ token, parentName, autoGreet }) {
           }
         }
       } catch {
-        // silent fail — parent can chat manually
+        // silent fail - parent can chat manually
       } finally {
         if (!cancelled) setIsStreaming(false);
       }

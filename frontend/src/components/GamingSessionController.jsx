@@ -235,7 +235,7 @@ export default function GamingSessionController({ childId, role, onSessionEnd, t
   }, [status]);
 
   async function handlePauseResume() {
-    // Pause/resume is not supported by the backend — this is a no-op
+    // Pause/resume is not supported by the backend - this is a no-op
     if (!session || submitting) return;
     // Toggle local visual state only (no server call)
     setStatus((prev) => prev === 'paused' ? 'active' : 'paused');

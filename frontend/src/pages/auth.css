@@ -1,130 +1,109 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   AUTH PAGES — Premium SaaS redesign
-   Gametime Design System v2 — Google/Vercel/Linear-tier
-   ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── Split layout ────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   auth.css - Dark premium auth form layout for Gametime
+   Glass panels, rich gradients, and elevated micro-interactions.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 .al-root {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 40fr 60fr;
+  grid-template-columns: 1.4fr 1fr;
+  background: linear-gradient(180deg, #05060D 0%, #090E1D 100%);
 }
 
-/* ── Left brand panel ────────────────────────────────────────────────── */
 .al-panel {
-  background: linear-gradient(160deg, #1a1f71 0%, #3D5AFE 50%, #7C3AED 100%);
-  padding: 3rem 2.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
   position: relative;
   overflow: hidden;
+  padding: 3rem 2.75rem;
+  background: linear-gradient(160deg, #110F29 0%, #221C45 45%, #7C5BFF 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-/* Child variant — more vibrant purple */
-.al-panel--child {
-  background: linear-gradient(160deg, #2d0066 0%, #6D28D9 45%, #a855f7 100%);
-}
-
-/* Decorative blurred circles */
-.al-panel::before {
-  content: '';
-  position: absolute;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  top: -140px;
-  right: -120px;
-  pointer-events: none;
-  filter: blur(2px);
-}
-
+.al-panel::before,
 .al-panel::after {
   content: '';
   position: absolute;
-  width: 300px;
-  height: 300px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-  bottom: -80px;
-  left: -80px;
-  pointer-events: none;
-  filter: blur(2px);
+  filter: blur(32px);
+  opacity: 0.35;
 }
 
-/* Third decorative blob */
+.al-panel::before {
+  width: 420px;
+  height: 420px;
+  top: -180px;
+  right: -120px;
+  background: rgba(124,91,255,0.22);
+}
+
+.al-panel::after {
+  width: 280px;
+  height: 280px;
+  bottom: -90px;
+  left: -70px;
+  background: rgba(34,216,231,0.18);
+}
+
 .al-panel-blob {
   position: absolute;
-  width: 200px;
-  height: 200px;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
-  background: rgba(124, 58, 237, 0.25);
-  top: 45%;
-  right: -40px;
-  pointer-events: none;
-  filter: blur(40px);
-  z-index: 0;
+  background: rgba(255,255,255,0.08);
+  bottom: 10%;
+  left: 20%;
+  filter: blur(60px);
 }
 
-/* ── Logo / wordmark ─────────────────────────────────────────────────── */
 .al-logo {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  position: relative;
+  gap: 0.8rem;
   z-index: 1;
-  margin-bottom: auto;
 }
 
 .al-logo-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(6px);
-  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
 }
 
 .al-logo-name {
-  font-size: 1.18rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #ffffff;
-  font-family: 'Nunito', system-ui, sans-serif;
-  letter-spacing: -0.02em;
+  color: var(--text-main);
 }
 
-/* ── Center feature bullets ──────────────────────────────────────────── */
 .al-features-wrap {
   position: relative;
   z-index: 1;
-  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0;
-  padding: 3rem 0;
+  gap: 1.25rem;
+  padding-top: 2rem;
 }
 
 .al-tagline {
-  font-size: clamp(1.6rem, 2.8vw, 2.1rem);
+  font-size: clamp(2rem, 4vw, 2.4rem);
   font-weight: 800;
-  color: #ffffff;
-  line-height: 1.2;
-  font-family: 'Nunito', system-ui, sans-serif;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
+  line-height: 1.05;
+  color: var(--text-main);
+  max-width: 420px;
 }
 
 .al-tagline-sub {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.94rem;
-  margin-bottom: 2rem;
-  line-height: 1.6;
+  color: rgba(255,255,255,0.74);
+  font-size: 0.98rem;
+  line-height: 1.7;
+  max-width: 420px;
 }
 
 .al-features {
@@ -138,269 +117,192 @@
 .al-feature-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 0.9rem;
-  line-height: 1.5;
+  gap: 0.95rem;
+  color: rgba(255,255,255,0.88);
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 .al-feature-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-  backdrop-filter: blur(4px);
-}
-
-.al-feature-text {
-  display: flex;
-  flex-direction: column;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  display: grid;
+  place-items: center;
+  color: var(--text-main);
 }
 
 .al-feature-text strong {
+  display: block;
   font-weight: 700;
-  color: #fff;
-  font-size: 0.88rem;
+  color: var(--text-main);
 }
 
 .al-feature-text span {
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.8rem;
-  margin-top: 0.1rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 0.2rem;
 }
 
-/* ── Trust line ──────────────────────────────────────────────────────── */
 .al-trust {
-  position: relative;
   z-index: 1;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.76rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.78rem;
 }
 
 .al-trust-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  flex-shrink: 0;
+  background: rgba(255,255,255,0.6);
 }
 
-/* ── Right form panel ────────────────────────────────────────────────── */
 .al-form-panel {
-  background: #ffffff;
+  background: var(--bg-shell);
+  padding: 3rem 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3rem 2rem;
   min-height: 100vh;
-}
-
-[data-theme='dark'] .al-form-panel {
-  background: var(--bg-shell);
 }
 
 .al-form-inner {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
 }
 
-/* ── Form heading ────────────────────────────────────────────────────── */
 .al-heading {
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 800;
+  margin-bottom: 0.6rem;
   color: var(--text-main);
-  letter-spacing: -0.02em;
-  margin-bottom: 0.35rem;
-  font-family: 'Nunito', system-ui, sans-serif;
 }
 
 .al-subheading {
+  font-size: 0.98rem;
+  line-height: 1.8;
   color: var(--text-sub);
-  font-size: 0.9rem;
-  line-height: 1.55;
   margin-bottom: 2rem;
 }
 
-/* ── Input group ─────────────────────────────────────────────────────── */
 .al-field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin-bottom: 0.9rem;
-}
-
-.al-field:last-of-type {
-  margin-bottom: 0;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
 }
 
 .al-label {
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-main);
-  letter-spacing: 0.01em;
 }
 
 .al-input-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
 .al-input {
   width: 100%;
-  height: 48px;
+  min-height: 52px;
   padding: 0 1rem;
-  border: 1.5px solid var(--line-strong);
+  border: 1.5px solid rgba(255,255,255,0.12);
   border-radius: var(--radius-lg);
-  background: #ffffff;
-  color: var(--text-main);
-  font-size: 0.93rem;
-  font-family: 'Nunito', system-ui, sans-serif;
-  transition: border-color 200ms ease, box-shadow 200ms ease;
-  -webkit-appearance: none;
-}
-
-[data-theme='dark'] .al-input {
-  background: var(--bg-panel-2);
-  border-color: var(--line-strong);
-  color: var(--text-main);
+  background: rgba(255,255,255,0.05);
+  color: #F8FAFF;
+  font-size: 0.95rem;
+  transition: border-color 220ms ease, box-shadow 220ms ease;
 }
 
 .al-input:focus {
   outline: none;
-  border-color: #3D5AFE;
-  box-shadow: 0 0 0 3px rgba(61, 90, 254, 0.12);
+  border-color: rgba(124,91,255,0.85);
+  box-shadow: 0 0 0 3px rgba(124,91,255,0.14);
 }
 
 .al-input::placeholder {
-  color: var(--text-dim);
-  font-size: 0.88rem;
+  color: rgba(255,255,255,0.48);
 }
 
 .al-input--has-toggle {
   padding-right: 3rem;
 }
 
-/* Password show/hide toggle */
 .al-toggle-btn {
   position: absolute;
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
-  padding: 0;
+  width: 34px;
+  height: 34px;
   border: none;
-  background: transparent;
-  color: var(--text-dim);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.72);
+  border-radius: 999px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: color 200ms ease, background 200ms ease;
 }
 
 .al-toggle-btn:hover {
-  color: var(--text-sub);
-  background: var(--bg-panel-2);
-  box-shadow: none;
+  background: rgba(255,255,255,0.1);
 }
 
-/* ── Field footer row (e.g., forgot link) ────────────────────────────── */
 .al-field-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: -0.4rem;
-  margin-bottom: 0.4rem;
+  font-size: 0.84rem;
 }
 
 .al-link {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #3D5AFE;
+  color: #7C5BFF;
   text-decoration: none;
-  transition: color 200ms ease;
+  font-weight: 700;
 }
 
 .al-link:hover {
-  color: #1a3bcc;
+  color: #3D9DFF;
 }
 
-/* Child variant link */
-.al-link--child {
-  color: var(--color-energy);
-}
-
-.al-link--child:hover {
-  color: var(--color-energy-dark);
-}
-
-/* ── Primary button ──────────────────────────────────────────────────── */
 .al-btn {
   width: 100%;
-  height: 48px;
+  min-height: 52px;
   border: none;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #3D5AFE 0%, #5c72ff 100%);
-  color: #ffffff;
-  font-size: 0.93rem;
+  background: linear-gradient(135deg, #7C5BFF, #3D9DFF);
+  color: var(--text-main);
+  font-size: 0.95rem;
   font-weight: 700;
-  font-family: 'Nunito', system-ui, sans-serif;
   cursor: pointer;
-  transition: box-shadow 200ms ease, transform 200ms ease, opacity 200ms ease;
-  display: flex;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  letter-spacing: 0.01em;
-  margin-top: 1rem;
 }
 
 .al-btn:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(61, 90, 254, 0.35);
-  transform: translateY(-1px);
-}
-
-.al-btn:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(61, 90, 254, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(124, 91, 255, 0.24);
 }
 
 .al-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  background: linear-gradient(135deg, #3D5AFE 0%, #5c72ff 100%);
-  box-shadow: none;
-  transform: none;
 }
 
-/* Child variant (purple) */
 .al-btn--child {
-  background: linear-gradient(135deg, #7C3AED 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #22D8E7, #5DD8FF);
 }
 
-.al-btn--child:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-}
-
-/* ── Divider ─────────────────────────────────────────────────────────── */
 .al-divider {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin: 1.25rem 0;
-  color: var(--text-dim);
-  font-size: 0.8rem;
+  margin: 1.5rem 0;
+  color: rgba(255,255,255,0.55);
 }
 
 .al-divider::before,
@@ -408,266 +310,190 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--line);
+  background: rgba(255,255,255,0.1);
 }
 
-/* ── Footer links ────────────────────────────────────────────────────── */
 .al-footer-links {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
-  margin-top: 1.25rem;
+  gap: 0.55rem;
+  margin-top: 1rem;
 }
 
 .al-footer-text {
   font-size: 0.84rem;
-  color: var(--text-sub);
+  color: rgba(255,255,255,0.65);
 }
 
-/* ── Error message ───────────────────────────────────────────────────── */
 .al-error {
-  font-size: 0.84rem;
-  color: var(--color-error);
-  background: var(--color-error-surface);
-  border: 1px solid #fca5a5;
+  font-size: 0.86rem;
+  color: #FF3D5A;
+  background: rgba(255, 61, 90, 0.12);
+  border: 1px solid rgba(255, 61, 90, 0.3);
   border-radius: var(--radius-md);
-  padding: 0.65rem 0.85rem;
-  margin-top: 0.75rem;
-  line-height: 1.45;
+  padding: 0.85rem 1rem;
 }
 
-[data-theme='dark'] .al-error {
-  border-color: #7a3030;
-}
-
-/* ── Mode tabs (child login) ─────────────────────────────────────────── */
 .al-tabs {
   display: flex;
-  gap: 0;
-  background: var(--bg-panel-2);
-  border-radius: var(--radius-lg);
+  gap: 0.25rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: calc(var(--radius-lg) - 2px);
   padding: 4px;
   margin-bottom: 1.5rem;
 }
 
 .al-tab {
   flex: 1;
-  height: 38px;
+  min-height: 44px;
   border: none;
   border-radius: calc(var(--radius-lg) - 2px);
   background: transparent;
-  color: var(--text-sub);
-  font-size: 0.84rem;
-  font-weight: 600;
-  font-family: 'Nunito', system-ui, sans-serif;
+  color: rgba(255,255,255,0.72);
+  font-size: 0.88rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
 }
 
 .al-tab:hover:not(.al-tab--active) {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: none;
 }
 
 .al-tab--active {
-  background: #ffffff;
-  color: var(--color-energy);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
+  background: rgba(124,91,255,0.18);
+  color: var(--text-main);
 }
 
-[data-theme='dark'] .al-tab--active {
-  background: var(--bg-panel);
-  color: var(--color-energy);
+.al-pin-hint,
+.al-success-sub,
+.al-back-link {
+  color: rgba(255,255,255,0.65);
 }
 
-/* ── PIN hint ─────────────────────────────────────────────────────────── */
-.al-pin-hint {
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  text-align: center;
-  margin-top: 0.25rem;
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   FORGOT PASSWORD & RESET PASSWORD — centered card layout
-   ══════════════════════════════════════════════════════════════════════ */
 .al-centered-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #f0f4ff 0%, #fafafe 60%, #f5f0ff 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-}
-
-[data-theme='dark'] .al-centered-page {
-  background: linear-gradient(160deg, #0d1030 0%, #0f0f11 60%, #140d1f 100%);
+  padding: 2rem 1.25rem;
+  background: linear-gradient(180deg, #05060D 0%, #090E1D 100%);
 }
 
 .al-card {
-  background: #ffffff;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--line);
-  box-shadow: 0 8px 40px rgba(61, 90, 254, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 2.5rem 2.25rem;
   width: 100%;
   max-width: 440px;
-}
-
-[data-theme='dark'] .al-card {
-  background: var(--bg-shell);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius-xl);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 28px 72px rgba(0,0,0,0.24);
+  padding: 2.4rem 2.2rem;
+  backdrop-filter: blur(22px);
 }
 
 .al-card-logo {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  margin-bottom: 1.75rem;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .al-card-logo-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #3D5AFE, #7C3AED);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7C5BFF, #3D9DFF);
 }
 
 .al-card-logo-name {
   font-size: 1rem;
   font-weight: 800;
   color: var(--text-main);
-  font-family: 'Nunito', system-ui, sans-serif;
-  letter-spacing: -0.01em;
 }
 
-/* ── Success state ───────────────────────────────────────────────────── */
 .al-success-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  gap: 0.8rem;
   text-align: center;
-  gap: 0.75rem;
-  padding: 1rem 0;
 }
 
 .al-success-icon {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--color-success-surface);
-  border: 1.5px solid #86efac;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: al-pop 400ms var(--ease-spring) forwards;
-}
-
-[data-theme='dark'] .al-success-icon {
-  background: #052E16;
-  border-color: #166534;
-}
-
-@keyframes al-pop {
-  0%   { transform: scale(0.5); opacity: 0; }
-  60%  { transform: scale(1.12); }
-  100% { transform: scale(1); opacity: 1; }
+  background: rgba(102,247,178,0.14);
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(102,247,178,0.3);
 }
 
 .al-success-heading {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--text-main);
-  margin: 0;
 }
 
 .al-success-sub {
-  color: var(--text-sub);
-  font-size: 0.88rem;
-  line-height: 1.6;
-  max-width: 30ch;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.94rem;
+  line-height: 1.7;
   margin: 0;
 }
 
-/* ── Password strength ────────────────────────────────────────────────── */
 .al-strength {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
 }
 
 .al-strength-bars {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .al-strength-bar {
   flex: 1;
-  height: 4px;
-  border-radius: 99px;
-  background: var(--line);
-  transition: background 300ms ease;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
 }
 
-.al-strength-bar--weak   { background: var(--color-error); }
-.al-strength-bar--medium { background: var(--color-warning); }
-.al-strength-bar--strong { background: var(--color-success); }
+.al-strength-bar--weak { background: #FF3D5A; }
+.al-strength-bar--medium { background: #FFA500; }
+.al-strength-bar--strong { background: #06D3A8; }
 
 .al-strength-label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
-.al-strength-label--weak   { color: var(--color-error); }
-.al-strength-label--medium { color: var(--color-warning-dark); }
-.al-strength-label--strong { color: var(--color-success-dark); }
-
-/* ── Back link ────────────────────────────────────────────────────────── */
 .al-back-link {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--text-sub);
+  font-size: 0.88rem;
+  font-weight: 700;
   text-decoration: none;
-  margin-top: 1rem;
-  transition: color 200ms ease;
+  color: rgba(255,255,255,0.75);
 }
 
 .al-back-link:hover {
   color: var(--text-main);
 }
 
-/* ── Spinner (loading button icon) ──────────────────────────────────── */
-@keyframes al-spin {
-  to { transform: rotate(360deg); }
-}
-
-.al-spinner {
-  animation: al-spin 700ms linear infinite;
-  flex-shrink: 0;
-}
-
-/* ── Responsive ──────────────────────────────────────────────────────── */
-@media (max-width: 720px) {
+@media (max-width: 780px) {
   .al-root {
     grid-template-columns: 1fr;
   }
 
   .al-panel {
-    display: none;
+    min-height: 320px;
+    padding: 2rem 1.5rem;
   }
 
   .al-form-panel {
-    min-height: 100vh;
-    padding: 2rem 1.25rem;
+    min-height: auto;
+    padding: 2rem 1.5rem 3rem;
   }
 }

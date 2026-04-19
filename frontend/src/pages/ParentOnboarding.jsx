@@ -5,7 +5,7 @@ import './ParentOnboarding.css';
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
-const AGES = Array.from({ length: 8 }, (_, i) => i + 6); // 6–13
+const AGES = Array.from({ length: 8 }, (_, i) => i + 6); // 6-13
 
 const TASK_TILES = [
   { icon: '', title: 'Clean your bedroom',    description: 'Tidy up and make the bed.',           points: 20, category: 'chores'     },
@@ -92,7 +92,7 @@ function PinInput({ value, onChange }) {
 
 /* ── Confetti ─────────────────────────────────────────────────────────────── */
 
-const CONFETTI_COLOURS = ['#3B5BDB', '#7C3AED', '#22C55E', '#F59E0B', '#EF4444'];
+const CONFETTI_COLOURS = ['#7C5BFF', '#22D8E7', '#06D3A8', '#FFA500', '#FF3D5A'];
 const CONFETTI_COUNT = 48;
 
 function Confetti() {
@@ -134,13 +134,13 @@ export default function ParentOnboarding({ token, onComplete }) {
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
-  // Step 2 — child
+  // Step 2 - child
   const [childName, setChildName] = useState('');
   const [childAge, setChildAge] = useState(9);
   const [childPin, setChildPin] = useState('');
   const [createdChild, setCreatedChild] = useState(null); // { id, name }
 
-  // Step 3 — task
+  // Step 3 - task
   const [selectedTile, setSelectedTile] = useState(null); // index
   const [customTask, setCustomTask] = useState(false);
   const [taskTitle, setTaskTitle] = useState('');
@@ -148,7 +148,7 @@ export default function ParentOnboarding({ token, onComplete }) {
   const [taskPoints, setTaskPoints] = useState(15);
   const [createdTask, setCreatedTask] = useState(null);
 
-  // Step 4 — reward
+  // Step 4 - reward
   const [rewardType, setRewardType] = useState(''); // 'gaming' | 'giftcard' | ''
   const [gamingMinutes, setGamingMinutes] = useState(30);
   const [gamingCost, setGamingCost] = useState(50);
@@ -264,7 +264,7 @@ export default function ParentOnboarding({ token, onComplete }) {
           </div>
           {childPin && (
             <p className="ob-success-pin">
-              Child PIN: <strong>{childPin}</strong> — share this with {createdChild?.name}
+              Child PIN: <strong>{childPin}</strong> - share this with {createdChild?.name}
             </p>
           )}
           <button className="ob-btn ob-btn--primary" onClick={() => navigate('/parent/ai')}>
@@ -333,7 +333,7 @@ export default function ParentOnboarding({ token, onComplete }) {
                 ))}
               </div>
               <p className="ob-helper">
-                Ages 6–9 use a PIN. Ages 10–13 can use email + password.
+                Ages 6-9 use a PIN. Ages 10-13 can use email + password.
               </p>
             </div>
 
@@ -432,7 +432,7 @@ export default function ParentOnboarding({ token, onComplete }) {
             )}
 
             <div className="ob-callout ob-callout--info">
-              <strong>What are RP?</strong> Regular Points — your child earns these by completing tasks and spends them on rewards you create.
+              <strong>What are RP?</strong> Regular Points - your child earns these by completing tasks and spends them on rewards you create.
             </div>
 
             <div className="ob-actions">
@@ -461,7 +461,7 @@ export default function ParentOnboarding({ token, onComplete }) {
                 onClick={() => setRewardType('gaming')}
               >
                 <strong className="ob-reward-name">Gaming Time (RP)</strong>
-                <span className="ob-reward-desc">Let {createdChild?.name} earn extra gaming sessions using Regular Points — no money needed.</span>
+                <span className="ob-reward-desc">Let {createdChild?.name} earn extra gaming sessions using Regular Points - no money needed.</span>
               </button>
               <button
                 type="button"
@@ -469,7 +469,7 @@ export default function ParentOnboarding({ token, onComplete }) {
                 onClick={() => setRewardType('giftcard')}
               >
                 <strong className="ob-reward-name">Gift Card (GP)</strong>
-                <span className="ob-reward-desc">Roblox, Steam, Razer Gold and more — funded by you via the Wallet tab.</span>
+                <span className="ob-reward-desc">Roblox, Steam, Razer Gold and more - funded by you via the Wallet tab.</span>
               </button>
             </div>
 
@@ -526,7 +526,7 @@ export default function ParentOnboarding({ token, onComplete }) {
               </button>
             </div>
             <button className="ob-btn ob-btn--ghost" onClick={() => handleStep4(true)}>
-              Skip — I'll add rewards later
+              Skip - I'll add rewards later
             </button>
           </>
         )}

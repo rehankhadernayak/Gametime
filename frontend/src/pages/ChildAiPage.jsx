@@ -366,7 +366,7 @@ export default function ChildAiPage({ token, childName }) {
         const errMsg = err.message || '';
         const errorContent =
           errMsg.includes('API key') || errMsg.includes('api_key')
-            ? 'Buddy is offline — API key not configured.'
+            ? 'Buddy is offline - API key not configured.'
             : errMsg.includes('fetch') || err.name === 'TypeError'
             ? 'Cannot reach the server. Make sure the backend is running.'
             : errMsg || 'Something went wrong. Try again!';
@@ -400,7 +400,7 @@ export default function ChildAiPage({ token, childName }) {
     <div className="child-ai-page">
 
       {/* ════════════════════════════════════
-          LEFT — Chat panel
+          LEFT - Chat panel
           ════════════════════════════════════ */}
       <div className="child-ai-chat">
 
@@ -483,7 +483,7 @@ export default function ChildAiPage({ token, childName }) {
       </div>
 
       {/* ════════════════════════════════════
-          RIGHT — Canvas panel
+          RIGHT - Canvas panel
           ════════════════════════════════════ */}
       <div className="child-ai-canvas">
         <div className="aws-canvas-header">

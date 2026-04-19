@@ -13,7 +13,7 @@ function getClient() {
 /* ── Per-child insights data ──────────────────────────────────────────────── */
 /**
  * Computes a rich insights object for every child belonging to parentId.
- * All data is scoped to the current ISO week (Mon–Sun).
+ * All data is scoped to the current ISO week (Mon-Sun).
  */
 export async function getInsightsData(parentId) {
   const db = await getDb();
@@ -99,9 +99,9 @@ export async function getInsightsData(parentId) {
         [child.id]
       );
 
-      /* ── Healthy Balance Score (0–100) ─────────────────────────────────
-         Task component (0–50): min(completions × 10, 50)
-         Gaming moderation component (0–50):
+      /* ── Healthy Balance Score (0-100) ─────────────────────────────────
+         Task component (0-50): min(completions × 10, 50)
+         Gaming moderation component (0-50):
            ≤ 50 % of weekly cap used → 50
            ≤ 80 % used               → 40
            ≤ 100 % used              → 25

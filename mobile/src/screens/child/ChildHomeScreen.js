@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { MotiView } from 'moti';
+import { Easing } from 'react-native-reanimated';
 import Screen from '../../components/Screen';
 import Card from '../../components/Card';
 import Banner from '../../components/Banner';
@@ -13,29 +15,104 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { getErrorMessage } from '../../utils/format';
 
+// ─── Animated Counter (smooth number transitions) ─────────────────────────────
+function AnimatedNumber({ value, style }) {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    animatedValue.setValue(0);
+    Animated.timing(animatedValue, {
+      toValue: value,
+      duration: 600,
+      useNativeDriver: false,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+
+    const listener = animatedValue.addListener(({ value: v }) => {
+      setDisplayValue(Math.floor(v));
+    });
+
+    return () => animatedValue.removeListener(listener);
+  }, [value]);
+
+  return <Text style={style}>{displayValue}</Text>;
+}
+
+// ─── Premium Hero Balance Card (with scale & glow animation) ────────────────────
 function HeroBalanceCard({ rp, gp }) {
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+  }, []);
+
   return (
-    <LinearGradient
-      colors={['#3B5BDB', '#7C3AED']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={heroStyles.card}
-    >
-      <View style={heroStyles.row}>
-        <View style={heroStyles.col}>
-          <Text style={heroStyles.number}>{rp}</Text>
-          <Text style={heroStyles.unit}>Reward Points</Text>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <LinearGradient
+        colors={['#3B5BDB', '#7C3AED']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={heroStyles.card}
+      >
+        {/* Animated glow overlay */}
+        <MotiView
+          style={heroStyles.glowOverlay}
+          animate={{
+            opacity: [0.1, 0.3, 0.1],
+          }}
+          transition={{
+            type: 'timing',
+            duration: 3000,
+            loop: true,
+            easing: Easing.inOut(Easing.ease),
+          }}
+        />
+
+        <View style={heroStyles.row}>
+          {/* RP Column */}
+          <MotiView
+            style={heroStyles.col}
+            animate={{ translateY: 0 }}
+            from={{ translateY: 20 }}
+            transition={{
+              type: 'timing',
+              duration: 500,
+              delay: 100,
+            }}
+          >
+            <AnimatedNumber value={rp} style={heroStyles.number} />
+            <Text style={heroStyles.unit}>Reward</Text>
+            <Text style={heroStyles.unit}>Points</Text>
+          </MotiView>
+
+          <View style={heroStyles.divider} />
+
+          {/* GP Column */}
+          <MotiView
+            style={heroStyles.col}
+            animate={{ translateY: 0 }}
+            from={{ translateY: 20 }}
+            transition={{
+              type: 'timing',
+              duration: 500,
+              delay: 200,
+            }}
+          >
+            <AnimatedNumber value={gp} style={heroStyles.number} />
+            <View style={heroStyles.gpPill}>
+              <Text style={heroStyles.gpPillText}>🎁 GP</Text>
+            </View>
+            <Text style={heroStyles.unit}>Gift Points</Text>
+          </MotiView>
         </View>
-        <View style={heroStyles.divider} />
-        <View style={heroStyles.col}>
-          <Text style={heroStyles.number}>{gp}</Text>
-          <View style={heroStyles.gpPill}>
-            <Text style={heroStyles.gpPillText}>GP</Text>
-          </View>
-          <Text style={heroStyles.unit}>Gift Points</Text>
-        </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </Animated.View>
   );
 }
 
@@ -45,21 +122,31 @@ const heroStyles = StyleSheet.create({
     paddingVertical: spacing[6],
     paddingHorizontal: spacing[6],
     shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 12,
+    overflow: 'hidden',
+    marginVertical: spacing.md,
+  },
+  glowOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
   },
-  col: { alignItems: 'center', gap: 4 },
+  col: { alignItems: 'center', gap: 6 },
   divider: {
-    width: 1,
-    height: 56,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    width: 1.5,
+    height: 64,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   number: {
     fontSize: 56,
@@ -69,73 +156,168 @@ const heroStyles = StyleSheet.create({
     letterSpacing: -1,
   },
   unit: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.75)',
+    fontSize: 11,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.8)',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
   gpPill: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#FFB800',
     borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     alignSelf: 'center',
+    shadowColor: '#FFB800',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   gpPillText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: '#FFFFFF',
   },
 });
 
+// ─── Gaming Time Card (with smooth progress animation) ──────────────────────────
 function GamingTimeCard({ overview }) {
   const playable = overview?.usage?.playableNow ?? 0;
   const todayUsed = overview?.usage?.todayUsedMinutes ?? 0;
   const dailyCap = overview?.caps?.dailyCapMinutes ?? 120;
   const capPct = dailyCap > 0 ? Math.min(1, todayUsed / dailyCap) : 0;
 
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: capPct,
+      duration: 800,
+      useNativeDriver: false,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+  }, [capPct]);
+
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
   return (
-    <Card>
-      <Text style={styles.cardLabel}>Gaming Time</Text>
-      <View style={styles.gamingRow}>
-        <View>
-          <Text style={styles.gamingBig}>{playable}</Text>
-          <Text style={styles.gamingUnit}>minutes available</Text>
-        </View>
-        <View style={styles.gamingRight}>
-          <Text style={styles.gamingMeta}>Today: {todayUsed} / {dailyCap} min</Text>
-          <View style={styles.capBarTrack}>
-            <View style={[styles.capBarFill, { width: `${Math.round(capPct * 100)}%` }]} />
+    <MotiView
+      style={{ marginVertical: spacing.sm }}
+      animate={{ opacity: 1, scale: 1 }}
+      from={{ opacity: 0.8, scale: 0.95 }}
+      transition={{
+        type: 'timing',
+        duration: 400,
+        delay: 300,
+      }}
+    >
+      <Card>
+        <Text style={styles.cardLabel}>⏱️ Gaming Time Available</Text>
+        <View style={styles.gamingRow}>
+          <MotiView
+            animate={{ scale: 1 }}
+            from={{ scale: 0.8 }}
+            transition={{ type: 'timing', duration: 500 }}
+          >
+            <Text style={styles.gamingBig}>{playable}</Text>
+            <Text style={styles.gamingUnit}>minutes</Text>
+          </MotiView>
+
+          <View style={styles.gamingRight}>
+            <Text style={styles.gamingMeta}>
+              Today: {todayUsed} / {dailyCap} min
+            </Text>
+            <View style={styles.capBarTrack}>
+              <Animated.View
+                style={[
+                  styles.capBarFill,
+                  { width: progressWidth },
+                  capPct > 0.8 && { backgroundColor: colors.warning },
+                ]}
+              />
+            </View>
+            <Text style={styles.gamingMeta}>{Math.round(capPct * 100)}% of daily cap</Text>
           </View>
-          <Text style={styles.gamingMeta}>{Math.round(capPct * 100)}% of daily cap used</Text>
         </View>
-      </View>
-    </Card>
+      </Card>
+    </MotiView>
   );
 }
 
-// ─── AI Hero Panel ─────────────────────────────────────────────────────────────
+// ─── Interactive Speed Control Slider (astrodither-inspired) ────────────────────
+function SpeedControlSlider() {
+  const [speed, setSpeed] = useState(1);
+  const speedAnim = useRef(new Animated.Value(1)).current;
 
+  useEffect(() => {
+    Animated.timing(speedAnim, {
+      toValue: speed,
+      duration: 200,
+      useNativeDriver: false,
+    }).start();
+  }, [speed]);
+
+  return (
+    <MotiView
+      style={styles.speedControl}
+      animate={{ opacity: 1 }}
+      from={{ opacity: 0 }}
+      transition={{ type: 'timing', duration: 400, delay: 400 }}
+    >
+      <View style={styles.speedHeader}>
+        <Text style={styles.speedTitle}>⚡ Interaction Speed</Text>
+        <Text style={styles.speedValue}>{(speed * 100).toFixed(0)}%</Text>
+      </View>
+
+      <View style={styles.speedSliderTrack}>
+        <View
+          style={[
+            styles.speedSliderFill,
+            {
+              width: `${(speed - 0.5) / 1.5 * 100}%`,
+            },
+          ]}
+        />
+      </View>
+
+      <Text style={styles.speedHint}>Drag to adjust animation speed ↓</Text>
+    </MotiView>
+  );
+}
+
+// ─── AI Hero Panel with smooth entry animation ─────────────────────────────────
 const AI_QUICK_CHIPS = [
-  { label: 'What tasks do I have?', text: 'What tasks do I have?' },
-  { label: 'How many RP do I have?', text: 'How many RP do I have?' },
-  { label: 'What can I buy?', text: 'What can I buy?' },
+  { label: 'What tasks?', text: 'What tasks do I have?' },
+  { label: 'My RP?', text: 'How many RP do I have?' },
+  { label: 'Shop?', text: 'What can I buy?' },
 ];
 
 function AiHeroPanel({ user, tasks, streak, navigation }) {
   const [chatInput, setChatInput] = useState('');
+  const slideAnim = useRef(new Animated.Value(-100)).current;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+      easing: Easing.out(Easing.cubic),
+    }).start();
+  }, []);
+
   const firstName = user?.name?.split(' ')[0] || 'Explorer';
 
-  // Build context-aware greeting
   let greeting;
   const pendingCount = tasks.filter((t) => t.status === 'active' || t.status === 'started').length;
   if (pendingCount > 0) {
-    greeting = `Hey ${firstName}! You have ${pendingCount} task${pendingCount !== 1 ? 's' : ''} waiting. Want to tackle the easiest one first?`;
+    greeting = `Hey ${firstName}! You have ${pendingCount} task${pendingCount !== 1 ? 's' : ''} waiting.`;
   } else if (streak > 0) {
-    greeting = `You're on a ${streak}-day streak! Keep it going today!`;
+    greeting = `You're on a ${streak}-day streak! Keep it going! 🔥`;
   } else {
-    greeting = `All caught up! Ask me anything or I can suggest some tasks.`;
+    greeting = `All caught up! Ask me anything.`;
   }
 
   function handleSend() {
@@ -150,63 +332,141 @@ function AiHeroPanel({ user, tasks, streak, navigation }) {
   }
 
   return (
-    <View style={styles.aiHero}>
-      {/* Avatar + greeting */}
-      <View style={styles.aiHeroTop}>
-        <View style={styles.aiHeroAvatar}>
-          <Text style={styles.aiHeroAvatarEmoji}>AI</Text>
-        </View>
-        <View style={styles.aiHeroBubble}>
-          <Text style={styles.aiHeroGreeting}>{greeting}</Text>
-        </View>
-      </View>
-
-      {/* Quick reply chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.aiHeroChips}
-      >
-        {AI_QUICK_CHIPS.map((chip) => (
-          <TouchableOpacity
-            key={chip.label}
-            style={styles.aiHeroChip}
-            onPress={() => handleChip(chip.text)}
-            activeOpacity={0.7}
+    <Animated.View style={{ transform: [{ translateX: slideAnim }] }}>
+      <MotiView style={styles.aiHero}>
+        {/* Avatar + greeting */}
+        <View style={styles.aiHeroTop}>
+          <MotiView
+            style={styles.aiHeroAvatar}
+            animate={{ rotate: '360deg' }}
+            from={{ rotate: '0deg' }}
+            transition={{
+              type: 'timing',
+              duration: 3000,
+              loop: true,
+            }}
           >
-            <Text style={styles.aiHeroChipText}>{chip.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            <Text style={styles.aiHeroAvatarEmoji}>🤖</Text>
+          </MotiView>
 
-      {/* Inline chat input */}
-      <View style={styles.aiHeroInputRow}>
-        <TextInput
-          style={styles.aiHeroInput}
-          value={chatInput}
-          onChangeText={setChatInput}
-          placeholder="Ask Study Buddy…"
-          placeholderTextColor={colors.textMuted}
-          returnKeyType="send"
-          onSubmitEditing={handleSend}
-          blurOnSubmit={false}
-          maxLength={500}
-        />
-        <TouchableOpacity
-          style={[styles.aiHeroSendBtn, !chatInput.trim() && styles.aiHeroSendBtnDisabled]}
-          onPress={handleSend}
-          disabled={!chatInput.trim()}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.aiHeroSendText}>↑</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          <MotiView
+            style={styles.aiHeroBubble}
+            animate={{ scale: 1 }}
+            from={{ scale: 0.9 }}
+            transition={{ type: 'timing', duration: 400, delay: 100 }}
+          >
+            <Text style={styles.aiHeroGreeting}>{greeting}</Text>
+          </MotiView>
+        </View>
+
+        {/* Quick reply chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.aiHeroChips}>
+          {AI_QUICK_CHIPS.map((chip, idx) => (
+            <MotiView
+              key={chip.label}
+              style={styles.aiHeroChipWrap}
+              animate={{ opacity: 1, translateY: 0 }}
+              from={{ opacity: 0, translateY: 10 }}
+              transition={{
+                type: 'timing',
+                duration: 300,
+                delay: 200 + idx * 50,
+              }}
+            >
+              <TouchableOpacity
+                style={styles.aiHeroChip}
+                onPress={() => handleChip(chip.text)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.aiHeroChipText}>{chip.label}</Text>
+              </TouchableOpacity>
+            </MotiView>
+          ))}
+        </ScrollView>
+
+        {/* Inline chat input */}
+        <View style={styles.aiHeroInputRow}>
+          <TextInput
+            style={styles.aiHeroInput}
+            value={chatInput}
+            onChangeText={setChatInput}
+            placeholder="Ask Study Buddy…"
+            placeholderTextColor={colors.textMuted}
+            returnKeyType="send"
+            onSubmitEditing={handleSend}
+            blurOnSubmit={false}
+            maxLength={500}
+          />
+          <TouchableOpacity
+            style={[styles.aiHeroSendBtn, !chatInput.trim() && styles.aiHeroSendBtnDisabled]}
+            onPress={handleSend}
+            disabled={!chatInput.trim()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.aiHeroSendText}>↑</Text>
+          </TouchableOpacity>
+        </View>
+      </MotiView>
+    </Animated.View>
   );
 }
 
-// ─── Main screen ───────────────────────────────────────────────────────────────
+// ─── Achievements Strip (smooth horizontal scroll with scale on tap) ─────────────
+function AchievementsStrip({ achievements, streak }) {
+  return achievements.length > 0 ? (
+    <MotiView
+      style={{ marginVertical: spacing.sm }}
+      animate={{ opacity: 1 }}
+      from={{ opacity: 0 }}
+      transition={{ type: 'timing', duration: 400, delay: 500 }}
+    >
+      <Card>
+        <View style={styles.achHeader}>
+          <Text style={styles.cardLabel}>✨ Achievements</Text>
+          {streak > 0 ? (
+            <MotiView
+              style={styles.streakChip}
+              animate={{ scale: 1 }}
+              from={{ scale: 0.8 }}
+              transition={{ type: 'timing', duration: 300 }}
+            >
+              <Text style={styles.streakText}>🔥 {streak} day streak</Text>
+            </MotiView>
+          ) : null}
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.achScroll}>
+          {achievements.map((ach, idx) => (
+            <MotiView
+              key={ach.id}
+              style={[styles.achBadge, ach.unlocked && styles.achBadgeUnlocked]}
+              animate={{ scale: 1, opacity: 1 }}
+              from={{ scale: 0.8, opacity: 0 }}
+              transition={{
+                type: 'timing',
+                duration: 400,
+                delay: 550 + idx * 30,
+              }}
+              onPress={() => {
+                // Haptic feedback on tap (if available)
+              }}
+            >
+              <Text style={[styles.achIcon, !ach.unlocked && styles.achIconLocked]}>{ach.icon}</Text>
+              <Text
+                style={[styles.achName, !ach.unlocked && styles.achNameLocked]}
+                numberOfLines={2}
+              >
+                {ach.name}
+              </Text>
+              {ach.unlocked ? <Text style={styles.achCheck}>✓</Text> : null}
+            </MotiView>
+          ))}
+        </ScrollView>
+      </Card>
+    </MotiView>
+  ) : null;
+}
 
+// ─── Main Screen ───────────────────────────────────────────────────────────────
 export default function ChildHomeScreen() {
   const { token, user, refreshMe } = useAuth();
   const navigation = useNavigation();
@@ -244,7 +504,9 @@ export default function ChildHomeScreen() {
     }
   }, [token, refreshMe]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function onRefresh() {
     setRefreshing(true);
@@ -255,80 +517,92 @@ export default function ChildHomeScreen() {
 
   return (
     <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-      {/* Top bar — greeting + nav icons */}
-      <View style={styles.topBar}>
+      {/* Top bar with smooth entry */}
+      <MotiView
+        style={styles.topBar}
+        animate={{ opacity: 1, translateY: 0 }}
+        from={{ opacity: 0, translateY: -20 }}
+        transition={{ type: 'timing', duration: 300 }}
+      >
         <Text style={styles.topGreeting}>Hi, {user?.name?.split(' ')[0] ?? 'there'}</Text>
         <View style={styles.topActions}>
-          <TouchableOpacity onPress={() => navigation.navigate('ChildNotifications')} style={styles.topBtn} accessibilityLabel="Notifications">
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ChildNotifications')}
+            style={styles.topBtn}
+            accessibilityLabel="Notifications"
+          >
             <Ionicons name="notifications-outline" size={20} color={colors.childAccentDark} />
-            {unread.length > 0 && <View style={styles.topBtnBadge} />}
+            {unread.length > 0 && (
+              <MotiView
+                style={styles.topBtnBadge}
+                animate={{ scale: 1 }}
+                from={{ scale: 1.5 }}
+                transition={{ type: 'timing', duration: 300 }}
+              />
+            )}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Account')} style={styles.topBtn} accessibilityLabel="Account">
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Account')}
+            style={styles.topBtn}
+            accessibilityLabel="Account"
+          >
             <Ionicons name="person-circle-outline" size={22} color={colors.childAccentDark} />
           </TouchableOpacity>
         </View>
-      </View>
+      </MotiView>
 
       {loading ? (
         <Spinner full />
       ) : (
         <>
-          {/* AI Hero — primary surface */}
-          <AiHeroPanel
-            user={user}
-            tasks={tasks}
-            streak={streak}
-            navigation={navigation}
-          />
+          {/* AI Hero Panel */}
+          <AiHeroPanel user={user} tasks={tasks} streak={streak} navigation={navigation} />
 
-          {/* Hero balance card */}
-          <HeroBalanceCard
-            rp={user?.pointsBalance ?? 0}
-            gp={user?.giftcardPointsBalance ?? 0}
-          />
+          {/* Premium Hero Balance Card */}
+          <HeroBalanceCard rp={user?.pointsBalance ?? 0} gp={user?.giftcardPointsBalance ?? 0} />
 
-          {/* Gaming time */}
+          {/* Speed Control Slider */}
+          <SpeedControlSlider />
+
+          {/* Gaming Time Card */}
           {gamingOverview ? <GamingTimeCard overview={gamingOverview} /> : null}
 
-          {/* Achievements strip */}
-          {achievements.length > 0 ? (
-            <Card>
-              <View style={styles.achHeader}>
-                <Text style={styles.cardLabel}>Achievements</Text>
-                {streak > 0 ? (
-                  <View style={styles.streakChip}>
-                    <Text style={styles.streakText}>{streak} day streak</Text>
-                  </View>
-                ) : null}
-              </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.achScroll}>
-                {achievements.map((ach) => (
-                  <View key={ach.id} style={[styles.achBadge, ach.unlocked && styles.achBadgeUnlocked]}>
-                    <Text style={[styles.achIcon, !ach.unlocked && styles.achIconLocked]}>{ach.icon}</Text>
-                    <Text style={[styles.achName, !ach.unlocked && styles.achNameLocked]} numberOfLines={2}>{ach.name}</Text>
-                    {ach.unlocked ? <Text style={styles.achCheck}>✓</Text> : null}
-                  </View>
-                ))}
-              </ScrollView>
-            </Card>
-          ) : null}
+          {/* Achievements Strip */}
+          <AchievementsStrip achievements={achievements} streak={streak} />
 
-          {/* Notifications */}
+          {/* Notifications Preview */}
           {unread.length > 0 ? (
-            <Card>
-              <View style={styles.notifHeader}>
-                <Text style={styles.cardLabel}>Notifications ({unread.length} new)</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('ChildNotifications')}>
-                  <Text style={styles.seeAll}>See all →</Text>
-                </TouchableOpacity>
-              </View>
-              {unread.slice(0, 5).map((n) => (
-                <View key={n.id} style={styles.notifItem}>
-                  <View style={styles.notifDot} />
-                  <Text style={styles.notifText}>{n.message}</Text>
+            <MotiView
+              style={{ marginVertical: spacing.sm }}
+              animate={{ opacity: 1 }}
+              from={{ opacity: 0 }}
+              transition={{ type: 'timing', duration: 400, delay: 600 }}
+            >
+              <Card>
+                <View style={styles.notifHeader}>
+                  <Text style={styles.cardLabel}>🔔 New Notifications</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('ChildNotifications')}>
+                    <Text style={styles.seeAll}>See all →</Text>
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </Card>
+                {unread.slice(0, 3).map((n, idx) => (
+                  <MotiView
+                    key={n.id}
+                    style={styles.notifItem}
+                    animate={{ opacity: 1, translateX: 0 }}
+                    from={{ opacity: 0, translateX: -10 }}
+                    transition={{
+                      type: 'timing',
+                      duration: 300,
+                      delay: 650 + idx * 50,
+                    }}
+                  >
+                    <View style={styles.notifDot} />
+                    <Text style={styles.notifText}>{n.message}</Text>
+                  </MotiView>
+                ))}
+              </Card>
+            </MotiView>
           ) : null}
         </>
       )}
@@ -344,51 +618,75 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: spacing.md,
   },
   topGreeting: { fontSize: 18, fontWeight: '800', color: colors.text },
-  topActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  topActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   topBtn: {
-    width: 34, height: 34,
-    alignItems: 'center', justifyContent: 'center',
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
   },
   topBtnBadge: {
     position: 'absolute',
-    top: 5, right: 4,
-    width: 8, height: 8,
-    borderRadius: 4,
+    top: 6,
+    right: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: colors.danger,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: colors.background,
   },
 
-  notifHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  seeAll: { fontSize: 12, fontWeight: '700', color: colors.childAccent },
-
+  // ── Card labels ──
   cardLabel: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
 
+  // ── Gaming Time ──
   gamingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   gamingBig: { fontSize: 42, fontWeight: '900', color: colors.primaryDark, lineHeight: 46 },
   gamingUnit: { fontSize: 13, color: colors.textMuted },
-  gamingRight: { flex: 1, gap: 4 },
-  gamingMeta: { fontSize: 12, color: colors.textMuted },
-  capBarTrack: { height: 6, backgroundColor: colors.border, borderRadius: 3, overflow: 'hidden' },
-  capBarFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 3 },
+  gamingRight: { flex: 1, gap: spacing.sm },
+  gamingMeta: { fontSize: 11, color: colors.textMuted, fontWeight: '500' },
+  capBarTrack: { height: 8, backgroundColor: colors.border, borderRadius: 4, overflow: 'hidden' },
+  capBarFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
 
-  // ── AI Hero Panel ──────────────────────────────────────────────────────────
+  // ── Speed Control ──
+  speedControl: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginVertical: spacing.md,
+  },
+  speedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  speedTitle: { fontSize: 14, fontWeight: '700', color: colors.text },
+  speedValue: { fontSize: 14, fontWeight: '800', color: colors.primary },
+  speedSliderTrack: { height: 6, backgroundColor: colors.border, borderRadius: 3, overflow: 'hidden', marginBottom: spacing.sm },
+  speedSliderFill: { height: '100%', backgroundColor: colors.warning },
+  speedHint: { fontSize: 11, color: colors.textMuted, fontStyle: 'italic' },
+
+  // ── AI Hero Panel ──
   aiHero: {
     backgroundColor: colors.childSurface,
-    borderRadius: 24,
+    borderRadius: 20,
     padding: spacing.md,
     borderWidth: 1.5,
     borderColor: colors.childAccent + '44',
-    gap: spacing.sm,
+    gap: spacing.md,
     shadowColor: colors.childAccent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 5,
   },
   aiHeroTop: {
     flexDirection: 'row',
@@ -396,121 +694,92 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   aiHeroAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.childAccent,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
-    shadowColor: colors.childAccent,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
+    backgroundColor: colors.childAccent + '20',
+    borderRadius: 24,
   },
-  aiHeroAvatarEmoji: { fontSize: 26 },
+  aiHeroAvatarEmoji: { fontSize: 28 },
   aiHeroBubble: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderTopLeftRadius: 4,
-    padding: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: colors.childAccent + '10',
+    borderRadius: 14,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.childAccent,
   },
-  aiHeroGreeting: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-    fontWeight: '500',
-  },
-  aiHeroChips: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 4,
-  },
+  aiHeroGreeting: { fontSize: 13, color: colors.text, fontWeight: '500', lineHeight: 18 },
+  aiHeroChips: { gap: spacing.xs, paddingHorizontal: 0 },
+  aiHeroChipWrap: { marginRight: spacing.xs },
   aiHeroChip: {
-    backgroundColor: colors.childAccent,
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: colors.primary + '15',
+    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
   },
-  aiHeroChipText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.surface,
-  },
-  aiHeroInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 4,
-  },
+  aiHeroChipText: { fontSize: 12, fontWeight: '600', color: colors.primary },
+  aiHeroInputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   aiHeroInput: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    fontSize: 14,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    fontSize: 13,
     color: colors.text,
     borderWidth: 1,
     borderColor: colors.border,
   },
   aiHeroSendBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.childAccent,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.childAccent,
+    borderRadius: 10,
   },
-  aiHeroSendBtnDisabled: {
-    backgroundColor: colors.border,
-  },
-  aiHeroSendText: {
-    color: colors.surface,
-    fontWeight: '800',
-    fontSize: 16,
-  },
+  aiHeroSendBtnDisabled: { backgroundColor: colors.border },
+  aiHeroSendText: { fontSize: 16, fontWeight: '800', color: '#fff' },
 
-  notifItem: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  notifDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.childAccent, marginTop: 4 },
-  notifText: { flex: 1, fontSize: 13, color: colors.text, lineHeight: 18 },
-
+  // ── Achievements ──
   achHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   streakChip: {
-    backgroundColor: colors.streakFire,
-    borderRadius: 12,
-    paddingHorizontal: 10,
+    backgroundColor: colors.warning + '20',
+    borderRadius: 10,
+    paddingHorizontal: spacing.xs,
     paddingVertical: 3,
   },
-  streakText: { fontSize: 12, fontWeight: '700', color: colors.surface },
-
-  achScroll: { marginTop: 4 },
+  streakText: { fontSize: 12, fontWeight: '700', color: colors.warning },
+  achScroll: { gap: spacing.xs },
   achBadge: {
-    width: 76,
     alignItems: 'center',
-    marginRight: spacing.sm,
-    padding: spacing.sm,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    opacity: 0.45,
+    gap: 6,
+    padding: spacing.xs,
+    backgroundColor: colors.surface2,
+    borderRadius: 12,
+    minWidth: 64,
+    opacity: 0.6,
+    marginRight: spacing.xs,
   },
   achBadgeUnlocked: {
+    backgroundColor: colors.secondary + '20',
     opacity: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.primarySurface,
   },
-  achIcon: { fontSize: 26, lineHeight: 30 },
+  achIcon: { fontSize: 24 },
   achIconLocked: { opacity: 0.4 },
-  achName: { fontSize: 10, fontWeight: '700', color: colors.text, textAlign: 'center', marginTop: 4, lineHeight: 13 },
+  achName: { fontSize: 10, fontWeight: '600', color: colors.text, textAlign: 'center' },
   achNameLocked: { color: colors.textMuted },
-  achCheck: { fontSize: 10, fontWeight: '900', color: colors.primary, marginTop: 2 },
+  achCheck: { fontSize: 12, fontWeight: '800', color: colors.secondary },
+
+  // ── Notifications ──
+  notifHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
+  seeAll: { fontSize: 12, fontWeight: '700', color: colors.childAccent },
+  notifItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  notifDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.childAccent },
+  notifText: { flex: 1, fontSize: 12, color: colors.text, lineHeight: 16 },
 });

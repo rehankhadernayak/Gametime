@@ -4,7 +4,7 @@ import './EvidenceReviewPanel.css';
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 function fmtDate(iso) {
-  if (!iso) return '—';
+  if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleString();
 }
@@ -235,7 +235,7 @@ function NoteEntrySheet({ draft, onChange, onSubmit, onCancel }) {
         className="erp-note-textarea"
         value={draft}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="e.g. The photo is too blurry — please retake it."
+        placeholder="e.g. The photo is too blurry - please retake it."
         maxLength={500}
         rows={4}
       />

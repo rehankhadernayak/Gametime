@@ -26,7 +26,7 @@ function EvidenceMedia({ completionId, evidenceType, evidenceMime, token, title 
     setErrored(false);
     setSrc(null);
 
-    fetch(`${EVIDENCE_API_BASE}/api/tasks/evidence/${completionId}`, {
+    fetch(`${EVIDENCE_API_BASE}/tasks/evidence/${completionId}`, {
       credentials: 'include',
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -331,7 +331,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     loadAll();
   }, []);
 
-  // Proactive AI briefing — load on mount, fail silently after 3s
+  // Proactive AI briefing - load on mount, fail silently after 3s
   useEffect(() => {
     let cancelled = false;
     const timeout = setTimeout(() => { cancelled = true; }, 3000);
@@ -351,7 +351,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       notify('Payment successful! Your GP wallet has been topped up.', 'success');
     } else if (topup === 'cancelled') {
       window.history.replaceState({}, '', '/parent/dashboard');
-      notify('Payment cancelled — no charge was made.', 'error');
+      notify('Payment cancelled - no charge was made.', 'error');
     }
   }, []);
 
@@ -1340,13 +1340,13 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                           return (
                             <tr key={txn.id || i}>
                               <td>{new Date(txn.createdAt).toLocaleDateString()}</td>
-                              <td>{child?.name || '—'}</td>
+                              <td>{child?.name || '-'}</td>
                               <td>{txn.pointsKind || 'RP'}</td>
                               <td className={txn.type === 'Debit' ? 'txn-debit' : 'txn-credit'}>
                                 {txn.type === 'Debit' ? '-' : '+'}{txn.points}
                               </td>
                               <td>{txn.type}</td>
-                              <td>{txn.referenceId || '—'}</td>
+                              <td>{txn.referenceId || '-'}</td>
                             </tr>
                           );
                         })}
@@ -1520,7 +1520,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           <section className="panel">
             <h2>Add Gift Card Codes</h2>
             <p className="helper-text">
-              Bought gift cards from Amazon, Steam, or anywhere else? Paste the codes below — they'll be encrypted and published as a reward your child can redeem.
+              Bought gift cards from Amazon, Steam, or anywhere else? Paste the codes below - they'll be encrypted and published as a reward your child can redeem.
             </p>
             {message && (
               <p className={msgKind === 'error' ? 'error' : 'notice'} role={msgKind === 'error' ? 'alert' : undefined}>
@@ -1641,7 +1641,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 </div>
 
                 <label>
-                  Gift card codes <span className="field-hint">(one per line — CODE or CODE,PIN or CODE,PIN,YYYY-MM-DD)</span>
+                  Gift card codes <span className="field-hint">(one per line - CODE or CODE,PIN or CODE,PIN,YYYY-MM-DD)</span>
                   <textarea
                     rows={5}
                     value={manualGiftcardForm.codesInput}
@@ -1679,7 +1679,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                       maxLength={120}
                       value={manualGiftcardForm.purchaseReference}
                       onChange={(e) => setManualGiftcardForm((prev) => ({ ...prev, purchaseReference: e.target.value }))}
-                      placeholder="Optional — for your records"
+                      placeholder="Optional - for your records"
                     />
                   </label>
                 </div>
@@ -1695,7 +1695,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           <section className="panel">
             <h2>GP Wallet</h2>
             <p className="helper-text">
-              GP (Giftcard Points) is the currency children use to redeem gift cards. Award GP to children by adding a GP bonus when creating tasks — children earn it when the task is approved.
+              GP (Giftcard Points) is the currency children use to redeem gift cards. Award GP to children by adding a GP bonus when creating tasks - children earn it when the task is approved.
             </p>
 
             <div className="gp-balances">
@@ -1791,7 +1791,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 />
               </label>
               <label>
-                Amount paid <span className="field-hint">(optional — for your records)</span>
+                Amount paid <span className="field-hint">(optional - for your records)</span>
                 <input
                   value={gpPurchaseForm.moneyAmount}
                   onChange={(e) => setGpPurchaseForm((prev) => ({ ...prev, moneyAmount: e.target.value }))}

@@ -39,7 +39,7 @@ export async function getNotifPrefs(parentId) {
 
 export async function saveNotifPrefs(parentId, prefs) {
   const db = await getDb();
-  // Only persist known keys — strip anything unexpected
+  // Only persist known keys - strip anything unexpected
   const safe = {
     enabled:           Boolean(prefs.enabled ?? DEFAULT_PREFS.enabled),
     taskApprovals:     Boolean(prefs.taskApprovals ?? DEFAULT_PREFS.taskApprovals),
@@ -89,7 +89,7 @@ export async function createNotification(recipientType, recipientId, message, ty
     [uuidv4(), recipientType, recipientId, truncated, now]
   );
 
-  // Fire-and-forget push delivery — never blocks or throws back to the caller.
+  // Fire-and-forget push delivery - never blocks or throws back to the caller.
   const extraData = type ? { type } : {};
   setImmediate(() => {
     sendPushToRecipient(recipientType, recipientId, 'Gametime', truncated, extraData).catch(() => {});

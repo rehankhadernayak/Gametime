@@ -99,7 +99,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
         <div>
           <h2>Weekly Plan</h2>
           <p className="section-subtitle">
-            Recurring tasks by day — drag a chip to add or remove days.
+            Recurring tasks by day - drag a chip to add or remove days.
           </p>
         </div>
         {busy && <span className="notice" aria-live="polite">Saving…</span>}
@@ -131,7 +131,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
                     draggable
                     onDragStart={() => setDraggedId(task.id)}
                     onDragEnd={() => { setDraggedId(null); setDragOverDay(null); }}
-                    title={`${task.childName}: ${task.title} — ${task.points} RP`}
+                    title={`${task.childName}: ${task.title} - ${task.points} RP`}
                   >
                     <span className="chip-dot" aria-hidden="true" />
                     <span className="chip-title">{task.title}</span>
@@ -155,7 +155,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
       {/* ── Unscheduled tasks pool ── */}
       {unscheduled.length > 0 && (
         <div className="weekly-unscheduled">
-          <span className="section-label">Unscheduled — drag onto a day to schedule</span>
+          <span className="section-label">Unscheduled - drag onto a day to schedule</span>
           <div className="weekly-unscheduled-chips">
             {unscheduled.map((task) => (
               <div
@@ -165,7 +165,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
                 draggable
                 onDragStart={() => setDraggedId(task.id)}
                 onDragEnd={() => { setDraggedId(null); setDragOverDay(null); }}
-                title={`${task.childName}: ${task.title} — ${task.points} RP`}
+                title={`${task.childName}: ${task.title} - ${task.points} RP`}
               >
                 <span className="chip-dot" aria-hidden="true" />
                 <span className="chip-title">{task.title}</span>

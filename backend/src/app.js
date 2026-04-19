@@ -44,19 +44,19 @@ export function createApp() {
     })
   );
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
-  // Stripe webhook — raw body required for signature verification (must be before express.json)
+  // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
   // Body limit is set to 14 MB: accommodates a 10 MB base64 evidence payload
   // (~13.3 MB on the wire) plus JSON envelope overhead, with a small buffer.
   app.use(express.json({ limit: '14mb' }));
   app.use(cookieParser());
-  // Structured request logging — skips /health polling so logs stay clean
+  // Structured request logging - skips /health polling so logs stay clean
   app.use(pinoHttp({
     logger,
     autoLogging: { ignore: (req) => req.url === '/health' }
   }));
 
-  // Health check — verifies DB connectivity so hosting platforms can detect failures
+  // Health check - verifies DB connectivity so hosting platforms can detect failures
   app.get('/health', async (_req, res) => {
     try {
       const db = await getDb();

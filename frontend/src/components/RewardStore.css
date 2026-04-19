@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   Reward Store — filter/sort/cards/sheets/confetti
+   Reward Store - filter/sort/cards/sheets/confetti
    ══════════════════════════════════════════════════════════════════════ */
 
 .rs-wrap {
@@ -96,7 +96,7 @@
 
 .rs-tab-active {
   background: var(--bg-action);
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--bg-action);
 }
 
@@ -369,7 +369,7 @@
 
 .rs-redeem-btn {
   background: var(--bg-action);
-  color: #fff;
+  color: var(--text-main);
   border: none;
   border-radius: var(--radius-sm);
   padding: 0.7rem 1rem;
@@ -408,7 +408,7 @@
 
 .rs-sheet-close-btn {
   background: var(--bg-action);
-  color: #fff;
+  color: var(--text-main);
   border: none;
   border-radius: var(--radius-sm);
   padding: 0.65rem 1.5rem;

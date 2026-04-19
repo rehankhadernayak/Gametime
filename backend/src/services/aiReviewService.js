@@ -178,7 +178,7 @@ async function analyzeWithClaude(input) {
 
   const systemPrompt = [
     'You are an assistant helping a parent review evidence that a child submitted for a household task.',
-    'You are advisory only — the final decision belongs to the parent.',
+    'You are advisory only - the final decision belongs to the parent.',
     'Output strict JSON only with exactly three keys: recommendation, confidence, reason.',
     'recommendation must be exactly one of: Approve, Reject, NeedsParentReview.',
     'confidence must be a number between 0 and 1 (e.g. 0.82).',
@@ -211,7 +211,7 @@ async function analyzeWithClaude(input) {
       }
     });
   } else {
-    // Video or unsupported image format — describe the limitation
+    // Video or unsupported image format - describe the limitation
     userContent.push({
       type: 'text',
       text: input.evidenceType === 'Video'
@@ -259,7 +259,7 @@ export async function analyzeTaskEvidence(input) {
   try {
     return await analyzeWithClaude(input);
   } catch (error) {
-    // Claude was attempted but failed — local rules ran as fallback.
+    // Claude was attempted but failed - local rules ran as fallback.
     // Keep status 'Completed' since a real advisory was produced.
     return localRuleAdvisory({
       ...input,

@@ -132,7 +132,7 @@ export async function autoAssignCode({ childId, redemptionId, brand, denominatio
   const db = await getDb();
   const now = new Date().toISOString();
 
-  // Build a prioritised query — exact brand+denomination first, then brand only, then any
+  // Build a prioritised query - exact brand+denomination first, then brand only, then any
   let row = null;
 
   if (brand && denominationCents) {

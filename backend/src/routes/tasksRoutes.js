@@ -37,11 +37,11 @@ router.get('/requests',  requireAnyAuth,    listTaskRequestsController);
 router.post('/requests/:requestId/approve', requireParentAuth, actionLimiter, approveTaskRequestController);
 router.post('/requests/:requestId/reject',  requireParentAuth, actionLimiter, rejectTaskRequestController);
 router.delete('/requests/:requestId',       requireChildAuth,  cancelTaskRequestController);
-// Evidence serve — must be declared BEFORE the /:taskId wildcards to avoid
+// Evidence serve - must be declared BEFORE the /:taskId wildcards to avoid
 // "evidence" being captured as a taskId parameter.
 router.get('/evidence/:completionId', requireAnyAuth, serveEvidenceController);
 
-// Submission detail + review — declared before the /:taskId delete wildcard
+// Submission detail + review - declared before the /:taskId delete wildcard
 router.get('/:taskId/submission',  requireParentAuth, actionLimiter, getSubmissionController);
 router.post('/:taskId/review',     requireParentAuth, actionLimiter, reviewSubmissionController);
 

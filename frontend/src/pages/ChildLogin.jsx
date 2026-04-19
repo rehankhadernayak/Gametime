@@ -39,7 +39,7 @@ export default function ChildLogin({ onAuth }) {
         onAuth({ token: data.token, role: 'child', user: data.child });
         navigate('/child/dashboard');
       } else {
-        // PIN mode — step 1: validate inputs, then show numpad for PIN entry
+        // PIN mode - step 1: validate inputs, then show numpad for PIN entry
         const parentEmail = pinForm.parentEmail.trim();
         const childName = pinForm.childName.trim();
         if (!parentEmail || !childName)
@@ -47,7 +47,7 @@ export default function ChildLogin({ onAuth }) {
         if (!isValidEmail(parentEmail))
           throw new Error('Enter a valid parent email address.');
 
-        // No lookup endpoint — show numpad directly with the info entered
+        // No lookup endpoint - show numpad directly with the info entered
         setPinChildProfile({
           id: null,
           name: childName,

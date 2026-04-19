@@ -76,7 +76,7 @@ export async function initDb() {
   );
   await db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_child_profiles_email_unique ON child_profiles(email) WHERE email IS NOT NULL');
 
-  // Family AI memory — persistent key/value store per parent
+  // Family AI memory - persistent key/value store per parent
   await db.exec(`
     CREATE TABLE IF NOT EXISTS family_ai_memory (
       id         TEXT PRIMARY KEY,
@@ -192,7 +192,7 @@ export async function initDb() {
   `);
   await db.exec('CREATE INDEX IF NOT EXISTS idx_child_achievements_child ON child_achievements(child_id)');
 
-  // Optional giftcard metadata on rewards — used to match platform code pool on fulfillment
+  // Optional giftcard metadata on rewards - used to match platform code pool on fulfillment
   await ensureColumn(db, 'rewards', 'giftcard_brand', 'giftcard_brand TEXT');
   await ensureColumn(db, 'rewards', 'giftcard_denomination_cents', 'giftcard_denomination_cents INTEGER');
 

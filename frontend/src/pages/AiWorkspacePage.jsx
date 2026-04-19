@@ -69,7 +69,7 @@ function GiftIcon() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Text renderer — turns \n\n into paragraphs, \n into <br>
+   Text renderer - turns \n\n into paragraphs, \n into <br>
    ───────────────────────────────────────────────────────────────────────── */
 function renderText(content) {
   if (!content) return null;
@@ -139,7 +139,7 @@ function StreamingBubble({ text, toolEvents }) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Artifact cards — appear in the workspace canvas
+   Artifact cards - appear in the workspace canvas
    ───────────────────────────────────────────────────────────────────────── */
 function FamilyArtifact({ data }) {
   const children  = data?.children  || [];
@@ -277,7 +277,7 @@ function ApprovalCard({ task, token, onDone }) {
     return (
       <div className="aws-approval-card done approved">
         <span className="aws-approval-done-icon">✓</span>
-        <span>{task.title} approved — {task.points} RP awarded to {task.childName}</span>
+        <span>{task.title} approved - {task.points} RP awarded to {task.childName}</span>
       </div>
     );
   }
@@ -397,12 +397,12 @@ function CanvasEmpty() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Quick action chips — context-aware suggestions
+   Quick action chips - context-aware suggestions
    ───────────────────────────────────────────────────────────────────────── */
 const INITIAL_CHIPS = [
   { label: 'Morning briefing', action: 'morning_briefing' },
   { label: 'What needs my attention?', prompt: "What needs my attention right now? Check for pending approvals and anything urgent." },
-  { label: 'Show family overview',     prompt: 'Show me an overview of my family — children, their balances, and current tasks.' },
+  { label: 'Show family overview',     prompt: 'Show me an overview of my family - children, their balances, and current tasks.' },
   { label: 'Create a task',              action: 'create_task' },
   { label: 'Set up a reward',             prompt: 'I want to create a reward my children can redeem with their points.' },
 ];
@@ -473,7 +473,7 @@ function ChildInsightCard({ child }) {
       <div className="insights-stats-grid">
         <div className="insights-stat">
           <span className="insights-stat-label">Top Game</span>
-          <span className="insights-stat-val">{topGame ? `${topGame.gameName} (${topGame.totalMinutes} min)` : '—'}</span>
+          <span className="insights-stat-val">{topGame ? `${topGame.gameName} (${topGame.totalMinutes} min)` : '-'}</span>
         </div>
         <div className="insights-stat">
           <span className="insights-stat-label">Sessions This Week</span>
@@ -607,7 +607,7 @@ export default function AiWorkspacePage({ token, parentName }) {
   const [familyData, setFamilyData] = useState(null); // latest family overview data
   const [canvasTab,  setCanvasTab]  = useState('workspace'); // 'workspace' | 'insights'
 
-  /* AI action buttons — keyed by message index */
+  /* AI action buttons - keyed by message index */
   const [messageActions, setMessageActions] = useState({}); // { [msgIdx]: actions[] }
   const [actionResults,  setActionResults]  = useState({}); // { [key]: string }
   const [toast,          setToast]          = useState(''); // brief success toast
@@ -660,14 +660,14 @@ export default function AiWorkspacePage({ token, parentName }) {
     if (typingDrainRef.current) return;
     typingDrainRef.current = setInterval(() => {
       if (!typingQueueRef.current.length) return;
-      // Adaptive batch size — catches up if AI streams faster than display
+      // Adaptive batch size - catches up if AI streams faster than display
       const n = typingQueueRef.current.length > 50 ? 5
               : typingQueueRef.current.length > 20 ? 3
               : typingQueueRef.current.length >  5 ? 2
               : 1;
       typingShownRef.current += typingQueueRef.current.splice(0, n).join('');
       setStreamingText(typingShownRef.current);
-    }, 28); // ~35 chars/sec — feels like a fast human typist
+    }, 28); // ~35 chars/sec - feels like a fast human typist
   }
 
   /* ── Load history ── */
@@ -889,13 +889,13 @@ export default function AiWorkspacePage({ token, parentName }) {
         return next;
       });
     } catch {
-      // Fail silently — briefing is optional
+      // Fail silently - briefing is optional
     } finally {
       setBriefingLoading(false);
     }
   }
 
-  /* ── Handle chip click — some chips have special actions ── */
+  /* ── Handle chip click - some chips have special actions ── */
   function handleChipClick(chip) {
     if (chip.action === 'morning_briefing') {
       loadMorningBriefing();
@@ -934,7 +934,7 @@ export default function AiWorkspacePage({ token, parentName }) {
     <div className="aws-page">
 
       {/* ════════════════════════════════════
-          LEFT — Chat panel
+          LEFT - Chat panel
           ════════════════════════════════════ */}
       <div className="aws-chat-panel">
 
@@ -1055,7 +1055,7 @@ export default function AiWorkspacePage({ token, parentName }) {
           </button>
         </div>
 
-        {/* Hint text — shown only when canvas is empty */}
+        {/* Hint text - shown only when canvas is empty */}
         {historyLoaded && messages.length === 0 && !isActive && (
           <p className="ai-hint-text">
             Try: &ldquo;Create a task for Ethan to clean his room by Sunday worth 15 RP&rdquo;<br />
@@ -1068,7 +1068,7 @@ export default function AiWorkspacePage({ token, parentName }) {
       </div>
 
       {/* ════════════════════════════════════
-          RIGHT — Workspace canvas
+          RIGHT - Workspace canvas
           ════════════════════════════════════ */}
       <div className="aws-canvas" ref={canvasRef}>
         <div className="aws-canvas-header">

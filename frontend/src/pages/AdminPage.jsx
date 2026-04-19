@@ -5,7 +5,7 @@ import { apiRequest } from '../api/client.js';
 function StatCard({ label, value, accent }) {
   return (
     <div className="admin-stat-card" style={{ borderTopColor: accent }}>
-      <div className="admin-stat-value">{value ?? '—'}</div>
+      <div className="admin-stat-value">{value ?? '-'}</div>
       <div className="admin-stat-label">{label}</div>
     </div>
   );

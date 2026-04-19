@@ -1,0 +1,30 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "env": [
+    {
+      "key": "VITE_API_URL",
+      "value": "https://api.gametime.app",
+      "type": "plaintext",
+      "target": ["production"]
+    },
+    {
+      "key": "VITE_API_URL",
+      "value": "https://api-staging.gametime.app",
+      "type": "plaintext",
+      "target": ["preview"]
+    },
+    {
+      "key": "VITE_API_URL",
+      "value": "http://localhost:4000",
+      "type": "plaintext",
+      "target": ["development"]
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
+}

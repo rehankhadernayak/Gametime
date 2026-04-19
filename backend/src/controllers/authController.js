@@ -135,13 +135,13 @@ export async function signup(req, res, next) {
 
     const token = await issueToken(res, { role: 'parent', parentId: id, isAdmin: false });
 
-    // Fire-and-forget — never block signup on email delivery.
+    // Fire-and-forget - never block signup on email delivery.
     sendWelcomeEmail(email, name).then(({ previewUrl, deliveryMode }) => {
       if (deliveryMode === 'test' && previewUrl) {
         logger.info({ previewUrl }, 'Welcome email preview (Ethereal)');
       }
     }).catch((err) => {
-      logger.warn({ err, parentId: id }, 'Welcome email failed — account created successfully');
+      logger.warn({ err, parentId: id }, 'Welcome email failed - account created successfully');
     });
 
     return res.status(201).json({ token, parent: { id, name, email, isAdmin: false } });
@@ -458,7 +458,7 @@ export async function changePassword(req, res, next) {
 /**
  * GET /auth/export-data
  * PDPA-compliant full data export for the requesting parent.
- * Returns JSON of everything stored for this account — no passwords.
+ * Returns JSON of everything stored for this account - no passwords.
  */
 export async function exportData(req, res, next) {
   try {

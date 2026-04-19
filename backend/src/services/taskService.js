@@ -156,7 +156,7 @@ export async function listTasksForParent(parentId) {
 }
 
 export async function listTasksForChild(childId) {
-  // Expiry is handled by background job only — not inline on read paths.
+  // Expiry is handled by background job only - not inline on read paths.
   const db = await getDb();
   return db.all(
     `SELECT t.id, t.title, t.description, t.points, t.gp_points as gpPoints, t.state, t.due_date as dueDate,
@@ -222,7 +222,7 @@ export async function completeTask(childId, payload) {
     throw new ApiError(500, 'Failed to save evidence file. Please try again.');
   }
 
-  // ── Phase 1: Main transaction — must succeed atomically ───────────────
+  // ── Phase 1: Main transaction - must succeed atomically ───────────────
   await db.exec('BEGIN');
   try {
     if (existingCompletion && existingCompletion.status === TASK_STATES.REJECTED) {
@@ -292,11 +292,11 @@ export async function completeTask(childId, payload) {
     throw error;
   }
 
-  // ── Phase 2: AI review — best-effort, non-blocking ────────────────────
+  // ── Phase 2: AI review - best-effort, non-blocking ────────────────────
   // Runs after the transaction commits. Never throws back to the caller.
   // analyzeTaskEvidence has an internal local-rules fallback, so it always
   // resolves. The db.run below is a separate lightweight UPDATE; any failure
-  // is logged but must NOT propagate — the submission already succeeded.
+  // is logged but must NOT propagate - the submission already succeeded.
   const aiInput = {
     taskTitle: task.title,
     taskDescription: task.description,
@@ -684,7 +684,7 @@ export async function approveTaskRequest(parentId, requestId, payload) {
   }
 
   // Single combined notification avoids duplicate messages for the child.
-  await createNotification('Child', request.child_id, `Task request approved — new task created: ${request.title}`, 'task_request_approved');
+  await createNotification('Child', request.child_id, `Task request approved - new task created: ${request.title}`, 'task_request_approved');
   return { ignored: false, taskId, message: 'Task request approved and task created' };
 }
 

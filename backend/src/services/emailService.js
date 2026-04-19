@@ -39,7 +39,7 @@ async function getEtherealTransporter() {
   cachedFrom = `Gametime <${testAccount.user}>`;
   if (!warnedAboutTestMode) {
     warnedAboutTestMode = true;
-    logger.warn('[email] No RESEND_API_KEY or SMTP configured — using Ethereal test inbox (no real email delivery). Add RESEND_API_KEY to backend/.env to enable real delivery.');
+    logger.warn('[email] No RESEND_API_KEY or SMTP configured - using Ethereal test inbox (no real email delivery). Add RESEND_API_KEY to backend/.env to enable real delivery.');
   }
   return cachedTransporter;
 }
@@ -92,7 +92,7 @@ export async function sendWeeklyDigestEmail(to, parentName, data) {
       <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;font-weight:600">${c.name}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center">${c.tasksApproved}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center;color:#3B5BDB;font-weight:700">+${c.rpEarned} RP</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center">${c.streak > 0 ? `${c.streak}d streak` : '—'}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;text-align:center">${c.streak > 0 ? `${c.streak}d streak` : '-'}</td>
     </tr>`).join('');
 
   const html = `
@@ -145,7 +145,7 @@ export async function sendWeeklyDigestEmail(to, parentName, data) {
 
   return send({
     to,
-    subject: `Gametime Weekly Digest — week of ${weekOf}`,
+    subject: `Gametime Weekly Digest - week of ${weekOf}`,
     text:    `Hi ${parentName},\n\nHere's your weekly family summary:\n- Tasks completed: ${totalTasksApproved}\n- RP earned: ${totalRpEarned}\n\nOpen Gametime to see more details.\n\nThe Gametime Team`,
     html
   });
@@ -165,9 +165,9 @@ export async function sendWelcomeEmail(to, name) {
           <p>You're all set to start managing your family's gaming time fairly.</p>
           <h3 style="font-size:16px">Get started in 3 steps:</h3>
           <ol>
-            <li style="margin-bottom:8px"><strong>Add your children</strong> — set up their profiles and login method</li>
-            <li style="margin-bottom:8px"><strong>Create tasks</strong> — chores, homework, anything you want them to earn points for</li>
-            <li style="margin-bottom:8px"><strong>Approve evidence</strong> — review their photo/video proof and award points</li>
+            <li style="margin-bottom:8px"><strong>Add your children</strong> - set up their profiles and login method</li>
+            <li style="margin-bottom:8px"><strong>Create tasks</strong> - chores, homework, anything you want them to earn points for</li>
+            <li style="margin-bottom:8px"><strong>Approve evidence</strong> - review their photo/video proof and award points</li>
           </ol>
           <p style="margin-top:24px">If you have any questions, just reply to this email.</p>
           <p style="color:#6b7280;font-size:14px">The Gametime Team</p>

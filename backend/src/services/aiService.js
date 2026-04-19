@@ -9,13 +9,15 @@ import { getAllMemory, setMemory } from './aiMemoryService.js';
 import { refreshFamilyContext } from './aiEventService.js';
 import { createNotification } from './notificationService.js';
 
-/* ── Anthropic client (lazy — initialised only when key is present) ── */
+/* ── Anthropic client (lazy - initialised only when key is present) ── */
 function getClient() {
   if (!env.anthropicApiKey) {
-    throw new Error('ANTHROPIC_API_KEY is not configured. Add it to your .env file and restart the server.');
+    return null; // Return null instead of throwing - calling code must handle this
   }
   return new Anthropic({ apiKey: env.anthropicApiKey });
 }
+
+const AI_UNAVAILABLE_MESSAGE = 'The AI assistant is currently unavailable. Please check back later or contact support.';
 
 /* ── Tool definitions ───────────────────────────────────────────────── */
 const AI_TOOLS = [
@@ -28,7 +30,7 @@ const AI_TOOLS = [
   {
     name: 'create_task',
     description:
-      'Create a quest (task) for a specific child. The child earns RP when the parent approves their completed evidence. Points must be 5–50. Always call get_family_overview first to get the child\'s ID.',
+      'Create a quest (task) for a specific child. The child earns RP when the parent approves their completed evidence. Points must be 5-50. Always call get_family_overview first to get the child\'s ID.',
     input_schema: {
       type: 'object',
       properties: {
@@ -36,7 +38,7 @@ const AI_TOOLS = [
         title:       { type: 'string',  description: 'Short quest title, max 80 characters' },
         description: { type: 'string',  description: 'What the child must do and what evidence (photo/video) to upload' },
         points:      { type: 'integer', description: 'RP reward amount, between 5 and 50' },
-        due_days:    { type: 'integer', description: 'Days from today until the quest expires (1–7). Default 3.' }
+        due_days:    { type: 'integer', description: 'Days from today until the quest expires (1-7). Default 3.' }
       },
       required: ['child_id', 'title', 'description', 'points']
     }
@@ -82,7 +84,7 @@ const AI_TOOLS = [
       type: 'object',
       properties: {
         task_id:    { type: 'string', description: 'The task ID to reject (from get_pending_approvals)' },
-        parent_note: { type: 'string', description: 'Reason for rejection — shown to the child (required)' }
+        parent_note: { type: 'string', description: 'Reason for rejection - shown to the child (required)' }
       },
       required: ['task_id', 'parent_note']
     }
@@ -94,7 +96,7 @@ const AI_TOOLS = [
     input_schema: {
       type: 'object',
       properties: {
-        child_id: { type: 'string', description: 'Filter to a specific child ID (optional — omit for all children)' },
+        child_id: { type: 'string', description: 'Filter to a specific child ID (optional - omit for all children)' },
         state:    { type: 'string', description: 'Filter by task state: Active, PendingApproval, Approved, Rejected, Expired (optional)' }
       },
       required: []
@@ -119,7 +121,7 @@ const AI_TOOLS = [
   {
     name: 'update_gaming_settings',
     description:
-      'Update gaming time limits and conversion rate. All fields are optional — only provide the ones to change. daily_cap_minutes and weekly_cap_minutes are in minutes. points_unit and minutes_unit define conversion (e.g. 10 RP = 15 min).',
+      'Update gaming time limits and conversion rate. All fields are optional - only provide the ones to change. daily_cap_minutes and weekly_cap_minutes are in minutes. points_unit and minutes_unit define conversion (e.g. 10 RP = 15 min).',
     input_schema: {
       type: 'object',
       properties: {
@@ -133,7 +135,7 @@ const AI_TOOLS = [
   },
   {
     name: 'add_game_to_blocklist',
-    description: 'Block a game for ALL children in your family. Children will not be able to start sessions for this game. Platform is optional — defaults to "All".',
+    description: 'Block a game for ALL children in your family. Children will not be able to start sessions for this game. Platform is optional - defaults to "All".',
     input_schema: {
       type: 'object',
       properties: {
@@ -164,7 +166,7 @@ const AI_TOOLS = [
       properties: {
         child_id: { type: 'string', description: 'Child profile ID (from get_family_overview)' },
         points:   { type: 'integer', description: 'Points to add (positive) or subtract (negative). Cannot exceed ±500 per adjustment.' },
-        reason:   { type: 'string', description: 'Reason for the adjustment — shown in the transaction history' }
+        reason:   { type: 'string', description: 'Reason for the adjustment - shown in the transaction history' }
       },
       required: ['child_id', 'points', 'reason']
     }
@@ -198,7 +200,7 @@ const AI_TOOLS = [
   },
   {
     name: 'get_gaming_report',
-    description: 'Get the weekly gaming usage report: which games each child played, how long, and how many sessions. Covers the current calendar week (Mon–Sun).',
+    description: 'Get the weekly gaming usage report: which games each child played, how long, and how many sessions. Covers the current calendar week (Mon-Sun).',
     input_schema: { type: 'object', properties: {}, required: [] }
   },
   {
@@ -286,7 +288,7 @@ function buildSystemPrompt({ parent, children, taskCounts, rewards, isFirstTime,
     children.length === 0
       ? 'No children added yet.'
       : children
-          .map((c) => `  • ${c.name} (age ${c.age}) — ${c.rpBalance} RP, ${c.gpBalance} GP  [id: ${c.id}]`)
+          .map((c) => `  • ${c.name} (age ${c.age}) - ${c.rpBalance} RP, ${c.gpBalance} GP  [id: ${c.id}]`)
           .join('\n');
 
   const pendingApproval = taskCounts.PendingApproval || 0;
@@ -296,13 +298,13 @@ function buildSystemPrompt({ parent, children, taskCounts, rewards, isFirstTime,
   const rewardsText =
     rewards.length === 0
       ? 'No rewards set up yet.'
-      : rewards.map((r) => `  • ${r.title} — ${r.pointsCost} ${r.pointsType}`).join('\n');
+      : rewards.map((r) => `  • ${r.title} - ${r.pointsCost} ${r.pointsType}`).join('\n');
 
   const onboardingBlock = isFirstTime
     ? `
-## This is a NEW parent — Onboarding Mode
+## This is a NEW parent - Onboarding Mode
 ${parent.name} has just created their account. Begin with:
-"Hi ${parent.name}! I'm your Gametime AI — here to help you set up your family and get the most out of the app. Let's start simple: how many children will be using Gametime, and what are their names?"
+"Hi ${parent.name}! I'm your Gametime AI - here to help you set up your family and get the most out of the app. Let's start simple: how many children will be using Gametime, and what are their names?"
 
 Walk them through step by step (one question at a time):
 1. How many kids, names, and rough ages
@@ -314,12 +316,12 @@ Walk them through step by step (one question at a time):
 Keep it warm, conversational, and practical. Don't overwhelm them.`
     : `
 ## Returning Parent
-${parent.name} is an existing user. Be a helpful, proactive assistant — answer questions, suggest quest ideas based on children's ages, help diagnose issues (e.g. why a child can't log in), suggest reward optimisations, and explain features clearly.`;
+${parent.name} is an existing user. Be a helpful, proactive assistant - answer questions, suggest quest ideas based on children's ages, help diagnose issues (e.g. why a child can't log in), suggest reward optimisations, and explain features clearly.`;
 
-  return `You are Gametime AI — the built-in intelligent assistant for Gametime, a family gaming management platform.
+  return `You are Gametime AI - the built-in intelligent assistant for Gametime, a family gaming management platform.
 
 ## What Gametime Does
-- Parents create "quests" (tasks) for children worth 5–50 RP (Reward Points)
+- Parents create "quests" (tasks) for children worth 5-50 RP (Reward Points)
 - Children complete quests, upload photo/video evidence, and earn RP after parent approval
 - RP is spent on "rewards" the parent configures (screen time, treats, gift cards, etc.)
 - GP (Gift-Card Points) are a separate currency for real gift-card redemption
@@ -340,51 +342,51 @@ ${rewardsText}
 You can do EVERYTHING through this chat. Here's what each tool does:
 
 **Family & Overview**
-- get_family_overview — Refresh live data: children, balances, task counts, rewards. Call before create_task to get child IDs.
-- get_pending_approvals — All task submissions waiting for approval with AI verdict and evidence info.
+- get_family_overview - Refresh live data: children, balances, task counts, rewards. Call before create_task to get child IDs.
+- get_pending_approvals - All task submissions waiting for approval with AI verdict and evidence info.
 
 **Task Management**
-- create_task — Create a quest for a specific child (need child_id from get_family_overview first)
-- list_tasks — See all tasks, filtered by child or state (Active/PendingApproval/Approved/Rejected/Expired)
-- delete_task — Delete a task permanently
-- approve_task — Approve a submission. Child earns RP immediately. Add a note optionally.
-- reject_task — Reject with a reason. Child can resubmit or dispute.
+- create_task - Create a quest for a specific child (need child_id from get_family_overview first)
+- list_tasks - See all tasks, filtered by child or state (Active/PendingApproval/Approved/Rejected/Expired)
+- delete_task - Delete a task permanently
+- approve_task - Approve a submission. Child earns RP immediately. Add a note optionally.
+- reject_task - Reject with a reason. Child can resubmit or dispute.
 
 **Rewards & Redemptions**
-- create_reward — Create a reward item children can redeem with RP
-- delete_reward — Remove a reward (auto-refunds pending redemptions)
-- list_pending_redemptions — See reward redemptions waiting for you to fulfill
-- fulfill_redemption — Mark a redemption as delivered (notifies child)
+- create_reward - Create a reward item children can redeem with RP
+- delete_reward - Remove a reward (auto-refunds pending redemptions)
+- list_pending_redemptions - See reward redemptions waiting for you to fulfill
+- fulfill_redemption - Mark a redemption as delivered (notifies child)
 
 **Points**
-- adjust_child_points — Manually add or subtract RP for any child (bonus, deduction, correction)
+- adjust_child_points - Manually add or subtract RP for any child (bonus, deduction, correction)
 
 **Gaming**
-- get_gaming_settings — See current time caps and RP conversion rate
-- update_gaming_settings — Change family-wide daily/weekly caps or RP-to-minutes conversion
-- set_gaming_cap — Set individual daily/weekly gaming caps for a specific child
-- add_game_to_blocklist — Block a specific game for a child
-- remove_game_from_blocklist — Unblock a game
-- get_gaming_report — Weekly gaming usage: which games, how long, by child
+- get_gaming_settings - See current time caps and RP conversion rate
+- update_gaming_settings - Change family-wide daily/weekly caps or RP-to-minutes conversion
+- set_gaming_cap - Set individual daily/weekly gaming caps for a specific child
+- add_game_to_blocklist - Block a specific game for a child
+- remove_game_from_blocklist - Unblock a game
+- get_gaming_report - Weekly gaming usage: which games, how long, by child
 
 **Direct Communication**
-- send_child_message — Send a notification/message directly to a child (max 150 chars)
+- send_child_message - Send a notification/message directly to a child (max 150 chars)
 
 ## Proactive Behaviour
-If there are pending approvals (shown in Live Family Data above), open the conversation by acknowledging them. Example: "You have 2 tasks waiting for your review. Want me to pull them up?" Then call get_pending_approvals when they say yes — or proactively if it's the start of a session with pending items.
+If there are pending approvals (shown in Live Family Data above), open the conversation by acknowledging them. Example: "You have 2 tasks waiting for your review. Want me to pull them up?" Then call get_pending_approvals when they say yes - or proactively if it's the start of a session with pending items.
 
 ## Hard Limits
-- You CANNOT create children — child accounts require email verification and age-specific PIN/password setup. Always tell the parent to add children via the **Family** section in the dashboard sidebar, then come back to chat.
-- Task points must be 5–50 RP. Due date is always within 7 days.
-- Never make up child IDs — always call get_family_overview first.
+- You CANNOT create children - child accounts require email verification and age-specific PIN/password setup. Always tell the parent to add children via the **Family** section in the dashboard sidebar, then come back to chat.
+- Task points must be 5-50 RP. Due date is always within 7 days.
+- Never make up child IDs - always call get_family_overview first.
 - When approving/rejecting, always call get_pending_approvals first if you don't already have the task IDs.
 
 ## Tone & Style
-Warm, smart, and concise — like a knowledgeable family coach who knows the app inside out. Use ${parent.name}'s first name naturally. Ask one question at a time. When you take an action, confirm it clearly and briefly. Never be robotic or use corporate language.
+Warm, smart, and concise - like a knowledgeable family coach who knows the app inside out. Use ${parent.name}'s first name naturally. Ask one question at a time. When you take an action, confirm it clearly and briefly. Never be robotic or use corporate language.
 
-## Formatting — Critical
+## Formatting - Critical
 Write in plain text only. Never use markdown. No # headers, no **bold**, no *italics*, no --- dividers, no hyphen or asterisk bullet lists. If you need to list things, use plain numbered lines like "1. ... 2. ... 3. ..." or just natural prose. Responses should read like a friendly chat message, not a formatted document.
-NEVER use em dashes (—) or en dashes (–) in any response. Use commas, colons, or rewrite the sentence instead.
+NEVER use em dashes (-) or en dashes (-) in any response. Use commas, colons, or rewrite the sentence instead.
 ${onboardingBlock}${memoryBlock ? `\n\n${memoryBlock}` : ''}`;
 }
 
@@ -440,7 +442,7 @@ async function executeTool(parentId, name, input) {
 
       return {
         success: true,
-        message: `Quest "${input.title}" created — ${points} RP, due in ${dueDays} day${dueDays > 1 ? 's' : ''}.`,
+        message: `Quest "${input.title}" created - ${points} RP, due in ${dueDays} day${dueDays > 1 ? 's' : ''}.`,
         data: task
       };
     }
@@ -456,7 +458,7 @@ async function executeTool(parentId, name, input) {
 
       return {
         success: true,
-        message: `Reward "${input.title}" created — ${input.points_cost} RP to redeem.`,
+        message: `Reward "${input.title}" created - ${input.points_cost} RP to redeem.`,
         data: reward
       };
     }
@@ -543,7 +545,7 @@ async function executeTool(parentId, name, input) {
       if (!settings) {
         return {
           success: true,
-          message: 'No gaming settings configured yet — defaults will apply.',
+          message: 'No gaming settings configured yet - defaults will apply.',
           data: { pointsUnit: 10, minutesUnit: 15, dailyCapMinutes: 90, weeklyCapMinutes: 420 }
         };
       }
@@ -768,7 +770,7 @@ async function executeTool(parentId, name, input) {
 /**
  * Generate a morning briefing for a parent:
  * - Refreshes family context in memory
- * - Asks Claude to produce a short 2–3 sentence summary
+ * - Asks Claude to produce a short 2-3 sentence summary
  * - Returns { briefing, stats, actions }
  */
 export async function generateFamilyBriefing(parentId) {
@@ -821,7 +823,7 @@ Pending approvals: ${pendingApprovals}
 Children with streak at risk today: ${streakRiskNames.join(', ') || 'none'}
 RP earned this week: ${weeklyRp}
 
-Write a 2–3 sentence friendly morning briefing in plain English. Mention anything urgent first (pending approvals, streak risk). Keep it warm and practical. No lists. No markdown.`;
+Write a 2-3 sentence friendly morning briefing in plain English. Mention anything urgent first (pending approvals, streak risk). Keep it warm and practical. No lists. No markdown.`;
 
   const response = await client.messages.create({
     model:      env.claudeModel,
@@ -880,12 +882,12 @@ export async function previewEvidence({ childId, taskId, evidenceData, evidenceM
       },
       {
         type: 'text',
-        text: `Task: "${task.title}"\nDescription: ${task.description}\n\nLook at this photo evidence from ${task.childName}. In 1–2 short sentences, give friendly coaching: does it clearly show the task is done? Say "submit" if it looks good or "retake" if they should try again. Start your reply with either "✅ Looks good!" or "📸 Try again —".`
+        text: `Task: "${task.title}"\nDescription: ${task.description}\n\nLook at this photo evidence from ${task.childName}. In 1-2 short sentences, give friendly coaching: does it clearly show the task is done? Say "submit" if it looks good or "retake" if they should try again. Start your reply with either "✅ Looks good!" or "📸 Try again -".`
       }
     ];
   } else {
-    // Video or non-image — text-only coaching based on mime type
-    content = `Task: "${task.title}"\nDescription: ${task.description}\nEvidence type: ${evidenceMime || 'unknown'}\n\nGive brief friendly advice (1–2 sentences) on whether this evidence type is likely to convince a parent. Start with "✅ Looks good!" or "📸 Try again —".`;
+    // Video or non-image - text-only coaching based on mime type
+    content = `Task: "${task.title}"\nDescription: ${task.description}\nEvidence type: ${evidenceMime || 'unknown'}\n\nGive brief friendly advice (1-2 sentences) on whether this evidence type is likely to convince a parent. Start with "✅ Looks good!" or "📸 Try again -".`;
   }
 
   const response = await client.messages.create({
@@ -962,7 +964,7 @@ const SIGNUP_SYSTEM_PROMPT = `You are the Gametime setup assistant. Collect 6 an
 ## Tone
 Direct and efficient. No filler words ("Great!", "Wonderful!", "Sure thing!"). Acknowledge each answer briefly (one phrase at most) then immediately ask the next question. Keep every message under 50 words.
 
-## Question Sequence — ask EXACTLY ONE question per message
+## Question Sequence - ask EXACTLY ONE question per message
 
 Q1: "Welcome to Gametime! I'll get your account ready with 6 quick questions.
 
@@ -994,13 +996,13 @@ Call finalize_signup immediately with all collected data. Then say exactly:
 ## Rules
 - Ask ONLY ONE question per message, no exceptions
 - Never combine two questions in one turn
-- Never invent or assume data — wait for each answer
+- Never invent or assume data - wait for each answer
 - If an answer is ambiguous, ask once for clarification then move on
 - Do NOT introduce yourself, explain Gametime, or add any preamble beyond Q1's welcome line`;
 
 /**
  * Streams an initial signup greeting from Claude (no history).
- * The 'Hi' trigger is never shown in the UI — only Claude's reply is.
+ * The 'Hi' trigger is never shown in the UI - only Claude's reply is.
  */
 export async function streamSignupGreeting(onEvent) {
   const client = getClient();
@@ -1025,7 +1027,7 @@ export async function streamSignupGreeting(onEvent) {
 
 /**
  * Streams a signup chat turn. History may start with an assistant message
- * (the greeting) — we silently prepend the 'Hi' trigger to satisfy Anthropic's
+ * (the greeting) - we silently prepend the 'Hi' trigger to satisfy Anthropic's
  * alternating user/assistant requirement.
  */
 export async function streamSignupChat(history, userMessage, onEvent) {
@@ -1090,13 +1092,13 @@ export async function streamSignupChat(history, userMessage, onEvent) {
 /* ── Onboarding greeting (called once for brand-new parents) ─────────── */
 /**
  * Generates and persists a warm onboarding greeting for a first-time parent.
- * The 'Hi' trigger message is NOT saved — only the assistant reply is stored,
+ * The 'Hi' trigger message is NOT saved - only the assistant reply is stored,
  * so the chat starts with the AI speaking first (no awkward blank user message).
  * Returns the greeting text, or null if the parent already has chat history.
  */
 /**
  * @param {string} parentId
- * @param {object|null} signupContext — optional context collected during the AI signup chat
+ * @param {object|null} signupContext - optional context collected during the AI signup chat
  *   (children, games, tasks, rewards, dailyLimitMinutes). When present the greeting
  *   references it directly and offers to start creating content immediately.
  */

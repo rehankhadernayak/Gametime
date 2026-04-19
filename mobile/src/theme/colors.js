@@ -1,51 +1,51 @@
-// Gametime mobile color palette — Design System v2.0
-// Parent brand: Electric Indigo #3D5AFE | Child energy: Emerald #00C853
+// Gametime mobile color palette - Design System v2.0
+// Brand: Electric Purple #7C5BFF | Child energy: Cyan #22D8E7
 
 const colors = {
-  // ── Brand - Parent (Electric Indigo) ──────────────────────────────
-  primary:        '#3D5AFE',
-  primaryDark:    '#1a1f71',
-  primaryLight:   '#8C9EFF',
-  primarySurface: '#E8EAFF',
+  // ── Brand - Parent (Premium Neon Indigo) ──────────────────────────
+  primary:        '#7C5BFF',
+  primaryDark:    '#110E26',
+  primaryLight:   '#A28CFF',
+  primarySurface: '#14162D',
 
-  // ── Brand - Child (Emerald/Gaming) ────────────────────────────────
-  energy:        '#00C853',
-  energyDark:    '#009624',
-  energyLight:   '#69F0AE',
-  energySurface: '#E8F5E9',
+  // ── Brand - Child (Cyan Energy) ─────────────────────────────────────
+  energy:        '#22D8E7',
+  energyDark:    '#00A6B9',
+  energyLight:   '#6BD7FF',
+  energySurface: '#0D2A37',
 
   // ── Child accent (Purple) ─────────────────────────────────────────
-  child:        '#7C3AED',
-  childDark:    '#5B21B6',
-  childLight:   '#A78BFA',
-  childSurface: '#F5F3FF',
+  child:        '#7C5BFF',
+  childDark:    '#5C43E6',
+  childLight:   '#A692FF',
+  childSurface: '#1C1D33',
 
   // ── Semantic ──────────────────────────────────────────────────────
-  success:        '#00C853',
-  successSurface: '#E8F5E9',
-  warning:        '#FF6D00',
-  warningSurface: '#FFF3E0',
-  error:          '#D32F2F',
-  errorSurface:   '#FFEBEE',
-  info:           '#3D5AFE',
-  infoSurface:    '#E8EAFF',
+  success:        '#06D3A8',
+  successSurface: 'rgba(6, 211, 168, 0.12)',
+  warning:        '#FFA500',
+  warningSurface: 'rgba(255, 165, 0, 0.12)',
+  error:          '#FF3D5A',
+  errorSurface:   'rgba(255, 61, 90, 0.12)',
+  info:           '#22D8E7',
+  infoSurface:    'rgba(34, 216, 231, 0.12)',
 
   // ── Backgrounds - Light mode ──────────────────────────────────────
-  bgRoot:   '#F8F9FF',
-  bgCard:   '#FFFFFF',
-  bgPanel:  '#F0F2FF',
-  bgInput:  '#F5F6FF',
+  bgRoot:   '#0F1223',
+  bgCard:   '#141A31',
+  bgPanel:  '#191F39',
+  bgInput:  '#141A2B',
 
   // ── Backgrounds - Dark mode ───────────────────────────────────────
-  darkBgRoot:  '#0A0A0F',
-  darkBgCard:  '#141420',
-  darkBgPanel: '#1C1C2E',
-  darkBgInput: '#1E1E30',
+  darkBgRoot:  '#05060D',
+  darkBgCard:  '#0D1020',
+  darkBgPanel: '#12162A',
+  darkBgInput: '#171D34',
 
   // ── Text ──────────────────────────────────────────────────────────
-  textPrimary:   '#0D0D1A',
-  textSecondary: '#4A4A6A',
-  textMuted:     '#8888AA',
+  textPrimary:   '#F6F8FF',
+  textSecondary: '#AAB3D3',
+  textMuted:     '#6F7CAA',
   textInverse:   '#FFFFFF',
 
   // ── Gamification ──────────────────────────────────────────────────
@@ -53,29 +53,29 @@ const colors = {
   goldSurface: '#FFF8E1',
   silver:      '#78909C',
   bronze:      '#8D6E63',
-  xpBar:       '#3D5AFE',
-  streakFire:  '#FF6D00',
+  xpBar:       '#FFD700',
+  streakFire:  '#FFA500',
 
   // ── Borders ───────────────────────────────────────────────────────
-  border:       '#E0E0F0',
-  borderStrong: '#C5C5E0',
+  border:       'rgba(124, 91, 255, 0.15)',
+  borderStrong: 'rgba(124, 91, 255, 0.25)',
 
   // ── Gradients (use with LinearGradient) ───────────────────────────
-  gradientParent:  ['#1a1f71', '#3D5AFE'],
-  gradientChild:   ['#5B21B6', '#7C3AED'],
-  gradientSuccess: ['#00897B', '#00C853'],
+  gradientParent:  ['#7C5BFF', '#22D8E7'],
+  gradientChild:   ['#7C5BFF', '#22D8E7'],
+  gradientSuccess: ['#06D3A8', '#22D8E7'],
   gradientGold:    ['#FF8F00', '#FFB300'],
   gradientDark:    ['#0A0A0F', '#141420'],
 
   // ── State colors for tasks ────────────────────────────────────────
-  stateActive:          '#3D5AFE',
-  stateActiveSurface:   '#E8EAFF',
-  statePending:         '#FF6D00',
-  statePendingSurface:  '#FFF3E0',
-  stateApproved:        '#00C853',
-  stateApprovedSurface: '#E8F5E9',
-  stateRejected:        '#D32F2F',
-  stateRejectedSurface: '#FFEBEE',
+  stateActive:          '#7C5BFF',
+  stateActiveSurface:   'rgba(124, 91, 255, 0.12)',
+  statePending:         '#FFA500',
+  statePendingSurface:  'rgba(255, 165, 0, 0.12)',
+  stateApproved:        '#06D3A8',
+  stateApprovedSurface: 'rgba(6, 211, 168, 0.12)',
+  stateRejected:        '#FF3D5A',
+  stateRejectedSurface: 'rgba(255, 61, 90, 0.12)',
   stateExpired:         '#78909C',
   stateExpiredSurface:  '#ECEFF1',
 

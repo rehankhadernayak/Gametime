@@ -7,7 +7,9 @@ import { dirname, resolve } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const envPath = process.env.ENV_FILE || resolve(__dirname, '../../.env');
 
-dotenv.config({ path: envPath, override: true });
+if (process.env.NODE_ENV !== 'test') {
+  dotenv.config({ path: envPath, override: true });
+}
 
 const frontendOriginRaw = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 const frontendOrigins = frontendOriginRaw

@@ -54,7 +54,7 @@ export default function ParentLogin({ onAuth }) {
         <div className="al-features-wrap">
           <h2 className="al-tagline">Family gaming,<br />earned and managed.</h2>
           <p className="al-tagline-sub">
-            Set tasks, review evidence, and keep gaming time fair — all in one place.
+            Set tasks, review evidence, and keep gaming time fair - all in one place.
           </p>
 
           <ul className="al-features" aria-label="Key features">

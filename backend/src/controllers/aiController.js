@@ -27,7 +27,11 @@ export async function chatController(req, res, next) {
     return res.status(400).json({ error: 'message is required' });
   }
 
-  // SSE headers — keep connection open
+  if (!env.anthropicApiKey) {
+    return res.status(503).json({ error: 'AI service unavailable. Please check back later.' });
+  }
+
+  // SSE headers - keep connection open
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -64,10 +68,13 @@ export async function chatController(req, res, next) {
   }
 }
 
-/* POST /ai/signup-start — PUBLIC (no auth)
+/* POST /ai/signup-start - PUBLIC (no auth)
  * Returns Claude's initial onboarding greeting as a streaming SSE response.
  */
 export async function signupStartController(req, res, next) {
+  if (!env.anthropicApiKey) {
+    return res.status(503).json({ error: 'AI service unavailable. Please check back later.' });
+  }
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -84,7 +91,7 @@ export async function signupStartController(req, res, next) {
   }
 }
 
-/* POST /ai/signup-chat — PUBLIC (no auth)
+/* POST /ai/signup-chat - PUBLIC (no auth)
  * Body: { message: string, history: Array<{role,content}> }
  * Streams SSE. Emits { type:'finalize', data:{...} } when Claude calls finalize_signup.
  */
@@ -92,6 +99,9 @@ export async function signupChatController(req, res, next) {
   const { message, history = [] } = req.body ?? {};
   if (!message || typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: 'message is required' });
+  }
+  if (!env.anthropicApiKey) {
+    return res.status(503).json({ error: 'AI service unavailable. Please check back later.' });
   }
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -115,8 +125,11 @@ export async function signupChatController(req, res, next) {
  */
 export async function greetController(req, res, next) {
   try {
+    if (!env.anthropicApiKey) {
+      return res.status(503).json({ error: 'AI service unavailable. Please check back later.' });
+    }
     const parentId     = req.auth.parentId;
-    const signupContext = req.body?.signupContext ?? null; // optional — from AI signup flow
+    const signupContext = req.body?.signupContext ?? null; // optional - from AI signup flow
     const greeting     = await greetNewParent(parentId, signupContext);
     res.json({ greeting });
   } catch (err) {
@@ -146,7 +159,7 @@ export async function clearHistoryController(req, res, next) {
 
 /* POST /ai/child/chat
  * Body: { message: string, history: Array<{role,content}> }
- * Streams SSE — child auth required.
+ * Streams SSE - child auth required.
  */
 export async function childChatController(req, res, next) {
   const { message, history = [] } = req.body ?? {};
@@ -154,6 +167,10 @@ export async function childChatController(req, res, next) {
 
   if (!message || typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: 'message is required' });
+  }
+
+  if (!env.anthropicApiKey) {
+    return res.status(503).json({ error: 'AI service unavailable. Please check back later.' });
   }
 
   res.setHeader('Content-Type', 'text/event-stream');
@@ -183,6 +200,9 @@ export async function childChatController(req, res, next) {
  */
 export async function insightsController(req, res, next) {
   try {
+    if (!env.anthropicApiKey) {
+      return res.status(503).json({ error: 'AI insights currently unavailable.' });
+    }
     const parentId    = req.auth.parentId;
     const insightsData = await getInsightsData(parentId);
     const narrative    = await generateInsightsSummary(insightsData);
@@ -208,6 +228,10 @@ export async function evidencePreviewController(req, res, next) {
     const parsed = evidencePreviewSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({ error: 'Invalid body', details: parsed.error.flatten() });
+    }
+
+    if (!env.anthropicApiKey) {
+      return res.status(503).json({ error: 'AI service not configured.' });
     }
 
     const { taskId, evidenceData, evidenceMime } = parsed.data;
@@ -236,13 +260,9 @@ export async function evidencePreviewController(req, res, next) {
         })()
       : 10;
 
-    if (!env.anthropicApiKey) {
-      return res.status(503).json({ error: 'AI service not configured.' });
-    }
-
     const client = new Anthropic({ apiKey: env.anthropicApiKey });
 
-    // Build vision message — data URL expected for evidenceData
+    // Build vision message - data URL expected for evidenceData
     const isImage = evidenceMime.startsWith('image/');
     const mediaType = isImage ? evidenceMime : 'image/jpeg';
 
@@ -253,7 +273,7 @@ export async function evidencePreviewController(req, res, next) {
 
     const prompt =
       `You are a helpful assistant for a child completing a chore task. ` +
-      `The task is: ${task.title} — ${task.description}. ` +
+      `The task is: ${task.title} - ${task.description}. ` +
       `The child has submitted a photo as proof. ` +
       `Assess the photo briefly: Is it clear enough for a parent to approve? Is the task visibly completed? ` +
       `Give encouraging feedback in 1-2 sentences suitable for a child aged ${childAge}. ` +
@@ -287,7 +307,7 @@ export async function evidencePreviewController(req, res, next) {
     // Simple confidence: if the verdict keyword appears, high confidence
     const confidence   = isGood || coaching.includes('NEEDS_IMPROVEMENT') ? 0.85 : 0.5;
 
-    // Clean coaching text — remove trailing verdict keyword
+    // Clean coaching text - remove trailing verdict keyword
     const cleanedCoaching = coaching
       .replace(/LOOKS_GOOD$/, '')
       .replace(/NEEDS_IMPROVEMENT$/, '')

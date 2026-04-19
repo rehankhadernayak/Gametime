@@ -117,7 +117,7 @@
 ## Current Project State (as of March 2026)
 
 ### Done ✅
-Backend API (fully complete), Auth system, Tasks + evidence + AI review, Rewards (RP + GP), Gaming sessions + caps, Giftcard infrastructure (Athena, mock mode), Notifications (push + in-app + preferences), AI assistant (parent + child + insights), Web frontend (11 pages), Mobile navigation shell (14 screens), Design system docs, Component logic specs, Figma prompts, Copywriting
+Backend API (fully complete), Auth system, Tasks + evidence + AI review, Rewards (RP + GP), Gaming sessions + caps, Giftcard infrastructure (Athena, mock mode), Notifications (push + in-app + preferences), AI assistant (parent + child + insights), Web frontend (11 pages), Mobile navigation shell (14 screens), Design system docs, Component logic specs, Figma prompts, Copywriting, Hard app blocking (server-driven soft cap with mobile polling)
 
 ### Half-Built ⚠️
 UI/design pass (design system not yet applied to code), Mobile screen implementations (shells only), Email delivery (needs SMTP creds), Athena (needs API keys + enable), Push notifications (needs Expo credentials)

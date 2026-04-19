@@ -782,3 +782,70 @@ export async function getWeeklyGamingReport(parentId, childId, weekStartIso = nu
     byDay: [...totalsByDay.entries()].map(([date, minutes]) => ({ date, minutes })).sort((a, b) => a.date.localeCompare(b.date))
   };
 }
+
+export async function checkGamingSessionActive(parentId, childId, sessionId) {
+  const db = await getDb();
+  await ensureParentChild(db, parentId, childId);
+
+  const session = await db.get(
+    `SELECT id, status, granted_minutes as grantedMinutes, started_at as startedAt
+     FROM gaming_sessions
+     WHERE id = ? AND parent_id = ? AND child_id = ?`,
+    [sessionId, parentId, childId]
+  );
+
+  if (!session || session.status !== 'Started') {
+    return { allowed: false, code: 'SESSION_NOT_ACTIVE' };
+  }
+
+  // Check if session has been running too long (auto-expire after granted minutes + 5 min grace)
+  const startedAt = new Date(session.startedAt);
+  const now = new Date();
+  const elapsedMinutes = (now - startedAt) / (1000 * 60);
+  const maxAllowed = session.grantedMinutes + 5; // 5 min grace period
+
+  if (elapsedMinutes > maxAllowed) {
+    // Auto-end the session
+    const used = Math.max(1, Math.min(session.grantedMinutes, Math.floor(elapsedMinutes)));
+    const endTime = new Date().toISOString();
+    await db.run(
+      `UPDATE gaming_sessions
+       SET status = 'Completed', duration_minutes = ?, ended_at = ?, updated_at = ?
+       WHERE id = ?`,
+      [used, endTime, endTime, sessionId]
+    );
+    return { allowed: false, code: 'SESSION_AUTO_ENDED', reason: 'Session exceeded granted time' };
+  }
+
+  // Check current caps
+  const overview = await getChildGamingOverview(parentId, childId);
+  if (overview.usage.playableNow <= 0) {
+    // Auto-end session if cap reached
+    const used = Math.max(1, Math.min(session.grantedMinutes, Math.floor(elapsedMinutes)));
+    const endTime = new Date().toISOString();
+    await db.run(
+      `UPDATE gaming_sessions
+       SET status = 'Completed', duration_minutes = ?, ended_at = ?, updated_at = ?
+       WHERE id = ?`,
+      [used, endTime, endTime, sessionId]
+    );
+
+    const code = overview.usage.remainingToday <= 0
+      ? GAMING_DENIAL_CODES.DAILY_CAP_REACHED
+      : overview.usage.remainingWeeklyCap <= 0
+        ? GAMING_DENIAL_CODES.WEEKLY_CAP_REACHED
+        : GAMING_DENIAL_CODES.NO_MINUTES_FROM_POINTS;
+
+    return {
+      allowed: false,
+      code,
+      reason: code === GAMING_DENIAL_CODES.DAILY_CAP_REACHED
+        ? 'Daily gaming cap reached'
+        : code === GAMING_DENIAL_CODES.WEEKLY_CAP_REACHED
+          ? 'Weekly gaming cap reached'
+          : 'No gaming minutes available from points'
+    };
+  }
+
+  return { allowed: true };
+}
