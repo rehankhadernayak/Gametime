@@ -1,5 +1,9 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import MasterController from '../components/HeroAssets/MasterController';
+import { ParallaxDivider } from '../components/ParallaxDivider';
 import './HomePage.css';
+import '../styles/kinetic-landing-hero.css';
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
 function IconAI() {
@@ -253,62 +257,86 @@ function DeviceMockup() {
 
 /* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
+  const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   return (
     <div className="hp-root">
       {/* ── 1. Navigation ───────────────────────────────────────── */}
       <NavBar auth={auth} />
 
       <main role="main">
-        {/* ── 2. Hero ─────────────────────────────────────────────── */}
-        <section className="hp-hero" aria-labelledby="hp-hero-heading">
-          <div className="hp-hero-bg" aria-hidden="true">
-            <div className="hp-hero-orb hp-hero-orb--1" />
-            <div className="hp-hero-orb hp-hero-orb--2" />
-          </div>
-
-          <div className="hp-hero-inner">
-            <div className="hp-hero-content">
-              <div className="hp-eyebrow">
-                <span className="hp-eyebrow-dot" aria-hidden="true" />
-                Singapore's #1 Family Gaming Platform
-              </div>
-
-              <h1 id="hp-hero-heading" className="hp-hero-h1">
-                Screen time,<br />earned.
-              </h1>
-
-              <p className="hp-hero-sub">
-                Gametime helps Singapore families turn gaming into a reward kids
-                actually work for. Set quests, review evidence with AI, and let
-                children redeem real gift cards.
-              </p>
-
-              <div className="hp-hero-ctas">
-                {auth.token ? (
-                  <Link
-                    to={auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'}
-                    className="hp-btn-primary hp-btn-lg"
-                  >
-                    Go to Dashboard
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/signup" className="hp-btn-primary hp-btn-lg">
-                      Get Started Free
-                    </Link>
-                    <a href="#how-it-works" className="hp-btn-ghost hp-btn-lg">
-                      See how it works <IconArrow />
-                    </a>
-                  </>
-                )}
-              </div>
+        {/* ── 2. Kinetic Hero with MasterController ─────────────── */}
+        <section className="landing-hero" aria-labelledby="hero-main-heading">
+          <div className="hero-content">
+            <div className="hero-controller-wrapper">
+              <MasterController autoScroll speed={1} />
             </div>
 
-            <DeviceMockup />
+            <h1 id="hero-main-heading" className="hero-heading">
+              Screen time,<br /><span>earned.</span>
+            </h1>
+
+            <p className="hero-subheading">
+              Gametime helps Singapore families turn gaming into a reward kids
+              actually work for. Set quests, review evidence with AI, and let
+              children redeem real gift cards.
+            </p>
+
+            <div className="hero-cta-group">
+              {auth.token ? (
+                <button
+                  onClick={() =>
+                    navigate(
+                      auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'
+                    )
+                  }
+                  className="hero-cta-primary"
+                >
+                  Go to Dashboard
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="hero-cta-primary"
+                  >
+                    Get Started Free
+                  </button>
+                  <button
+                    onClick={() => setShowOnboarding(true)}
+                    className="hero-cta-secondary"
+                  >
+                    See How It Works
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="hero-scroll-indicator">
+              <div className="scroll-dot" />
+              <div className="scroll-dot" />
+              <div className="scroll-dot" />
+            </div>
           </div>
         </section>
 
-        {/* ── 3. Social Proof Strip ───────────────────────────────── */}
+        {/* ── 3. Parallax Divider ─────────────────────────────────── */}
+        <ParallaxDivider
+          text="CONCENTRATE"
+          bgSpeedRatio={0.3}
+          fgSpeedRatio={0.6}
+          accentColor="var(--neon-blue)"
+        >
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ color: 'var(--stark-white)', marginBottom: '1rem' }}>
+              Why Gametime Works
+            </h2>
+          </div>
+        </ParallaxDivider>
+
+        {/* ── 4. Social Proof Strip ───────────────────────────────── */}
         <section className="hp-social-proof" aria-label="Social proof">
           <div className="hp-social-proof-inner">
             <span className="hp-social-label">Trusted by Singapore families</span>
@@ -331,7 +359,7 @@ export default function HomePage({ auth }) {
           </div>
         </section>
 
-        {/* ── 4. How It Works ─────────────────────────────────────── */}
+        {/* ── 5. How It Works ─────────────────────────────────────── */}
         <section id="how-it-works" className="hp-how" aria-labelledby="hp-how-heading">
           <div className="hp-section-inner">
             <div className="hp-section-header">
@@ -354,7 +382,7 @@ export default function HomePage({ auth }) {
           </div>
         </section>
 
-        {/* ── 5. Features Grid ────────────────────────────────────── */}
+        {/* ── 6. Features Grid ────────────────────────────────────── */}
         <section className="hp-features" aria-labelledby="hp-features-heading">
           <div className="hp-section-inner">
             <div className="hp-section-header">
@@ -376,7 +404,7 @@ export default function HomePage({ auth }) {
           </div>
         </section>
 
-        {/* ── 6. Bottom CTA ───────────────────────────────────────── */}
+        {/* ── 7. Bottom CTA ───────────────────────────────────────── */}
         {!auth.token && (
           <section className="hp-cta-section" aria-labelledby="hp-cta-heading">
             <div className="hp-cta-bg" aria-hidden="true">
@@ -397,7 +425,7 @@ export default function HomePage({ auth }) {
           </section>
         )}
 
-        {/* ── 7. Footer ───────────────────────────────────────────── */}
+        {/* ── 8. Footer ───────────────────────────────────────────── */}
         <footer className="hp-footer" role="contentinfo">
           <div className="hp-footer-inner">
             <div className="hp-footer-brand">
