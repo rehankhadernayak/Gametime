@@ -18,6 +18,9 @@ import NavBar from './components/NavBar.jsx';
 import ThemeToggleButton from './components/ThemeToggleButton.jsx';
 import ToastStack from './components/ToastStack.jsx';
 import { trackEvent } from './utils/analytics.js';
+import { useLenisScroll } from './hooks/useLenisScroll.js';
+import './styles/kinetic-palette.css';
+import './styles/kinetic-typography.css';
 
 function BackIcon() {
   return (
@@ -39,6 +42,8 @@ function HomeIcon() {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  useLenisScroll(); // Enable kinetic smooth scroll
+
   const [auth, setAuth] = useState(() => {
     const raw = localStorage.getItem('gametime_auth');
     return raw ? JSON.parse(raw) : { token: '', role: '', user: null };

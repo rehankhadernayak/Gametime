@@ -1,0 +1,165 @@
+/**
+ * Kinetic Palette — Gametime Neon Color System
+ * Pitch Black + Stark White + Proprietary Neons
+ */
+
+:root {
+  /* ===== FOUNDATION COLORS ===== */
+  --black-base: #000000;
+  --white-accent: #FFFFFF;
+  --white-secondary: #F0F0F0;
+  --white-tertiary: #E0E0E0;
+
+  /* ===== GAMETIME NEON (Proprietary) ===== */
+  --neon-red: #FF2E5A;
+  --neon-red-dark: #E61A42;
+  --neon-red-light: #FF5A7A;
+  --neon-red-glow: rgba(255, 46, 90, 0.3);
+  --neon-red-glow-bright: rgba(255, 46, 90, 0.6);
+
+  --neon-blue: #00D9FF;
+  --neon-blue-dark: #00A8CC;
+  --neon-blue-light: #33E8FF;
+  --neon-blue-glow: rgba(0, 217, 255, 0.3);
+  --neon-blue-glow-bright: rgba(0, 217, 255, 0.6);
+
+  /* ===== DATA VISUALIZATION ===== */
+  --data-green: #00FF00;
+  --data-green-dark: #00CC00;
+  --data-purple: #B200FF;
+  --data-gold: #FFD700;
+  --data-orange: #FFA500;
+
+  /* ===== GLASSMORPHISM ===== */
+  --glass-dark: rgba(20, 20, 30, 0.7);
+  --glass-darker: rgba(10, 10, 20, 0.8);
+  --glass-light: rgba(30, 30, 40, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-bright: rgba(0, 217, 255, 0.2);
+  --glass-blur: backdrop-filter: blur(20px);
+
+  /* ===== SEMANTIC COLORS ===== */
+  --color-success: var(--data-green);
+  --color-error: var(--neon-red);
+  --color-warning: var(--data-orange);
+  --color-info: var(--neon-blue);
+
+  /* ===== BACKGROUND LAYERS ===== */
+  --bg-layer-0: var(--black-base);
+  --bg-layer-1: rgba(10, 10, 20, 0.5);
+  --bg-layer-2: rgba(20, 20, 40, 0.6);
+  --bg-layer-3: rgba(30, 30, 60, 0.7);
+
+  /* ===== SHADOW EFFECTS ===== */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.9);
+
+  --shadow-neon-red: 0 0 20px var(--neon-red-glow);
+  --shadow-neon-blue: 0 0 20px var(--neon-blue-glow);
+  --shadow-neon-red-bright: 0 0 40px var(--neon-red-glow-bright);
+  --shadow-neon-blue-bright: 0 0 40px var(--neon-blue-glow-bright);
+}
+
+/* ===== APPLY ROOT COLORS ===== */
+html,
+body {
+  background-color: var(--black-base);
+  color: var(--white-accent);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+.bg-base {
+  background-color: var(--black-base);
+}
+
+.bg-layer-1 {
+  background-color: var(--bg-layer-1);
+}
+
+.bg-layer-2 {
+  background-color: var(--bg-layer-2);
+}
+
+.bg-layer-3 {
+  background-color: var(--bg-layer-3);
+}
+
+.text-white {
+  color: var(--white-accent);
+}
+
+.text-secondary {
+  color: var(--white-secondary);
+}
+
+.text-neon-red {
+  color: var(--neon-red);
+}
+
+.text-neon-blue {
+  color: var(--neon-blue);
+}
+
+.text-data-green {
+  color: var(--data-green);
+}
+
+/* Glow Effects */
+.glow-red {
+  box-shadow: var(--shadow-neon-red);
+  text-shadow: 0 0 10px var(--neon-red-glow);
+}
+
+.glow-red-bright {
+  box-shadow: var(--shadow-neon-red-bright);
+  text-shadow: 0 0 20px var(--neon-red-glow-bright);
+}
+
+.glow-blue {
+  box-shadow: var(--shadow-neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+.glow-blue-bright {
+  box-shadow: var(--shadow-neon-blue-bright);
+  text-shadow: 0 0 20px var(--neon-blue-glow-bright);
+}
+
+/* Glass Effect */
+.glass {
+  background: var(--glass-dark);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-bright {
+  background: var(--glass-light);
+  border: 1px solid var(--glass-border-bright);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Shadow Utilities */
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}

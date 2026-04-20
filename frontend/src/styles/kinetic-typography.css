@@ -1,0 +1,368 @@
+/**
+ * Kinetic Typography System
+ * Sora (headings) + Inter (body) with variable weight transitions
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+/* ===== FONT STACK CONFIGURATION ===== */
+:root {
+  /* Font family stacks */
+  --font-heading: 'Sora', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Courier New', monospace;
+
+  /* ===== KINETIC TYPOGRAPHY SCALE ===== */
+  /* Display: Extra-large hero text */
+  --text-display: clamp(48px, 10vw, 96px);
+  --text-display-sm: clamp(40px, 8vw, 72px);
+
+  /* H1-H6: Heading hierarchy */
+  --text-h1: clamp(36px, 8vw, 72px);
+  --text-h2: clamp(28px, 6vw, 56px);
+  --text-h3: clamp(22px, 4vw, 44px);
+  --text-h4: clamp(18px, 3vw, 32px);
+  --text-h5: clamp(16px, 2.5vw, 24px);
+  --text-h6: clamp(14px, 2vw, 18px);
+
+  /* Body: Content text */
+  --text-body-lg: 18px;
+  --text-body: 16px;
+  --text-body-sm: 14px;
+  --text-body-xs: 12px;
+
+  /* Data/labels: Small, tight */
+  --text-caption: 12px;
+  --text-label: 11px;
+  --text-overline: 10px;
+
+  /* ===== LETTER SPACING ===== */
+  --letter-tight: -0.02em;
+  --letter-normal: 0em;
+  --letter-wide: 0.05em;
+  --letter-wider: 0.1em;
+  --letter-widest: 0.2em;
+
+  /* ===== LINE HEIGHT ===== */
+  --leading-tight: 1.1;
+  --leading-snug: 1.3;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+  --leading-loose: 2;
+
+  /* ===== FONT WEIGHTS ===== */
+  --weight-thin: 100;
+  --weight-light: 300;
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+}
+
+/* ===== RESET & BASE STYLES ===== */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-normal);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--letter-normal);
+  color: var(--white-accent);
+  background-color: var(--black-base);
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== HEADING STYLES ===== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--letter-tight);
+  line-height: var(--leading-tight);
+  margin: 0;
+  padding: 0;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-h1);
+  font-weight: var(--weight-black);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+}
+
+h4 {
+  font-size: var(--text-h4);
+  font-weight: var(--weight-semibold);
+}
+
+h5 {
+  font-size: var(--text-h5);
+  font-weight: var(--weight-semibold);
+}
+
+h6 {
+  font-size: var(--text-h6);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-wide);
+}
+
+/* ===== PARAGRAPH STYLES ===== */
+p {
+  margin: 0;
+  padding: 0;
+  line-height: var(--leading-normal);
+}
+
+p.lead {
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-relaxed);
+  opacity: 0.9;
+}
+
+p.small {
+  font-size: var(--text-body-sm);
+  opacity: 0.8;
+}
+
+/* ===== DISPLAY TEXT (Hero sections) ===== */
+.display {
+  font-family: var(--font-heading);
+  font-size: var(--text-display);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--letter-tight);
+  line-height: var(--leading-tight);
+}
+
+.display-sm {
+  font-size: var(--text-display-sm);
+}
+
+/* ===== DATA LABEL (Small, uppercase) ===== */
+.data-label,
+.label,
+.overline {
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--letter-wider);
+  text-transform: uppercase;
+  opacity: 0.7;
+  text-wrap: nowrap;
+}
+
+/* ===== CAPTION (Smallest text) ===== */
+caption,
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-normal);
+  letter-spacing: var(--letter-normal);
+  opacity: 0.6;
+}
+
+/* ===== CODE & MONOSPACE ===== */
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  letter-spacing: 0.02em;
+}
+
+code {
+  background: rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  color: var(--neon-blue);
+}
+
+pre {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--white-secondary);
+}
+
+/* ===== EMPHASIS STYLES ===== */
+strong,
+b {
+  font-weight: var(--weight-bold);
+}
+
+em,
+i {
+  font-style: italic;
+}
+
+mark {
+  background: rgba(255, 215, 0, 0.2);
+  color: var(--data-gold);
+  padding: 0.2em 0.4em;
+  border-radius: 2px;
+}
+
+/* ===== LIST STYLES ===== */
+ul,
+ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+li {
+  line-height: var(--leading-normal);
+  margin-bottom: 0.5rem;
+}
+
+/* ===== LINK STYLES ===== */
+a {
+  color: var(--neon-blue);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-weight: var(--weight-medium);
+}
+
+a:hover {
+  color: var(--neon-blue-light);
+}
+
+a:active {
+  color: var(--neon-blue-dark);
+}
+
+/* ===== KINETIC EFFECTS ===== */
+
+/* Variable weight transition on scroll */
+.heading-kinetic {
+  font-variation-settings: 'wght' 400;
+  transition: font-weight 0.3s ease, letter-spacing 0.3s ease;
+}
+
+.heading-kinetic.scrolled-in {
+  font-weight: var(--weight-black);
+  letter-spacing: -0.03em;
+}
+
+/* Pulsing text animation */
+@keyframes pulse-text {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.text-pulse {
+  animation: pulse-text 2s ease-in-out infinite;
+}
+
+/* Glow text effect */
+.text-glow-blue {
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+.text-glow-red {
+  color: var(--neon-red);
+  text-shadow: 0 0 10px var(--neon-red-glow);
+}
+
+/* Terminal-style text */
+.text-terminal {
+  font-family: var(--font-mono);
+  color: var(--data-green);
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  letter-spacing: 0.05em;
+}
+
+/* ===== RESPONSIVE ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+  :root {
+    --text-display: clamp(32px, 8vw, 48px);
+    --text-h1: clamp(28px, 6vw, 40px);
+    --text-h2: clamp(22px, 5vw, 32px);
+    --text-h3: clamp(18px, 4vw, 24px);
+    --text-body-lg: 16px;
+    --text-body: 15px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --text-display: clamp(24px, 6vw, 32px);
+    --text-h1: clamp(20px, 5vw, 28px);
+    --text-h2: clamp(18px, 4vw, 24px);
+    --text-h3: clamp(16px, 3vw, 20px);
+    --text-body: 14px;
+  }
+}
+
+/* ===== DARK MODE (Default) ===== */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--black-base);
+    color: var(--white-accent);
+  }
+
+  code {
+    background: rgba(0, 217, 255, 0.1);
+    color: var(--neon-blue);
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .heading-kinetic,
+  .text-pulse {
+    animation: none;
+  }
+}

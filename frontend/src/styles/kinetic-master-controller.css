@@ -1,0 +1,219 @@
+/**
+ * Master Controller Styles
+ * SVG animation + kinetic effects
+ */
+
+.hero-master-controller {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  padding: 2rem;
+}
+
+/* ===== SVG CONTAINER ===== */
+.controller-svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 400 / 600;
+  max-width: 400px;
+  filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.3));
+  will-change: filter;
+}
+
+/* ===== INDIVIDUAL PARTS ===== */
+.controller-part {
+  transform-origin: center;
+  will-change: opacity, scale, transform;
+}
+
+/* ===== LABELS CONTAINER ===== */
+.controller-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.controller-label {
+  font-size: var(--text-h2);
+  font-weight: 800;
+  color: var(--neon-blue);
+  text-shadow: 0 0 20px var(--neon-blue-glow);
+  letter-spacing: 0.05em;
+  margin: 0;
+  padding: 0;
+  animation: pulse-label 2s ease-in-out infinite;
+  will-change: text-shadow;
+}
+
+.controller-desc {
+  font-size: var(--text-body-sm);
+  color: var(--white-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  padding: 0;
+  opacity: 0.7;
+}
+
+/* ===== HOVER EFFECTS ===== */
+.hero-master-controller:hover .controller-svg {
+  filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.5));
+}
+
+.hero-master-controller:hover .controller-label {
+  animation: pulse-label-bright 2s ease-in-out infinite;
+}
+
+/* ===== ANIMATIONS ===== */
+
+/* Pulsing label effect */
+@keyframes pulse-label {
+  0%,
+  100% {
+    opacity: 0.7;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+  }
+}
+
+/* Brighter pulse on hover */
+@keyframes pulse-label-bright {
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 40px rgba(0, 217, 255, 0.9);
+  }
+}
+
+/* Part assembly animation (fallback for non-scroll) */
+@keyframes assemble-part {
+  from {
+    opacity: 0;
+    scale: 0;
+    rotate: -180deg;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+
+.controller-part {
+  animation: assemble-part 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Stagger delay for each part */
+.controller-part:nth-of-type(1) {
+  animation-delay: 0s;
+}
+
+.controller-part:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+
+.controller-part:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+
+.controller-part:nth-of-type(4) {
+  animation-delay: 0.45s;
+}
+
+.controller-part:nth-of-type(5) {
+  animation-delay: 0.6s;
+}
+
+.controller-part:nth-of-type(6) {
+  animation-delay: 0.75s;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero-master-controller {
+    max-width: 100%;
+    gap: 2rem;
+    padding: 1.5rem;
+  }
+
+  .controller-svg {
+    max-width: 350px;
+  }
+
+  .controller-label {
+    font-size: var(--text-h3);
+  }
+
+  .controller-desc {
+    font-size: var(--text-body-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-master-controller {
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+
+  .controller-svg {
+    max-width: 280px;
+  }
+
+  .controller-label {
+    font-size: var(--text-h4);
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .hero-master-controller {
+    animation: none;
+  }
+
+  .controller-part {
+    animation: none;
+  }
+
+  .controller-label {
+    animation: none;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  }
+
+  .hero-master-controller:hover .controller-label {
+    animation: none;
+    text-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+  }
+}
+
+/* ===== DARK MODE ===== */
+@media (prefers-color-scheme: dark) {
+  .hero-master-controller {
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.5) 0%,
+      rgba(10, 10, 20, 0.3) 100%
+    );
+  }
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .hero-master-controller {
+    display: none;
+  }
+}
