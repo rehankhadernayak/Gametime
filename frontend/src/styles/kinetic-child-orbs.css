@@ -1,0 +1,237 @@
+/**
+ * Child Progress Orbs Styles
+ * Floating animated progress spheres
+ */
+
+.child-progress-orbs {
+  pointer-events: all;
+  user-select: none;
+}
+
+.orbs-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.progress-orb {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  padding: 0;
+  background: rgba(0, 217, 255, 0.05);
+  border: 1px solid rgba(0, 217, 255, 0.1);
+}
+
+.progress-orb:hover {
+  background: rgba(0, 217, 255, 0.08);
+  border-color: rgba(0, 217, 255, 0.2);
+}
+
+.progress-orb:focus-visible {
+  outline: 2px solid var(--neon-blue);
+  outline-offset: 2px;
+}
+
+.orb-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 15px rgba(0, 217, 255, 0.2));
+  will-change: transform, filter;
+}
+
+.progress-orb:hover .orb-svg {
+  filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.4));
+}
+
+.orb-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+
+.orb-percent {
+  font-family: var(--font-sora);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--stark-white);
+  line-height: 1;
+}
+
+.orb-name {
+  font-family: var(--font-inter);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 80px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size 0.3s ease;
+}
+
+.orb-popup {
+  position: absolute;
+  bottom: -130px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--glass-dark);
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: popup-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popup-slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.popup-row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 12px;
+  margin: 0.25rem 0;
+  letter-spacing: 0.02em;
+}
+
+.popup-row span:first-child {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.popup-value {
+  color: var(--neon-blue);
+  font-weight: 700;
+  font-family: var(--font-sora);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-orb,
+  .orb-popup {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .progress-orb:hover {
+    transform: none !important;
+  }
+
+  .orb-svg {
+    filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.2)) !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .progress-orb {
+    width: 110px;
+    height: 110px;
+  }
+
+  .orb-percent {
+    font-size: 16px;
+  }
+
+  .orb-name {
+    font-size: 11px;
+  }
+
+  .orb-popup {
+    bottom: -120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-orb {
+    width: 100px;
+    height: 100px;
+  }
+
+  .orb-percent {
+    font-size: 15px;
+  }
+
+  .orb-name {
+    font-size: 10px;
+  }
+
+  .orb-popup {
+    bottom: -110px;
+    font-size: 11px;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .popup-row {
+    font-size: 11px;
+    margin: 0.2rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .orbs-grid {
+    gap: 1rem;
+  }
+
+  .progress-orb {
+    width: 85px;
+    height: 85px;
+  }
+
+  .orb-percent {
+    font-size: 13px;
+  }
+
+  .orb-name {
+    font-size: 9px;
+  }
+
+  .orb-popup {
+    bottom: -100px;
+    font-size: 10px;
+    padding: 0.5rem 0.7rem;
+  }
+
+  .popup-row {
+    font-size: 10px;
+    gap: 0.3rem;
+  }
+}
+
+@media (min-device-pixel-ratio: 2) {
+  .progress-orb {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .progress-orb:hover {
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 0 40px rgba(0, 217, 255, 0.3);
+  }
+
+  .orb-popup {
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+  }
+}
