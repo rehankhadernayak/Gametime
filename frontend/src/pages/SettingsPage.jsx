@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAppRouter, useAppSearchParams } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 import ChildCreation from './ChildCreation.jsx';
 
@@ -65,8 +65,8 @@ const LEARNING_INTERESTS = [
 
 /* ── Main component ─────────────────────────────────────────────────── */
 export default function SettingsPage({ token, theme, onToggleTheme, parentName }) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const router = useAppRouter();
+  const searchParams = useAppSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'children');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -78,8 +78,8 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
   const [childMsgKind,   setChildMsgKind]   = useState('success');
 
   /* ── Appearance ── */
-  const [fontSize, setFontSize] = useState(() => localStorage.getItem('gametime_font_size') || 'medium');
-  const [language, setLanguage] = useState(() => localStorage.getItem('gametime_language') || 'English');
+  const [fontSize, setFontSize] = useState('medium');
+  const [language, setLanguage] = useState('English');
 
   /* ── Notifications ── */
   const [notif, setNotif] = useState({ enabled: true, taskApprovals: true, childActivity: true, weeklyReport: true, reminderSchedule: 'daily' });
@@ -100,10 +100,28 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
   const [deleteBusy, setDeleteBusy] = useState(false);
 
   /* ── Preferences ── */
-  const [prefs, setPrefs] = useState(() => {
-    const s = localStorage.getItem('gametime_preferences');
-    return s ? JSON.parse(s) : { contentFilter: 'moderate', ageContent: true, learningInterests: [] };
+  const [prefs, setPrefs] = useState({
+    contentFilter: 'moderate',
+    ageContent: true,
+    learningInterests: []
   });
+
+  /* ── Hydrate local preferences from storage (client-only) ── */
+  useEffect(() => {
+    try {
+      const fs = localStorage.getItem('gametime_font_size');
+      if (fs === 'small' || fs === 'medium' || fs === 'large') setFontSize(fs);
+      const lang = localStorage.getItem('gametime_language');
+      if (lang) setLanguage(lang);
+      const rawPrefs = localStorage.getItem('gametime_preferences');
+      if (rawPrefs) {
+        const parsed = JSON.parse(rawPrefs);
+        if (parsed && typeof parsed === 'object') setPrefs((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   /* ── Load children on mount ── */
   useEffect(() => { loadChildren(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -630,7 +648,7 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
     <div className="settings-page">
       {/* Header */}
       <header className="settings-header">
-        <button type="button" className="settings-back-btn" onClick={() => navigate(-1)} aria-label="Go back">
+        <button type="button" className="settings-back-btn" onClick={() => router.back()} aria-label="Go back">
           <IconBack />
           <span>Back</span>
         </button>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { GametimeLink, useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 
 /* ── Constants ────────────────────────────────────────────────────────── */
@@ -43,13 +43,15 @@ function PasswordStep({ answers, onCreated }) {
         method: 'POST',
         body:   { name: answers.name, email: answers.email, password }
       });
-      localStorage.setItem('gametime_signup_context', JSON.stringify({
-        numChildren:    answers.numChildren    || '',
-        children:       answers.children       || [],
-        primaryConcern: answers.primaryConcern || '',
-        referralSource: answers.referralSource || ''
-      }));
-      localStorage.setItem('gametime_new_parent', '1');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('gametime_signup_context', JSON.stringify({
+          numChildren:    answers.numChildren    || '',
+          children:       answers.children       || [],
+          primaryConcern: answers.primaryConcern || '',
+          referralSource: answers.referralSource || ''
+        }));
+        localStorage.setItem('gametime_new_parent', '1');
+      }
       onCreated({ token: data.token, role: 'parent', user: data.parent });
     } catch (err) {
       setError(err.message || 'Could not create account. Please check your email and try again.');
@@ -229,7 +231,7 @@ function resolveValue(selected, otherText) {
 
 /* ── Main component ─────────────────────────────────────────────────────── */
 export default function ParentSignUp({ onAuth }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
   const inputRef = useRef(null);
 
   /* STEP IDs: name → email → numChildren → children → concern → referral → password */
@@ -299,7 +301,7 @@ export default function ParentSignUp({ onAuth }) {
     setTimeout(() => { setStepIdx((p) => p + 1); setAnimating(false); }, 200);
   }
 
-  function handleAuth(data) { onAuth(data); navigate('/parent/onboarding'); }
+  function handleAuth(data) { onAuth(data); router.push('/parent/onboarding'); }
 
   const answers = {
     name, email, numChildren,
@@ -435,7 +437,7 @@ export default function ParentSignUp({ onAuth }) {
         </div>
 
         <p className="signup-login-link">
-          Already have an account? <Link to="/login">Log in</Link>
+          Already have an account? <GametimeLink href="/login">Log in</GametimeLink>
         </p>
       </div>
     </div>

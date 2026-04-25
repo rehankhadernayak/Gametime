@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { GametimeLink } from 'gametime-web-nav';
 import StringTune, { StringParallax } from '@fiddle-digital/string-tune';
 import styles from '../styles/landing.module.css';
 
@@ -46,12 +46,12 @@ function NavBar({ auth }) {
   return (
     <nav className={styles.nav} aria-label="Site navigation">
       <div className={styles.navInner}>
-        <Link to="/" className={styles.navLogo} aria-label="Gametime home">
+        <GametimeLink href="/" className={styles.navLogo} aria-label="Gametime home">
           Gametime
-        </Link>
+        </GametimeLink>
         <div className={styles.navActions}>
-          <Link to="/login" className={styles.navLink}>Parent Login</Link>
-          <Link to="/signup" className={styles.navCta}>Get Started</Link>
+          <GametimeLink href="/login" className={styles.navLink}>Parent Login</GametimeLink>
+          <GametimeLink href="/signup" className={styles.navCta}>Get Started</GametimeLink>
         </div>
       </div>
     </nav>
@@ -236,9 +236,9 @@ export default function HomePage({ auth }) {
               <h2 id="hp-closing-heading" className={styles.closingH2}>
                 Ready to start?
               </h2>
-              <Link to="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
+              <GametimeLink href="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
                 Get Started <IconArrow />
-              </Link>
+              </GametimeLink>
             </div>
           </section>
         )}

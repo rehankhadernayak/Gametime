@@ -2,6 +2,7 @@ const STORAGE_KEY = 'gametime_analytics_events';
 const MAX_EVENTS = 1000;
 
 function appendEvent(event) {
+  if (typeof window === 'undefined') return;
   try {
     const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     const next = [...existing, event].slice(-MAX_EVENTS);
@@ -22,6 +23,7 @@ export function trackEvent(name, payload = {}) {
 }
 
 export function getTrackedEvents() {
+  if (typeof window === 'undefined') return [];
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   } catch {
