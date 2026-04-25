@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { GametimeLink } from 'gametime-web-nav';
 import StringTune, { StringParallax } from '@fiddle-digital/string-tune';
 import styles from '../styles/landing.module.css';
 
@@ -46,12 +46,12 @@ function NavBar({ auth }) {
   return (
     <nav className={styles.nav} aria-label="Site navigation">
       <div className={styles.navInner}>
-        <Link to="/" className={styles.navLogo} aria-label="Gametime home">
+        <GametimeLink href="/" className={styles.navLogo} aria-label="Gametime home">
           Gametime
-        </Link>
+        </GametimeLink>
         <div className={styles.navActions}>
-          <Link to="/login" className={styles.navLink}>Parent Login</Link>
-          <Link to="/signup" className={styles.navCta}>Get Started</Link>
+          <GametimeLink href="/login" className={styles.navLink}>Parent Login</GametimeLink>
+          <GametimeLink href="/signup" className={styles.navCta}>Get Started</GametimeLink>
         </div>
       </div>
     </nav>
@@ -60,7 +60,7 @@ function NavBar({ auth }) {
 
 /* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
-  const kineticRef = useRef(null);
+  const heroSnapRef = useRef(null);
   const heroTrackRef = useRef(null);
 
   /* ── StringTune bridge ─────────────────────────────────────────────────
@@ -76,13 +76,13 @@ export default function HomePage({ auth }) {
      the `string="parallax"` nodes added by this page and the 500vh
      scroll progress would never map onto the Monolith / Controller.
 
-     We additionally drive the kineticText `.snapped` toggle with a plain
-     scroll listener instead of `addScrollMark`. In the manual diagnostic
-     for v1.1.55, the toggleClass form of addScrollMark never flipped the
-     class on the live DOM, so we sidestep it entirely: the listener
-     toggles `.snapped` once the user has crossed 60% of the first
-     viewport, which is what releases the headline from its
-     blur(40px)/scale(1.5) pre-snap state defined in landing.module.css.
+     We additionally drive the hero snap shell `.snapped` toggle with a
+     plain scroll listener instead of `addScrollMark`. In the manual
+     diagnostic for v1.1.55, the toggleClass form of addScrollMark never
+     flipped the class on the live DOM, so we sidestep it entirely: the
+     listener toggles `.snapped` on `heroSnapRef` once the user has
+     crossed 60% of the first viewport, which releases the headline and
+     controller assembly from their pre-snap states in landing.module.css.
      ──────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -96,8 +96,8 @@ export default function HomePage({ auth }) {
 
     const evaluateSnap = () => {
       const trackEl = heroTrackRef.current;
-      const kineticEl = kineticRef.current;
-      if (!trackEl || !kineticEl) return;
+      const snapEl = heroSnapRef.current;
+      if (!trackEl || !snapEl) return;
 
       const trackTop = trackEl.getBoundingClientRect().top + window.scrollY;
       const threshold = trackTop + window.innerHeight * 0.6;
@@ -105,7 +105,7 @@ export default function HomePage({ auth }) {
 
       if (shouldSnap !== snapped) {
         snapped = shouldSnap;
-        kineticEl.classList.toggle(styles.snapped, shouldSnap);
+        snapEl.classList.toggle(styles.snapped, shouldSnap);
       }
     };
 
@@ -145,9 +145,9 @@ export default function HomePage({ auth }) {
             the depth factor (the engine reads `string-${key}` for each
             entry in StringParallax.attributesToMap, so the modifier
             attribute MUST be `string-parallax`, not `string-factor`).
-            The kinetic text uses the `.snapped` modifier toggled by the
-            bridge's scroll listener instead — see the useEffect above
-            for why.
+            The hero snap shell uses the `.snapped` modifier toggled by the
+            bridge's scroll listener — same resolution signal as the
+            kinetic headline (data-string="blur" pattern in CSS).
             ──────────────────────────────────────────────────────────── */}
         <div ref={heroTrackRef} className={styles.heroTrack}>
           <div className={styles.heroSection}>
@@ -156,19 +156,46 @@ export default function HomePage({ auth }) {
               string="parallax"
               string-parallax="0.55"
             >
-              GAMETIME
+              Gametime
             </h2>
 
-            <div
-              className={styles.controllerWrapper}
-              string="parallax"
-              string-parallax="0.18"
-            >
-              <img src="/controller.svg" alt="Game controller" />
-            </div>
+            <div ref={heroSnapRef} className={styles.heroSnap}>
+              <div
+                className={styles.controllerWrapper}
+                string="parallax"
+                string-parallax="0.18"
+              >
+                <div
+                  className={styles.controllerAssembly}
+                  role="img"
+                  aria-label="Game controller"
+                >
+                  <img
+                    className={styles.assemblyLeftGrip}
+                    src="/left-grip.svg"
+                    alt=""
+                  />
+                  <img
+                    className={styles.assemblyRightGrip}
+                    src="/right-grip.svg"
+                    alt=""
+                  />
+                  <img
+                    className={styles.assemblyDpad}
+                    src="/d-pad.svg"
+                    alt=""
+                  />
+                  <img
+                    className={styles.assemblyButtons}
+                    src="/buttons.svg"
+                    alt=""
+                  />
+                </div>
+              </div>
 
-            <div ref={kineticRef} className={styles.kineticText}>
-              <h1>Screen time, earned.</h1>
+              <div className={styles.kineticText} data-string="blur">
+                <h1>Screen time, earned.</h1>
+              </div>
             </div>
           </div>
         </div>
@@ -181,7 +208,7 @@ export default function HomePage({ auth }) {
         >
           {/* Horizontal parallax giant text behind cards */}
           <div className={styles.parallaxWord} aria-hidden="true">
-            GAMETIME
+            Gametime
           </div>
 
           <div className={styles.bentoInner}>
@@ -236,9 +263,9 @@ export default function HomePage({ auth }) {
               <h2 id="hp-closing-heading" className={styles.closingH2}>
                 Ready to start?
               </h2>
-              <Link to="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
+              <GametimeLink href="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
                 Get Started <IconArrow />
-              </Link>
+              </GametimeLink>
             </div>
           </section>
         )}

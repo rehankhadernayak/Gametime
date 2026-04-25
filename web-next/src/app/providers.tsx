@@ -1,0 +1,252 @@
+'use client';
+
+import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { apiRequest } from '@gametime/frontend/api/client.js';
+import NavBar from '@gametime/frontend/components/NavBar.jsx';
+import ThemeToggleButton from '@gametime/frontend/components/ThemeToggleButton.jsx';
+import ToastStack from '@gametime/frontend/components/ToastStack.jsx';
+import { trackEvent } from '@gametime/frontend/utils/analytics.js';
+
+export type GametimeAuthState = {
+  token: string;
+  role: string;
+  user: { name?: string; isAdmin?: boolean } | null;
+};
+
+export type GametimeTheme = 'dark' | 'light';
+
+type ToastItem = { id: string; type?: string; title?: string; message?: string };
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        d="M15 5l-7 7 7 7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        d="M3 10.5L12 3l9 7.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 10v10h12V10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const defaultAuth: GametimeAuthState = { token: '', role: '', user: null };
+
+function readStoredAuth(): GametimeAuthState {
+  if (typeof window === 'undefined') return defaultAuth;
+  try {
+    const raw = localStorage.getItem('gametime_auth');
+    return raw ? JSON.parse(raw) : defaultAuth;
+  } catch {
+    return defaultAuth;
+  }
+}
+
+function readStoredTheme(): GametimeTheme {
+  if (typeof window === 'undefined') return 'light';
+  try {
+    const savedTheme = localStorage.getItem('gametime_theme');
+    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    return 'light';
+  } catch {
+    return 'light';
+  }
+}
+
+export const GametimeAuthContext = createContext<{
+  auth: GametimeAuthState;
+  setAuth: (next: GametimeAuthState) => void;
+  logout: () => Promise<void>;
+  switchToChild: (childId: string) => Promise<void>;
+} | null>(null);
+
+export const GametimeThemeContext = createContext<{
+  theme: GametimeTheme;
+  setTheme: React.Dispatch<React.SetStateAction<GametimeTheme>>;
+  toggleTheme: () => void;
+} | null>(null);
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [auth, setAuth] = useState<GametimeAuthState>(defaultAuth);
+  const [theme, setTheme] = useState<GametimeTheme>('light');
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setAuth(readStoredAuth());
+    setTheme(readStoredTheme());
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem('gametime_auth', JSON.stringify(auth));
+    } catch {
+      // ignore
+    }
+  }, [auth, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem('gametime_theme', theme);
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch {
+      // ignore
+    }
+  }, [theme, hydrated]);
+
+  const pushToast = useCallback((nextToast: Partial<ToastItem> & { message?: string }) => {
+    const toast: ToastItem = { id: `${Date.now()}-${Math.random()}`, ...nextToast };
+    setToasts((prev) => [...prev, toast]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((item) => item.id !== toast.id));
+    }, 4500);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      if (auth.token) {
+        await apiRequest('/auth/logout', { method: 'POST', token: auth.token });
+      }
+    } catch {
+      // Always continue local logout even if server logout fails.
+    } finally {
+      setAuth(defaultAuth);
+      try {
+        localStorage.removeItem('gametime_auth');
+      } catch {
+        // ignore
+      }
+      trackEvent('logout', { fromPath: pathname });
+    }
+  }, [auth.token, pathname]);
+
+  useEffect(() => {
+    const onToast = (event: Event) => {
+      const ce = event as CustomEvent<Partial<ToastItem>>;
+      pushToast(ce.detail || { message: 'Update' });
+    };
+    const onSessionExpired = async () => {
+      if (!auth.token) return;
+      await handleLogout();
+      router.replace('/login');
+      pushToast({ type: 'warning', title: 'Session expired', message: 'Please sign in again.' });
+    };
+
+    window.addEventListener('gametime:toast', onToast as EventListener);
+    window.addEventListener('gametime:session-expired', onSessionExpired);
+    return () => {
+      window.removeEventListener('gametime:toast', onToast as EventListener);
+      window.removeEventListener('gametime:session-expired', onSessionExpired);
+    };
+  }, [auth.token, handleLogout, pathname, pushToast, router]);
+
+  const switchToChild = useCallback(
+    async (childId: string) => {
+      try {
+        const response = (await apiRequest('/auth/child-login', {
+          method: 'POST',
+          token: auth.token,
+          body: { childId },
+        })) as { token: string; child: GametimeAuthState['user'] };
+        setAuth({ token: response.token, role: 'child', user: response.child });
+        router.push('/child/dashboard');
+        trackEvent('switch_to_child_success', { childId });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Please try again.';
+        trackEvent('switch_to_child_failed', { childId, error: message });
+        pushToast({
+          type: 'error',
+          title: 'Unable to open child view',
+          message: message || 'Please try again.',
+        });
+      }
+    },
+    [auth.token, pushToast, router]
+  );
+
+  const showUtility = !auth.token;
+  const toggleTheme = useCallback(() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')), []);
+
+  const authValue = useMemo(
+    () => ({ auth, setAuth, logout: handleLogout, switchToChild }),
+    [auth, handleLogout, switchToChild]
+  );
+
+  const themeValue = useMemo(
+    () => ({ theme, setTheme, toggleTheme }),
+    [theme, toggleTheme]
+  );
+
+  return (
+    <GametimeAuthContext.Provider value={authValue}>
+      <GametimeThemeContext.Provider value={themeValue}>
+        <ToastStack
+          toasts={toasts}
+          onDismiss={(id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+        />
+        {showUtility && (
+          <div className="utility-bar" aria-label="Global navigation controls">
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Go back"
+              onClick={() => (typeof window !== 'undefined' && window.history.length > 1 ? router.back() : router.push('/'))}
+            >
+              <BackIcon />
+            </button>
+            <button type="button" className="icon-button" aria-label="Go home" onClick={() => router.push('/')}>
+              <HomeIcon />
+            </button>
+            <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
+            <span className="utility-path">{pathname}</span>
+          </div>
+        )}
+
+        {auth.token ? (
+          <NavBar
+            role={auth.role}
+            token={auth.token}
+            onLogout={handleLogout}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            isAdmin={Boolean(auth.user?.isAdmin)}
+          />
+        ) : null}
+
+        {children}
+      </GametimeThemeContext.Provider>
+    </GametimeAuthContext.Provider>
+  );
+}

@@ -1,12 +1,25 @@
 import { trackEvent } from '../utils/analytics.js';
-// Support both VITE_API_BASE_URL (legacy) and VITE_API_URL (Vercel docs default).
-// In dev, default to same-origin `/api` (Vite proxies to the backend — works with Cloudflare Quick Tunnels).
-// In production builds, explicit env or localhost fallback.
-const explicitApi =
-  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
-export const API_BASE = String(
-  import.meta.env.DEV && !explicitApi ? '/api' : explicitApi || 'http://localhost:4000'
-).replace(/\/$/, '');
+
+function resolveApiBase() {
+  const nextPublic =
+    typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL
+      ? String(process.env.NEXT_PUBLIC_API_URL).trim()
+      : '';
+  if (nextPublic) return nextPublic.replace(/\/$/, '');
+
+  const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : undefined;
+  if (viteEnv) {
+    const explicitApi = viteEnv.VITE_API_BASE_URL || viteEnv.VITE_API_URL || '';
+    return String(
+      viteEnv.DEV && !explicitApi ? '/api' : explicitApi || 'http://localhost:4000'
+    ).replace(/\/$/, '');
+  }
+
+  return 'http://localhost:4000';
+}
+
+// Same-origin `/api` in Vite dev (proxy) or when NEXT_PUBLIC_API_URL is set for Next.js.
+export const API_BASE = resolveApiBase();
 const REQUEST_TIMEOUT_MS = 15000;
 
 export class ApiRequestError extends Error {
@@ -47,15 +60,17 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
       durationMs: Date.now() - startTs,
       error: apiError.message
     });
-    window.dispatchEvent(
-      new CustomEvent('gametime:toast', {
-        detail: {
-          type: 'error',
-          title: 'Network error',
-          message: apiError.message
-        }
-      })
-    );
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('gametime:toast', {
+          detail: {
+            type: 'error',
+            title: 'Network error',
+            message: apiError.message
+          }
+        })
+      );
+    }
     throw apiError;
   } finally {
     clearTimeout(timeout);
@@ -77,19 +92,21 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
       error: error.message
     });
 
-    if (response.status === 401) {
-      window.dispatchEvent(new CustomEvent('gametime:session-expired', { detail: { path, method } }));
-    }
+    if (typeof window !== 'undefined') {
+      if (response.status === 401) {
+        window.dispatchEvent(new CustomEvent('gametime:session-expired', { detail: { path, method } }));
+      }
 
-    window.dispatchEvent(
-      new CustomEvent('gametime:toast', {
-        detail: {
-          type: 'error',
-          title: 'Request failed',
-          message: error.message
-        }
-      })
-    );
+      window.dispatchEvent(
+        new CustomEvent('gametime:toast', {
+          detail: {
+            type: 'error',
+            title: 'Request failed',
+            message: error.message
+          }
+        })
+      );
+    }
     throw error;
   }
 

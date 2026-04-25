@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
+import "@gametime/frontend/styles/app.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Gametime",
-  description: "Screen time, earned. Singapore family app for chores, homework, and gaming rewards.",
+  description:
+    "Screen time, earned. Singapore family app for chores, homework, and gaming rewards.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -38,7 +41,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

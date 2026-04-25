@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE } from '../api/client.js';
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -214,7 +214,7 @@ const CHILD_CHIPS = [
    Main page component
    ───────────────────────────────────────────────────────────────────────── */
 export default function ChildAiPage({ token, childName }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
 
   const [messages,       setMessages]      = useState([]);
   const [streamingText,  setStreamingText]  = useState('');
@@ -408,7 +408,7 @@ export default function ChildAiPage({ token, childName }) {
           <button
             type="button"
             className="aws-back-btn"
-            onClick={() => navigate('/child/dashboard')}
+            onClick={() => router.push('/child/dashboard')}
             aria-label="Back to dashboard"
           >
             <BackIcon /> Dashboard

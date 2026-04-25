@@ -1,6 +1,6 @@
 import './NavBar.css';
 import NotificationBell from './NotificationBell.jsx';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 
 /* ── Inline SVGs ────────────────────────────────────────────────────── */
 function SettingsIcon() {
@@ -41,7 +41,7 @@ function LogoutIcon() {
 
 /* ── NavBar ─────────────────────────────────────────────────────────── */
 export default function NavBar({ role, token, onLogout, theme, onToggleTheme, isAdmin }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
 
   return (
     <nav className="nav" aria-label="Primary navigation">
@@ -78,7 +78,7 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
             className="nav-icon-btn nav-settings-btn"
             aria-label="Settings"
             title="Settings"
-            onClick={() => navigate('/parent/settings')}
+            onClick={() => router.push('/parent/settings')}
           >
             <SettingsIcon />
           </button>
@@ -93,7 +93,7 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
             className="nav-admin-badge"
             aria-label="Admin dashboard"
             title="Go to Admin"
-            onClick={() => navigate('/admin')}
+            onClick={() => router.push('/admin')}
           >
             Admin
           </button>
@@ -112,7 +112,7 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
             try {
               await onLogout();
             } finally {
-              navigate('/login', { replace: true });
+              router.replace('/login');
             }
           }}
         >

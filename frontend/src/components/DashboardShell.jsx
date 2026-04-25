@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 
 /* ── Icons ─────────────────────────────────────────────────── */
 function BackIcon() {
@@ -115,7 +115,7 @@ function MenuButton({ section, isActive, onClick }) {
 
 /* ── DashboardShell ─────────────────────────────────────────── */
 export default function DashboardShell({ title, sections, variant = 'parent', controlRef }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id || '');
   const [history, setHistory] = useState([]);
@@ -134,6 +134,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
   /* Close sidebar on Escape */
   useEffect(() => {
     const onEscape = (e) => { if (e.key === 'Escape') setSidebarOpen(false); };
+    if (typeof window === 'undefined') return undefined;
     window.addEventListener('keydown', onEscape);
     return () => window.removeEventListener('keydown', onEscape);
   }, []);
@@ -236,7 +237,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
             <button
               type="button"
               className="ai-workspace-btn"
-              onClick={() => navigate('/parent/ai')}
+              onClick={() => router.push('/parent/ai')}
             >
               AI Mode
               <span className="ai-workspace-btn-arrow" aria-hidden="true">→</span>
@@ -250,7 +251,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
             <button
               type="button"
               className="ai-workspace-btn child"
-              onClick={() => navigate('/child/ai')}
+              onClick={() => router.push('/child/ai')}
             >
               Study Buddy
               <span className="ai-workspace-btn-arrow" aria-hidden="true">→</span>
