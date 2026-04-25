@@ -1,0 +1,42 @@
+/* ────────────────────────────────────────────────────────────────────────
+   Gametime — Dashboard surface (CSS Module, scoped to LayoutDashboard)
+
+   This module is loaded ONLY by <LayoutDashboard>. It hosts the in-app
+   SaaS environment (auth, parent/child dashboards, AI workspace, settings,
+   onboarding, admin).
+
+   Phase-1 contract:
+     - NO smooth-scroll engine.
+     - NO scroll-jacking, NO pinning, NO parallax.
+     - Native browser scrolling only.
+     - The legacy global `app.css` continues to drive the actual visuals
+       inside the dashboard for now; this module is intentionally minimal.
+       Future phases will progressively migrate dashboard styles here so
+       `app.css` can be retired.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.root {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+
+  font-family: 'Geist', 'Inter Tight', 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+
+  /* Native scrolling only — explicitly cancel any landing-side overrides. */
+  overflow-x: hidden;
+  overflow-y: visible;
+  overscroll-behavior-y: auto;
+}
+
+/* When the dashboard wrapper is mounted, restore native scrolling on the
+   document root in case a previous landing mount left overrides behind. */
+:global(html):has(.root),
+:global(body):has(.root) {
+  overflow-y: auto;
+  scroll-behavior: auto;
+}
+
+.root :is(h1, h2, h3, h4, h5, h6) {
+  letter-spacing: -0.02em;
+}

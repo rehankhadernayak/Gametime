@@ -1,0 +1,43 @@
+/* ────────────────────────────────────────────────────────────────────────
+   Gametime — Landing surface (CSS Module, scoped to LayoutLanding)
+
+   This module is loaded ONLY by <LayoutLanding>. It is the cinematic /
+   StringTune-driven environment: pinned hero, kinetic typography, parallax
+   bento. Nothing in here may bleed into the dashboard.
+
+   We deliberately avoid styling raw `html, body` selectors from a CSS
+   Module (those would not be scoped and would leak into the dashboard).
+   Instead we expose a `:global(body):has(.root)` rule that applies the
+   high-end aesthetic only when the landing wrapper is mounted.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.root {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  background-color: #ffffff;
+  color: #0a0a0a;
+
+  font-family: 'Geist', 'Inter Tight', 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Whenever the landing wrapper is in the DOM, lock the page to a single
+   horizontal axis and let StringTune own the vertical scroll surface. */
+:global(html):has(.root),
+:global(body):has(.root) {
+  overflow-x: hidden;
+  background-color: #ffffff;
+}
+
+/* Headings inside the landing inherit the agency kerning contract. */
+.root :is(h1, h2, h3, h4, h5, h6) {
+  font-family: 'Geist', 'Inter Tight', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-weight: 700;
+}
