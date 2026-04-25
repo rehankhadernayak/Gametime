@@ -10,8 +10,8 @@
    ============================================================================= */
 
 /* ── Parent: clean, high-contrast, professional ─────────────────────────── */
-.parentTheme,
-:global(.gt-dashboard-parent) {
+/* ThemeSurface also adds .gt-dashboard-parent on the same node as .parentTheme for descendant hooks in other modules. */
+.parentTheme {
   color-scheme: light;
   --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
   --gt-font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
@@ -76,8 +76,7 @@
 }
 
 /* ── Child: dark-centric, neon accents, launcher feel ────────────────────── */
-.childTheme,
-:global(.gt-dashboard-child) {
+.childTheme {
   color-scheme: dark;
   --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
   --gt-font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;

@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import styles from "./GTBadge.module.css";
 
-export type GTBadgeBaseTone = "neutral" | "success" | "warning" | "danger" | "accent";
+export type GTBadgeBaseTone = "neutral" | "success" | "warning" | "danger" | "accent" | "info";
 export type GTBadgeChoreTone = "pending" | "approved" | "needsReview";
 export type GTBadgeTone = GTBadgeBaseTone | GTBadgeChoreTone;
 export type GTBadgeSize = "sm" | "md";
@@ -23,7 +23,8 @@ export function GTBadge({
   ...rest
 }: GTBadgeProps) {
   const reduceMotion = useReducedMotion();
-  const classNames = [styles.badge, styles[tone], styles[size], className].filter(Boolean).join(" ");
+  const toneClass = styles[tone] ?? styles.neutral;
+  const classNames = [styles.badge, toneClass, styles[size], className].filter(Boolean).join(" ");
 
   return (
     <motion.span

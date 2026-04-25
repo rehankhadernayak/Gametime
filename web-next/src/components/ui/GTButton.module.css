@@ -54,6 +54,18 @@
   background: var(--gt-ghost-hover);
 }
 
+.danger {
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--gt-red);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--gt-red);
+  color: #fff;
+  border-color: transparent;
+}
+
 .sm {
   min-height: 2.25rem;
   padding: 0 0.875rem;

@@ -4,7 +4,7 @@ import { forwardRef, type ReactNode } from "react";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import styles from "./GTButton.module.css";
 
-export type GTButtonVariant = "primary" | "secondary" | "ghost";
+export type GTButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type GTButtonSize = "sm" | "md" | "lg";
 
 export type GTButtonProps = {

@@ -12,6 +12,11 @@ export type GTCardProps = {
   /** Padding preset */
   padding?: "sm" | "md" | "lg";
   className?: string;
+  title?: ReactNode;
+  description?: ReactNode;
+  headerExtra?: ReactNode;
+  /** Use h3 for nested cards inside another card. */
+  titleLevel?: "h2" | "h3";
 } & Omit<HTMLMotionProps<"div">, "children">;
 
 export function GTCard({
@@ -19,6 +24,10 @@ export function GTCard({
   glass = false,
   padding = "md",
   className = "",
+  title,
+  description,
+  headerExtra,
+  titleLevel = "h2",
   ...rest
 }: GTCardProps) {
   const reduceMotion = useReducedMotion();
@@ -29,6 +38,9 @@ export function GTCard({
     .filter(Boolean)
     .join(" ");
 
+  const hasHeader = title != null || description != null || headerExtra != null;
+  const TitleTag = titleLevel;
+
   return (
     <motion.div
       className={classNames}
@@ -38,7 +50,20 @@ export function GTCard({
       transition={{ type: "spring", stiffness: 400, damping: 32 }}
       {...rest}
     >
-      {children}
+      {hasHeader ? (
+        <>
+          <header className={styles.cardHeader}>
+            <div>
+              {title != null ? <TitleTag className={styles.cardTitle}>{title}</TitleTag> : null}
+              {description != null ? <p className={styles.cardDescription}>{description}</p> : null}
+            </div>
+            {headerExtra}
+          </header>
+          <div className={styles.cardBody}>{children}</div>
+        </>
+      ) : (
+        children
+      )}
     </motion.div>
   );
 }
