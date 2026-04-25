@@ -1,0 +1,178 @@
+/* =============================================================================
+   Gametime design system — shared utilities + parent / child sub-themes
+   Use: import theme from '@/styles/theme.module.css'
+        <div className={theme.parentTheme}>…</div>
+   All --gt-* tokens below are scoped to .parentTheme / .childTheme so they
+   can coexist on marketing pages vs dashboard shells.
+   ============================================================================= */
+
+/* ── Parent: clean, high-contrast, professional ─────────────────────────── */
+.parentTheme {
+  color-scheme: light;
+  --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
+  --gt-font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+
+  --gt-bg: #ffffff;
+  --gt-bg-soft: #f4f4f5;
+  --gt-bg-elevated: #fafafa;
+  --gt-surface: rgba(255, 255, 255, 0.92);
+  --gt-ink: #0a0a0a;
+  --gt-ink-soft: #52525b;
+  --gt-ink-muted: #71717a;
+  --gt-line: rgba(0, 0, 0, 0.08);
+  --gt-border-hairline: rgba(0, 0, 0, 0.12);
+  --gt-border-premium: rgba(0, 0, 0, 0.18);
+
+  --gt-accent: #18181b;
+  --gt-accent-hover: #27272a;
+  --gt-accent-ink: #fafafa;
+
+  --gt-secondary-bg: #f4f4f5;
+  --gt-secondary-hover: #e4e4e7;
+  --gt-secondary-ink: #18181b;
+
+  --gt-ghost-hover: rgba(0, 0, 0, 0.05);
+  --gt-ghost-ink: #18181b;
+
+  --gt-glass-bg: rgba(255, 255, 255, 0.72);
+  --gt-glass-border: rgba(0, 0, 0, 0.1);
+  --gt-glass-blur: 18px;
+
+  --gt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --gt-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --gt-shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+  --gt-focus-ring: rgba(24, 24, 27, 0.35);
+
+  --gt-red: #dc2626;
+  --gt-amber: #d97706;
+  --gt-green: #16a34a;
+  --gt-blue: #2563eb;
+
+  --gt-badge-neutral-bg: rgba(24, 24, 27, 0.06);
+  --gt-badge-neutral-ink: var(--gt-ink-soft);
+  --gt-badge-success-bg: rgba(22, 163, 74, 0.12);
+  --gt-badge-success-ink: #15803d;
+  --gt-badge-warning-bg: rgba(217, 119, 6, 0.14);
+  --gt-badge-warning-ink: #b45309;
+  --gt-badge-danger-bg: rgba(220, 38, 38, 0.1);
+  --gt-badge-danger-ink: #b91c1c;
+  --gt-badge-accent-bg: rgba(24, 24, 27, 0.1);
+  --gt-badge-accent-ink: var(--gt-ink);
+
+  --gt-motion-duration: 180ms;
+  --gt-motion-duration-slow: 260ms;
+  --gt-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --gt-motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  font-family: var(--gt-font-sans);
+  color: var(--gt-ink);
+  background: var(--gt-bg);
+}
+
+/* ── Child: dark-centric, neon accents, launcher feel ────────────────────── */
+.childTheme {
+  color-scheme: dark;
+  --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
+  --gt-font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+
+  --gt-bg: #09090b;
+  --gt-bg-soft: #18181b;
+  --gt-bg-elevated: #1c1c1f;
+  --gt-surface: rgba(24, 24, 27, 0.85);
+  --gt-ink: #fafafa;
+  --gt-ink-soft: #a1a1aa;
+  --gt-ink-muted: #71717a;
+  --gt-line: rgba(255, 255, 255, 0.08);
+  --gt-border-hairline: rgba(255, 255, 255, 0.12);
+  --gt-border-premium: rgba(255, 255, 255, 0.2);
+
+  --gt-accent: #22d3ee;
+  --gt-accent-hover: #67e8f9;
+  --gt-accent-ink: #042f2e;
+
+  --gt-neon-magenta: #e879f9;
+  --gt-neon-lime: #bef264;
+
+  --gt-secondary-bg: rgba(255, 255, 255, 0.08);
+  --gt-secondary-hover: rgba(255, 255, 255, 0.12);
+  --gt-secondary-ink: #fafafa;
+
+  --gt-ghost-hover: rgba(255, 255, 255, 0.08);
+  --gt-ghost-ink: #fafafa;
+
+  --gt-glass-bg: rgba(24, 24, 27, 0.55);
+  --gt-glass-border: rgba(255, 255, 255, 0.12);
+  --gt-glass-blur: 20px;
+
+  --gt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --gt-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.45);
+  --gt-shadow-lift: 0 12px 40px rgba(0, 0, 0, 0.55);
+
+  --gt-focus-ring: rgba(34, 211, 238, 0.45);
+
+  --gt-red: #f87171;
+  --gt-amber: #fbbf24;
+  --gt-green: #4ade80;
+  --gt-blue: #38bdf8;
+
+  --gt-badge-neutral-bg: rgba(255, 255, 255, 0.08);
+  --gt-badge-neutral-ink: var(--gt-ink-soft);
+  --gt-badge-success-bg: rgba(74, 222, 128, 0.14);
+  --gt-badge-success-ink: #86efac;
+  --gt-badge-warning-bg: rgba(251, 191, 36, 0.14);
+  --gt-badge-warning-ink: #fde047;
+  --gt-badge-danger-bg: rgba(248, 113, 113, 0.14);
+  --gt-badge-danger-ink: #fecaca;
+  --gt-badge-accent-bg: rgba(34, 211, 238, 0.16);
+  --gt-badge-accent-ink: #a5f3fc;
+
+  --gt-motion-duration: 180ms;
+  --gt-motion-duration-slow: 280ms;
+  --gt-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --gt-motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  font-family: var(--gt-font-sans);
+  color: var(--gt-ink);
+  background: var(--gt-bg);
+}
+
+/* ── Glassmorphism ──────────────────────────────────────────────────────── */
+.gtGlass {
+  background: var(--gt-glass-bg);
+  backdrop-filter: blur(var(--gt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--gt-glass-blur));
+  border: 0.5px solid var(--gt-glass-border);
+  box-shadow: var(--gt-shadow-sm);
+}
+
+/* ── Premium hairline border (0.5px feel via layered shadows) ───────────── */
+.gtPremiumBorder {
+  box-shadow:
+    inset 0 0 0 0.5px var(--gt-border-hairline),
+    0 0 0 0.5px var(--gt-border-premium),
+    var(--gt-shadow-sm);
+}
+
+/* ── Interactive hover lift (pair with motion for full effect) ─────────── */
+.gtInteractive {
+  transition:
+    transform var(--gt-motion-duration) var(--gt-motion-ease),
+    box-shadow var(--gt-motion-duration) var(--gt-motion-ease),
+    border-color var(--gt-motion-duration) var(--gt-motion-ease),
+    background-color var(--gt-motion-duration) var(--gt-motion-ease);
+  will-change: transform;
+}
+
+.gtInteractive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 0.5px var(--gt-border-hairline),
+    0 0 0 0.5px var(--gt-border-premium),
+    var(--gt-shadow-lift);
+}
+
+.gtInteractive:active {
+  transform: translateY(0);
+  transition-duration: 90ms;
+}
