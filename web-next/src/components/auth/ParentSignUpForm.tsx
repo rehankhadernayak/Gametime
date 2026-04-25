@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
+import { useGametimeAuth } from "@/hooks/useGametimeAuth";
+import type { GametimeAuthState } from "@/app/providers";
 import { saveAuth } from "./persistAuth";
 import styles from "@/styles/auth.module.css";
 
@@ -305,7 +307,8 @@ function resolveValue(selected: string, otherText: string) {
 }
 
 export function ParentSignUpForm() {
-  const { push } = useAppRouter();
+  const { replace } = useAppRouter();
+  const { setAuth } = useGametimeAuth();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const STEPS = ["name", "email", "numChildren", "children", "concern", "referral", "password"] as const;
@@ -377,8 +380,14 @@ export function ParentSignUpForm() {
   }
 
   function handleAuth(data: { token: string; parent: unknown }) {
+    const next: GametimeAuthState = {
+      token: data.token,
+      role: "parent",
+      user: data.parent as GametimeAuthState["user"],
+    };
     saveAuth({ token: data.token, role: "parent", user: data.parent });
-    push("/parent/dashboard");
+    setAuth(next);
+    replace("/parent/dashboard");
   }
 
   const answers: SignupAnswers = {

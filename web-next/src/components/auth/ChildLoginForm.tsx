@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
+import { useGametimeAuth } from "@/hooks/useGametimeAuth";
+import type { GametimeAuthState } from "@/app/providers";
 import { ChildPinLogin, type PinChildProfile } from "./ChildPinLogin";
 import { saveAuth } from "./persistAuth";
 import styles from "@/styles/auth.module.css";
@@ -15,7 +17,8 @@ function isValidEmail(value: string) {
 type ChildDirectResponse = { token: string; child: unknown };
 
 export function ChildLoginForm() {
-  const { push } = useAppRouter();
+  const { replace } = useAppRouter();
+  const { setAuth } = useGametimeAuth();
   const [mode, setMode] = useState<"email" | "pin">("email");
   const [emailForm, setEmailForm] = useState({ email: "", password: "" });
   const [pinForm, setPinForm] = useState({ parentEmail: "", childName: "" });
@@ -41,8 +44,14 @@ export function ChildLoginForm() {
           method: "POST",
           body: { email, password: emailForm.password },
         });
-        saveAuth({ token: data.token, role: "child", user: data.child });
-        push("/child/dashboard");
+        const next: GametimeAuthState = {
+          token: data.token,
+          role: "child",
+          user: data.child as GametimeAuthState["user"],
+        };
+        saveAuth({ token: next.token, role: "child", user: data.child });
+        setAuth(next);
+        replace("/child/dashboard");
       } else {
         const parentEmail = pinForm.parentEmail.trim();
         const childName = pinForm.childName.trim();
@@ -67,8 +76,14 @@ export function ChildLoginForm() {
 
   function handlePinSuccess(token: string) {
     if (!pinChildProfile) return;
+    const next: GametimeAuthState = {
+      token,
+      role: "child",
+      user: pinChildProfile as GametimeAuthState["user"],
+    };
     saveAuth({ token, role: "child", user: pinChildProfile });
-    push("/child/dashboard");
+    setAuth(next);
+    replace("/child/dashboard");
   }
 
   if (mode === "pin" && pinStep === "numpad" && pinChildProfile) {
