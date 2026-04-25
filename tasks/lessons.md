@@ -135,6 +135,12 @@
 
 ---
 
+### 2026-04-25 — web-next middleware without `JWT_SECRET` silently breaks post-signup dashboard
+**What happened:** After signup, `replace("/parent/dashboard")` redirected to `/login` because Edge middleware treats missing `JWT_SECRET` as fail-closed and redirects all `/parent/*` and `/child/*` without a verifiable cookie.
+**Rule:** Document in `web-next/.env.example` and local `.env` that `JWT_SECRET` must match the backend; add to onboarding docs for web-next dev.
+
+---
+
 ### 2026-04-25 — Next web-next: `NEXT_PUBLIC_API_URL=localhost` breaks Cloudflare tunnel testing
 **What happened:** `apiRequest` used `NEXT_PUBLIC_API_URL` when set (often `http://localhost:4000` in `.env`). Browsers loading the app via `*.trycloudflare.com` still called `localhost:4000`, which failed with "Network request failed. Check backend at http://localhost:4000".
 **Rule:** In the browser, resolve the API base at request time: prefer same-origin `/api` when the page host is not loopback but the configured backend URL is loopback; only use an explicit absolute `NEXT_PUBLIC_API_URL` when it matches a real cross-origin deployment.

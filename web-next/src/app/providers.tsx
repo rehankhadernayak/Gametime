@@ -196,7 +196,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     [auth.token, pushToast, router]
   );
 
-  const showUtility = !auth.token;
+  /** Hide on auth routes — legacy `.utility-bar` can sit above the fold and eat clicks on Sign in / signup. */
+  const hideUtilityChrome =
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password' ||
+    pathname === '/child-login';
+  const showUtility = !auth.token && !hideUtilityChrome;
   const toggleTheme = useCallback(() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')), []);
 
   const authValue = useMemo(

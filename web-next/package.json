@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "demo:walkthrough": "node scripts/demo-walkthrough.mjs"
   },
   "dependencies": {
     "@fiddle-digital/string-tune": "^1.1.55",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.15",
+    "playwright": "^1.52.0",
     "typescript": "^5"
   }
 }
