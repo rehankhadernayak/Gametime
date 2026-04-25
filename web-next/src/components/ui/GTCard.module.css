@@ -1,0 +1,31 @@
+.card {
+  position: relative;
+  border-radius: 1rem;
+  background: var(--gt-surface);
+  color: var(--gt-ink);
+  font-family: var(--gt-font-sans);
+}
+
+.paddingSm {
+  padding: 0.875rem 1rem;
+}
+
+.paddingMd {
+  padding: 1.25rem 1.375rem;
+}
+
+@media (min-width: 640px) {
+  .paddingMd {
+    padding: 1.375rem 1.5rem;
+  }
+}
+
+.paddingLg {
+  padding: 1.5rem 1.75rem;
+}
+
+.glass {
+  background: var(--gt-glass-bg);
+  backdrop-filter: blur(var(--gt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--gt-glass-blur));
+}
