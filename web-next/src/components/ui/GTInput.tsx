@@ -24,6 +24,8 @@ export const GTInput = forwardRef<HTMLInputElement, GTInputProps>(function GTInp
 ) {
   const autoId = useId();
   const inputId = id ?? autoId;
+  const errId = `${inputId}-err`;
+  const hintId = `${inputId}-hint`;
   const sizeClass = size === "sm" ? styles.sm : size === "lg" ? styles.lg : "";
   const inputClasses = [
     styles.input,
@@ -34,6 +36,8 @@ export const GTInput = forwardRef<HTMLInputElement, GTInputProps>(function GTInp
     .filter(Boolean)
     .join(" ");
 
+  const describedBy = [error ? errId : null, !error && hint ? hintId : null].filter(Boolean).join(" ") || undefined;
+
   return (
     <div className={[styles.field, sizeClass, className].filter(Boolean).join(" ")}>
       {label ? (
@@ -42,14 +46,23 @@ export const GTInput = forwardRef<HTMLInputElement, GTInputProps>(function GTInp
         </label>
       ) : null}
       <div className={styles.inputWrap}>
-        <input ref={ref} id={inputId} className={inputClasses} aria-invalid={Boolean(error) || undefined} {...rest} />
+        <input
+          ref={ref}
+          id={inputId}
+          className={inputClasses}
+          aria-invalid={Boolean(error) || undefined}
+          aria-describedby={describedBy}
+          {...rest}
+        />
       </div>
       {error ? (
-        <p className={styles.error} role="alert">
+        <p id={errId} className={styles.error} role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className={styles.hint}>{hint}</p>
+        <p id={hintId} className={styles.hint}>
+          {hint}
+        </p>
       ) : null}
     </div>
   );
