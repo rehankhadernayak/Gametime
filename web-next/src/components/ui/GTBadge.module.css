@@ -53,6 +53,11 @@
   color: var(--gt-badge-accent-ink);
 }
 
+.info {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--gt-blue);
+}
+
 /* Chore workflow presets (map to semantic badge colours) */
 .pending {
   background: var(--gt-badge-warning-bg);

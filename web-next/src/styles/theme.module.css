@@ -10,6 +10,7 @@
    ============================================================================= */
 
 /* ── Parent: clean, high-contrast, professional ─────────────────────────── */
+/* ThemeSurface also adds .gt-dashboard-parent on the same node as .parentTheme for descendant hooks in other modules. */
 .parentTheme:global(.gt-dashboard-parent),
 .parentTheme {
   color-scheme: light;
@@ -76,6 +77,7 @@
 }
 
 /* ── Child: dark-centric, neon accents, launcher feel ────────────────────── */
+/* ThemeSurface adds .gt-dashboard-child on the same node as .childTheme for descendant hooks. */
 .childTheme:global(.gt-dashboard-child),
 .childTheme {
   color-scheme: dark;
