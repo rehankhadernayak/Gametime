@@ -470,10 +470,14 @@ All presets exported for batch application to other 14 mobile screens.
 ### 2026-04-25 — Deployment Readiness Bug Pass
 
 Scope for this session:
-- [~] Fix current deployment blockers found in backend, web, and mobile config.
+- [x] Fix current deployment blockers found in backend, web, and mobile config.
 - [x] Web: align API base env vars so production builds do not fall back to localhost.
 - [x] Web: fix first-paint theme selection so light OS users do not flash dark mode.
 - [x] Mobile: wire EAS `EXPO_PUBLIC_API_URL` into the API client and remove production reliance on a dev LAN IP.
 - [x] Backend: harden DB/schema path resolution, trusted proxy configuration, and weekly digest scheduling.
-- [ ] Verify with backend tests and web/mobile build or export checks.
+- [x] Verify with backend tests and web/mobile build/export checks: backend `npm test` passed 79/79, frontend `npm run build` passed, mobile `npx expo export --platform ios` and `--platform android` passed.
 - [x] Document remaining credential/infrastructure work for App Store, web, and backend launch: deploy one HTTPS backend API with persistent SQLite storage/backups; point Vercel `VITE_API_URL` or `VITE_API_BASE_URL` and EAS `EXPO_PUBLIC_API_URL` at that same API; add web origins to backend `FRONTEND_ORIGIN`; set production secrets/credentials (`JWT_SECRET`, `DATA_ENCRYPTION_KEY`, SMTP/Resend, Stripe, Athena, Expo/EAS project ID and store credentials).
+
+Validation notes:
+- Frontend build currently emits a non-blocking CSS minifier warning around an existing decorative comment and a large chunk warning; bundle still completes successfully.
+- npm install/audit reports existing package vulnerabilities in backend, frontend, and mobile dependency trees; dependency upgrades should be handled as a separate hardening pass because they may require framework compatibility checks.
