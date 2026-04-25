@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./providers";
+import { baseMetadata } from "./metadata";
 import "./globals.css";
 import "@gametime/frontend/styles/app.css";
 
@@ -14,24 +15,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Gametime",
-  description:
-    "Screen time, earned. Singapore family app for chores, homework, and gaming rewards.",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Gametime",
-  },
-  icons: {
-    icon: "/gametime-icon.svg",
-    apple: "/gametime-icon.svg",
-  },
-};
+export const metadata: Metadata = baseMetadata;
 
 export const viewport: Viewport = {
-  themeColor: "#09090B",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#09090B" },
+    { color: "#FAFAFA" },
+  ],
 };
 
 export default function RootLayout({
