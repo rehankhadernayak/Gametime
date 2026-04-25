@@ -1,59 +1,54 @@
 "use client";
 
+import { forwardRef, type ReactNode } from "react";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
-import type { ReactNode } from "react";
 import styles from "./GTButton.module.css";
 
 export type GTButtonVariant = "primary" | "secondary" | "ghost";
 export type GTButtonSize = "sm" | "md" | "lg";
 
-export type GTButtonProps = Omit<HTMLMotionProps<"button">, "children"> & {
+export type GTButtonProps = {
   variant?: GTButtonVariant;
   size?: GTButtonSize;
+  loading?: boolean;
   fullWidth?: boolean;
-  children: ReactNode;
-};
+  children?: ReactNode;
+} & Omit<HTMLMotionProps<"button">, "children">;
 
-const variantClass: Record<GTButtonVariant, string> = {
-  primary: styles.primary,
-  secondary: styles.secondary,
-  ghost: styles.ghost,
-};
-
-const sizeClass: Record<GTButtonSize, string> = {
-  sm: styles.sm,
-  md: "",
-  lg: styles.lg,
-};
-
-export function GTButton({
-  variant = "primary",
-  size = "md",
-  fullWidth,
-  className,
-  children,
-  type = "button",
-  ...rest
-}: GTButtonProps) {
+export const GTButton = forwardRef<HTMLButtonElement, GTButtonProps>(function GTButton(
+  {
+    variant = "primary",
+    size = "md",
+    loading = false,
+    fullWidth = false,
+    disabled,
+    className = "",
+    children,
+    type = "button",
+    ...rest
+  },
+  ref,
+) {
   const reduceMotion = useReducedMotion();
+  const isDisabled = Boolean(disabled || loading);
+  const classNames = [styles.button, styles[variant], styles[size], fullWidth ? styles.fullWidth : "", className]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <motion.button
+      ref={ref}
       type={type}
-      className={[
-        styles.root,
-        variantClass[variant],
-        sizeClass[size],
-        fullWidth ? styles.fullWidth : "",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      whileTap={reduceMotion ? undefined : { scale: 0.97 }}
-      transition={{ type: "spring", stiffness: 520, damping: 32 }}
+      className={classNames}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
+      whileHover={reduceMotion || isDisabled ? undefined : { scale: 1.02, y: -1 }}
+      whileTap={reduceMotion || isDisabled ? undefined : { scale: 0.97, y: 0 }}
+      transition={{ type: "spring", stiffness: 520, damping: 28 }}
       {...rest}
     >
-      {children}
+      {loading ? <span className={styles.spinner} aria-hidden /> : null}
+      <span style={{ opacity: loading ? 0.85 : 1 }}>{children}</span>
     </motion.button>
   );
-}
+});

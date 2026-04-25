@@ -1,8 +1,15 @@
 export { GTButton, type GTButtonProps, type GTButtonSize, type GTButtonVariant } from "./GTButton";
 export { GTCard, type GTCardProps } from "./GTCard";
-export { GTInput, type GTInputProps } from "./GTInput";
+export { GTInput, type GTInputProps, type GTInputSize } from "./GTInput";
 export { GTSelect, type GTSelectProps } from "./GTSelect";
-export { GTBadge, type GTBadgeProps, type GTBadgeTone } from "./GTBadge";
+export {
+  GTBadge,
+  type GTBadgeProps,
+  type GTBadgeSize,
+  type GTBadgeTone,
+  type GTBadgeBaseTone,
+  type GTBadgeChoreTone,
+} from "./GTBadge";
 export {
   DashboardPageShell,
   DashboardWidget,
