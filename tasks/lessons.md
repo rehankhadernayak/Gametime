@@ -132,3 +132,9 @@
 ### 2026-04-25 — Mobile API client cannot ship a hard-coded LAN IP
 **What happened:** `mobile/src/api/client.js` defaulted `DEFAULT_DEVICE_API_URL` to `http://192.168.1.140:4000` — a developer's local LAN address baked into the source. That value would have been the production fallback for any device that loaded the app without an `EXPO_PUBLIC_API_URL` build env or a saved override.
 **Rule:** Never commit private IPs as defaults. Resolve the API URL in this order: (1) `process.env.EXPO_PUBLIC_API_URL` (set per `eas.json` build profile), (2) Expo dev `hostUri` for `expo start` flows, (3) `localhost:4000` as the safe last-resort. The in-app ApiSettings override always wins.
+
+---
+
+### 2026-04-25 — Next web-next: `NEXT_PUBLIC_API_URL=localhost` breaks Cloudflare tunnel testing
+**What happened:** `apiRequest` used `NEXT_PUBLIC_API_URL` when set (often `http://localhost:4000` in `.env`). Browsers loading the app via `*.trycloudflare.com` still called `localhost:4000`, which failed with "Network request failed. Check backend at http://localhost:4000".
+**Rule:** In the browser, resolve the API base at request time: prefer same-origin `/api` when the page host is not loopback but the configured backend URL is loopback; only use an explicit absolute `NEXT_PUBLIC_API_URL` when it matches a real cross-origin deployment.
