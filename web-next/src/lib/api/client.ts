@@ -1,13 +1,37 @@
 import { trackEvent } from "@/lib/analytics";
 
-const explicitApi =
-  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL) || "";
+function explicitApiFromEnv(): string {
+  return (typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_URL?.trim()) || "";
+}
 
-export const API_BASE = String(
-  typeof window !== "undefined" && !explicitApi
-    ? "/api"
-    : explicitApi || "http://localhost:4000"
-).replace(/\/$/, "");
+/**
+ * API origin for `fetch`. Resolved at call time in the browser so Cloudflare tunnels,
+ * preview hosts, and phones work: same-origin `/api` rewrites to the backend unless
+ * `NEXT_PUBLIC_API_URL` is a real reachable host (not loopback while the page is not).
+ */
+export function getApiBase(): string {
+  const explicit = explicitApiFromEnv().replace(/\/$/, "");
+
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const pageIsLoopback =
+      host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host === "";
+    if (explicit) {
+      const backendLooksLoopback =
+        /(^|\/)localhost(:\d+)?(\/|$)/i.test(explicit) ||
+        /127\.0\.0\.1/.test(explicit) ||
+        /\[:?:1\]/.test(explicit);
+      if (backendLooksLoopback && !pageIsLoopback) {
+        return "/api";
+      }
+      return explicit;
+    }
+    return "/api";
+  }
+
+  if (explicit) return explicit;
+  return "http://127.0.0.1:4000";
+}
 
 const REQUEST_TIMEOUT_MS = 15000;
 
@@ -33,12 +57,13 @@ export async function apiRequest<T = unknown>(
   path: string,
   { method = "GET", body, token }: ApiRequestOptions = {}
 ): Promise<T> {
+  const base = getApiBase();
   const startTs = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let response: Response;
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    response = await fetch(`${base}${path}`, {
       method,
       credentials: "include",
       headers: {
@@ -52,7 +77,7 @@ export async function apiRequest<T = unknown>(
     const timedOut = (error as { name?: string })?.name === "AbortError";
     const message = timedOut
       ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s`
-      : `Network request failed. Check backend at ${API_BASE}`;
+      : `Network request failed. Check backend at ${base}`;
 
     const apiError = new ApiRequestError(message, 0);
     trackEvent("api_request_failed", {

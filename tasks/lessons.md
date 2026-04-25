@@ -144,3 +144,11 @@
 ### 2026-04-25 — web-next: JWT_SECRET for middleware + auth context after login
 **What happened:** E2E failed because (1) `middleware.ts` verified `gametime_token` with `process.env.JWT_SECRET`, which was unset in the Next dev process, redirecting every `/parent/*` request to `/login`; (2) login forms called `saveAuth()` (localStorage only) without `setAuth()`, so the first client render still had an empty token and `replace("/login")` fired before hydration.
 **Rule:** For local/E2E, run Next with the same `JWT_SECRET` as the API. After successful login/signup, call `setAuth` from `GametimeAuthContext` (not only localStorage). Gate `replace("/login")` on protected pages until `authHydrated` is true so the first paint does not redirect away from a valid session.
+
+---
+
+### 2026-04-25 — Next web-next: `NEXT_PUBLIC_API_URL=localhost` breaks Cloudflare tunnel testing
+**What happened:** `apiRequest` used `NEXT_PUBLIC_API_URL` when set (often `http://localhost:4000` in `.env`). Browsers loading the app via `*.trycloudflare.com` still called `localhost:4000`, which failed with "Network request failed. Check backend at http://localhost:4000".
+**Rule:** In the browser, resolve the API base at request time: prefer same-origin `/api` when the page host is not loopback but the configured backend URL is loopback; only use an explicit absolute `NEXT_PUBLIC_API_URL` when it matches a real cross-origin deployment.
+
+---

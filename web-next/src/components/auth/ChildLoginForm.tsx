@@ -5,6 +5,8 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
+import type { GametimeAuthState } from "@/app/providers";
+import { saveAuth } from "./persistAuth";
 import { ChildPinLogin, type PinChildProfile } from "./ChildPinLogin";
 import styles from "@/styles/auth.module.css";
 
@@ -15,8 +17,8 @@ function isValidEmail(value: string) {
 type ChildDirectResponse = { token: string; child: unknown };
 
 export function ChildLoginForm() {
+  const { replace } = useAppRouter();
   const { setAuth } = useGametimeAuth();
-  const { push } = useAppRouter();
   const [mode, setMode] = useState<"email" | "pin">("email");
   const [emailForm, setEmailForm] = useState({ email: "", password: "" });
   const [pinForm, setPinForm] = useState({ parentEmail: "", childName: "" });
@@ -42,8 +44,14 @@ export function ChildLoginForm() {
           method: "POST",
           body: { email, password: emailForm.password },
         });
-        setAuth({ token: data.token, role: "child", user: data.child as { name?: string; isAdmin?: boolean } | null });
-        push("/child/dashboard");
+        const next: GametimeAuthState = {
+          token: data.token,
+          role: "child",
+          user: data.child as GametimeAuthState["user"],
+        };
+        saveAuth({ token: next.token, role: "child", user: data.child });
+        setAuth(next);
+        replace("/child/dashboard");
       } else {
         const parentEmail = pinForm.parentEmail.trim();
         const childName = pinForm.childName.trim();
@@ -68,15 +76,14 @@ export function ChildLoginForm() {
 
   function handlePinSuccess(token: string) {
     if (!pinChildProfile) return;
-    setAuth({
+    const next: GametimeAuthState = {
       token,
       role: "child",
-      user: {
-        name: pinChildProfile.name,
-        isAdmin: false,
-      },
-    });
-    push("/child/dashboard");
+      user: pinChildProfile as GametimeAuthState["user"],
+    };
+    saveAuth({ token, role: "child", user: pinChildProfile });
+    setAuth(next);
+    replace("/child/dashboard");
   }
 
   if (mode === "pin" && pinStep === "numpad" && pinChildProfile) {

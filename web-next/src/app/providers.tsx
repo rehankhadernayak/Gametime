@@ -182,7 +182,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           body: { childId },
         })) as { token: string; child: GametimeAuthState['user'] };
         setAuth({ token: response.token, role: 'child', user: response.child });
-        router.push('/child/dashboard');
+        router.replace('/child/dashboard');
         trackEvent('switch_to_child_success', { childId });
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Please try again.';

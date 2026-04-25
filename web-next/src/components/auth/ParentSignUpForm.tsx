@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
+import type { GametimeAuthState } from "@/app/providers";
+import { saveAuth } from "./persistAuth";
 import styles from "@/styles/auth.module.css";
 
 const AGES = ["Under 1", ...Array.from({ length: 18 }, (_, i) => `${i + 1}`), "18+"];
@@ -305,8 +307,8 @@ function resolveValue(selected: string, otherText: string) {
 }
 
 export function ParentSignUpForm() {
+  const { replace } = useAppRouter();
   const { setAuth } = useGametimeAuth();
-  const { push } = useAppRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const STEPS = ["name", "email", "numChildren", "children", "concern", "referral", "password"] as const;
@@ -378,8 +380,14 @@ export function ParentSignUpForm() {
   }
 
   function handleAuth(data: { token: string; parent: unknown }) {
-    setAuth({ token: data.token, role: "parent", user: data.parent as { name?: string; isAdmin?: boolean } | null });
-    push("/parent/dashboard");
+    const next: GametimeAuthState = {
+      token: data.token,
+      role: "parent",
+      user: data.parent as GametimeAuthState["user"],
+    };
+    saveAuth({ token: data.token, role: "parent", user: data.parent });
+    setAuth(next);
+    replace("/parent/dashboard");
   }
 
   const answers: SignupAnswers = {
