@@ -6,8 +6,8 @@ import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import type { GametimeAuthState } from "@/app/providers";
-import { ChildPinLogin, type PinChildProfile } from "./ChildPinLogin";
 import { saveAuth } from "./persistAuth";
+import { ChildPinLogin, type PinChildProfile } from "./ChildPinLogin";
 import styles from "@/styles/auth.module.css";
 
 function isValidEmail(value: string) {

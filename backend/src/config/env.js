@@ -7,8 +7,9 @@ import { dirname, resolve } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const envPath = process.env.ENV_FILE || resolve(__dirname, '../../.env');
 
+// Do not use override: true — process.env (e.g. CI, Playwright, containers) must win over .env.
 if (process.env.NODE_ENV !== 'test') {
-  dotenv.config({ path: envPath, override: true });
+  dotenv.config({ path: envPath });
 }
 
 const frontendOriginRaw = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';

@@ -8,12 +8,13 @@ import { useGametimeTheme } from '@/hooks/useGametimeTheme';
 
 function ParentSettingsInner() {
   const router = useRouter();
-  const { auth } = useGametimeAuth();
+  const { auth, authHydrated } = useGametimeAuth();
   const { theme, toggleTheme } = useGametimeTheme();
 
   useEffect(() => {
+    if (!authHydrated) return;
     if (auth.role !== 'parent') router.replace('/login');
-  }, [auth.role, router]);
+  }, [auth.role, authHydrated, router]);
 
   if (auth.role !== 'parent') return null;
 

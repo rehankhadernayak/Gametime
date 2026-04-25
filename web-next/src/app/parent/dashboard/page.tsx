@@ -78,7 +78,7 @@ function taskStatusBadge(state: string): { label: string; tone: "warning" | "neu
 function ParentDashboardInner() {
   const { replace, push } = useAppRouter();
   const searchParams = useSearchParams();
-  const { auth, switchToChild } = useGametimeAuth();
+  const { auth, authHydrated, switchToChild } = useGametimeAuth();
 
   const [children, setChildren] = useState<ChildRow[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -126,10 +126,11 @@ function ParentDashboardInner() {
   );
 
   useEffect(() => {
+    if (!authHydrated) return;
     if (!auth.token || auth.role !== "parent") {
       replace("/login");
     }
-  }, [auth.role, auth.token, replace]);
+  }, [auth.role, auth.token, authHydrated, replace]);
 
   useEffect(() => {
     try {
