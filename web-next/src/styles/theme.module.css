@@ -11,6 +11,7 @@
 
 /* ── Parent: clean, high-contrast, professional ─────────────────────────── */
 /* ThemeSurface also adds .gt-dashboard-parent on the same node as .parentTheme for descendant hooks in other modules. */
+.parentTheme:global(.gt-dashboard-parent),
 .parentTheme {
   color-scheme: light;
   --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
@@ -76,6 +77,8 @@
 }
 
 /* ── Child: dark-centric, neon accents, launcher feel ────────────────────── */
+/* ThemeSurface adds .gt-dashboard-child on the same node as .childTheme for descendant hooks. */
+.childTheme:global(.gt-dashboard-child),
 .childTheme {
   color-scheme: dark;
   --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
@@ -96,7 +99,8 @@
   --gt-accent-hover: #67e8f9;
   --gt-accent-ink: #042f2e;
 
-  --gt-neon: #22d3ee;
+  /* Primary neon (alias keeps hero/glow in sync if accent changes) */
+  --gt-neon: var(--gt-accent);
   --gt-neon-soft: rgba(34, 211, 238, 0.2);
   --gt-neon-magenta: #e879f9;
   --gt-neon-lime: #bef264;

@@ -1,14 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import { trackEvent } from "@/lib/analytics";
-import { GTCard } from "@/components/child-gamer-hub/GTCard";
-import { GTBadge } from "@/components/child-gamer-hub/GTBadge";
-import * as theme from "@/theme/childTheme";
-import styles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
+import { GTCard } from "@/components/ui/GTCard";
+import { GTBadge } from "@/components/ui/GTBadge";
+import { GTButton } from "@/components/ui/GTButton";
+import { GTInput } from "@/components/ui/GTInput";
+import hubStyles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
+import themeModule from "@/styles/theme.module.css";
+import styles from "./child-dashboard.module.css";
 
 const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 const POLL_MS = 30_000;
@@ -40,25 +44,30 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-function ScanEvidenceIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        d="M4 7h4l2-2h4l2 2h4v12H4V7z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="13" r="3.25" fill="none" stroke="currentColor" strokeWidth="1.75" />
-    </svg>
-  );
+function questBadgeLabel(state: string): string {
+  switch (state) {
+    case "Active":
+      return "Active";
+    case "PendingApproval":
+      return "Pending review";
+    case "Approved":
+      return "Completed";
+    case "Rejected":
+      return "Try again";
+    case "Expired":
+      return "Expired";
+    default:
+      return state;
+  }
 }
 
 export default function ChildDashboardPage() {
   const { replace } = useAppRouter();
   const { auth } = useGametimeAuth();
   const token = auth.token;
+
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -121,11 +130,11 @@ export default function ChildDashboardPage() {
     setSubmitMessage(null);
     setSubmitError(null);
     if (!taskId) {
-      setSubmitError("Select a task first.");
+      setSubmitError("Select a quest first.");
       return;
     }
     if (!evidenceFile) {
-      setSubmitError("Evidence file is required.");
+      setSubmitError("Scan or upload evidence to continue.");
       return;
     }
     const isAllowed =
@@ -183,180 +192,260 @@ export default function ChildDashboardPage() {
     e.target.value = "";
   }
 
+  function selectQuest(t: TaskRow) {
+    if (t.state !== "Active") return;
+    setTaskId(t.id);
+    setSubmitError(null);
+  }
+
+  function onQuestKeyDown(e: React.KeyboardEvent, t: TaskRow) {
+    if (t.state !== "Active") return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      selectQuest(t);
+    }
+  }
+
   if (auth.role !== "child" || !auth.token) return null;
 
   const rp = me?.pointsBalance ?? 0;
   const gp = me?.giftcardPointsBalance ?? 0;
 
+  const dsScope = `${themeModule.childTheme} ${styles.dsTokenScope}`;
+
   return (
-    <div className={theme.childTheme}>
-      <div className={styles.shell}>
-        <header>
-          <h1 className={styles.pageTitle}>Gamer Hub</h1>
-          <p className={styles.welcome}>
-            Welcome back{me?.name ? `, ${me.name}` : ""}. Your quests and loot are synced.
-          </p>
-        </header>
+    <div className={hubStyles.childTheme}>
+      <div className={`${hubStyles.shell} ${dsScope}`}>
+        <main className={styles.page}>
+          <header>
+            <h1 className={hubStyles.pageTitle}>Gamer Hub</h1>
+            <p className={hubStyles.welcome}>
+              Welcome back{me?.name ? <span className={styles.welcomeName}>, {me.name}</span> : null}. Your quests and
+              loot are synced.
+            </p>
+          </header>
 
-        <GTCard glass className={styles.heroCard}>
-          <p className={styles.heroLabel}>Balance</p>
-          <div className={styles.balanceRow}>
-            <div className={styles.balanceBlock}>
-              <span className={styles.balanceValue}>{rp.toLocaleString()}</span>
-              <span className={styles.balanceUnit}>Reward pts</span>
-            </div>
-            <div className={styles.balanceBlock}>
-              <span className={`${styles.balanceValue} ${styles.balanceValueGp}`}>
-                {gp.toLocaleString()}
-              </span>
-              <span className={`${styles.balanceUnit} ${styles.balanceUnitGp}`}>Giftcard pts</span>
-            </div>
-          </div>
-        </GTCard>
-
-        {loading ? (
-          <p className={styles.loadingRow} aria-busy="true">
-            Syncing hub…
-          </p>
-        ) : null}
-        {error ? (
-          <p className={styles.statusErr} role="alert">
-            {error}{" "}
-            <button type="button" className={styles.retryBtn} onClick={() => void loadDashboard()}>
-              Retry
-            </button>
-          </p>
-        ) : null}
-
-        {!loading && !error ? (
-          <>
-            <section aria-labelledby="quests-heading">
-              <h2 id="quests-heading" className={styles.sectionTitle}>
-                Active quests
-              </h2>
-              {tasks.length === 0 ? (
-                <p className={styles.emptyQuests}>No missions assigned yet. Check back soon.</p>
-              ) : (
-                <div className={styles.questGrid}>
-                  {tasks.map((t) => {
-                    const bits: string[] = [];
-                    if (t.points != null) bits.push(`${t.points} RP`);
-                    bits.push(`${t.gpPoints ?? 0} GP`);
-                    const pts = bits.join(" · ");
-                    const due = t.dueDate
-                      ? `Due ${new Date(t.dueDate).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
-                      : null;
-                    const isActive = t.state === "Active";
-                    return (
-                      <GTCard key={t.id} glass interactive>
-                        <div className={styles.questHeader}>
-                          <span className={styles.questTitle}>{t.title}</span>
-                          {isActive ? <GTBadge tone="accent">Available</GTBadge> : null}
-                        </div>
-                        <div className={styles.questMeta}>
-                          <span>{t.state}</span>
-                          <span>{pts}</span>
-                          {due ? <span>{due}</span> : null}
-                        </div>
-                      </GTCard>
-                    );
-                  })}
+          <header className={styles.hero} aria-labelledby="rp-hero-label">
+            <div className={styles.heroInner}>
+              <p id="rp-hero-label" className={styles.heroLabel}>
+                Balances
+              </p>
+              <div className={styles.heroBalances}>
+                <div className={styles.heroBalanceCol}>
+                  <p className={styles.heroValue} aria-live="polite">
+                    {loading ? "…" : rp.toLocaleString()}
+                  </p>
+                  <span className={styles.heroUnit}>RP</span>
                 </div>
-              )}
-            </section>
+                <div className={`${styles.heroBalanceCol} ${styles.heroBalanceColGp}`}>
+                  <p className={`${styles.heroValue} ${styles.heroValueGp}`} aria-live="polite">
+                    {loading ? "…" : gp.toLocaleString()}
+                  </p>
+                  <span className={`${styles.heroUnit} ${styles.heroUnitGp}`}>GP</span>
+                </div>
+              </div>
+            </div>
+          </header>
 
-            <section aria-labelledby="submit-heading">
-              <h2 id="submit-heading" className={styles.sectionTitle}>
-                Turn in quest
-              </h2>
-              {submitMessage ? (
-                <p className={styles.statusOk} role="status">
-                  {submitMessage}
+          {loading ? (
+            <p className={styles.loadingRow} aria-busy="true">
+              <span>Syncing your hub…</span>
+            </p>
+          ) : null}
+
+          {error ? (
+            <p className={styles.statusErr} role="alert">
+              {error}{" "}
+              <button type="button" className={styles.retryButton} onClick={() => void loadDashboard()}>
+                Retry
+              </button>
+            </p>
+          ) : null}
+
+          {!loading && !error ? (
+            <>
+              <section aria-labelledby="quests-heading">
+                <h2 id="quests-heading" className={hubStyles.sectionTitle}>
+                  Available quests
+                </h2>
+                <p className={styles.sectionSubtitle}>
+                  Tap an active quest to load it into the evidence scanner below. Complete chores to earn RP.
                 </p>
-              ) : null}
-              {submitError ? (
-                <p className={styles.statusErr} role="alert">
-                  {submitError}
-                </p>
-              ) : null}
-              <form className={styles.formBlock} onSubmit={(e) => void handleSubmitChore(e)}>
-                <div>
-                  <span className={styles.fieldLabel}>Quest</span>
-                  <select
-                    className={styles.select}
-                    value={taskId}
-                    onChange={(e) => {
-                      setTaskId(e.target.value);
-                      setSubmitError(null);
+                {tasks.length === 0 ? (
+                  <p className={styles.emptyState}>No quests assigned yet. Check back soon.</p>
+                ) : (
+                  <motion.div
+                    className={styles.questGrid}
+                    initial="hidden"
+                    animate="show"
+                    variants={{
+                      hidden: {},
+                      show: {
+                        transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+                      },
                     }}
-                    required
                   >
-                    <option value="">Select active quest</option>
-                    {activeTasks.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                    {tasks.map((t) => {
+                      const rewardBits: string[] = [];
+                      if (t.points != null) rewardBits.push(`${t.points} RP`);
+                      rewardBits.push(`${t.gpPoints ?? 0} GP`);
+                      const rewards = rewardBits.join(" · ");
+                      const due = t.dueDate
+                        ? `Due ${new Date(t.dueDate).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                        : null;
+                      const isActive = t.state === "Active";
+                      const isSelected = taskId === t.id;
+                      const badgeTone = isActive ? "accent" : "success";
 
-                <GTCard glass>
-                  <div className={styles.scanCardInner}>
-                    <div className={styles.scanIcon} aria-hidden="true">
-                      <ScanEvidenceIcon />
-                    </div>
-                    <div className={styles.scanTitle}>Scan evidence</div>
-                    <p className={styles.scanHint}>
-                      Use your camera to capture photo proof (max 10MB). Video proof can be added from
-                      your gallery below.
+                      return (
+                        <GTCard
+                          key={t.id}
+                          glass
+                          padding="md"
+                          className={`${styles.questCard} ${isActive ? styles.questCardInteractive : ""}`}
+                          role={isActive ? "button" : undefined}
+                          tabIndex={isActive ? 0 : undefined}
+                          aria-pressed={isActive ? isSelected : undefined}
+                          aria-label={isActive ? `Select quest: ${t.title}` : undefined}
+                          onClick={() => selectQuest(t)}
+                          onKeyDown={(e) => onQuestKeyDown(e, t)}
+                          variants={{
+                            hidden: { opacity: 0, y: 18, scale: 0.92 },
+                            show: {
+                              opacity: 1,
+                              y: 0,
+                              scale: 1,
+                              transition: { type: "spring", stiffness: 440, damping: 26 },
+                            },
+                          }}
+                          whileHover={
+                            isActive
+                              ? {
+                                  scale: 1.02,
+                                  y: -3,
+                                  transition: { type: "spring", stiffness: 420, damping: 26 },
+                                }
+                              : undefined
+                          }
+                          whileTap={isActive ? { scale: 0.98, y: 0 } : undefined}
+                        >
+                          <div className={styles.questCardHeader}>
+                            <h3 className={styles.questTitle}>{t.title}</h3>
+                            <GTBadge tone={badgeTone} size="sm">
+                              {questBadgeLabel(t.state)}
+                            </GTBadge>
+                          </div>
+                          <p className={styles.questMeta}>{rewards}</p>
+                          {due ? <p className={styles.questMeta}>{due}</p> : null}
+                          {isSelected ? <p className={styles.questHint}>Loaded in scanner</p> : null}
+                        </GTCard>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </section>
+
+              <section aria-labelledby="evidence-heading">
+                <h2 id="evidence-heading" className={hubStyles.sectionTitle}>
+                  Evidence uplink
+                </h2>
+                <GTCard glass padding="lg" className={styles.evidenceCard}>
+                  <p className={styles.evidenceIntro}>
+                    Photo or video, max 10MB. Your parent reviews before you earn points.
+                  </p>
+                  {submitMessage ? (
+                    <p className={styles.statusOk} role="status">
+                      {submitMessage}
                     </p>
-                    <input
-                      id="child-evidence-camera"
-                      className={styles.visuallyHiddenInput}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={onEvidenceFromCamera}
-                    />
-                    <label htmlFor="child-evidence-camera" className={styles.scanTrigger}>
-                      Open camera
-                    </label>
-                    <input
-                      id="child-evidence-gallery"
-                      className={styles.visuallyHiddenInput}
-                      type="file"
-                      accept="image/*,video/*"
-                      onChange={onEvidenceFromFiles}
-                    />
-                    <label htmlFor="child-evidence-gallery" className={styles.galleryLink}>
-                      Pick from gallery instead
-                    </label>
+                  ) : null}
+                  {submitError ? (
+                    <p className={styles.statusErr} role="alert">
+                      {submitError}
+                    </p>
+                  ) : null}
+                  <form className={styles.formStack} onSubmit={(e) => void handleSubmitChore(e)}>
+                    <div>
+                      <label className={styles.fieldLabel} htmlFor="child-task-select">
+                        Quest
+                      </label>
+                      <select
+                        id="child-task-select"
+                        className={styles.select}
+                        value={taskId}
+                        onChange={(e) => {
+                          setTaskId(e.target.value);
+                          setSubmitError(null);
+                        }}
+                        required
+                      >
+                        <option value="">Choose an active quest</option>
+                        {activeTasks.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className={styles.scanRow}>
+                      <input
+                        ref={galleryInputRef}
+                        id="evidence-gallery"
+                        type="file"
+                        accept="image/*,video/*"
+                        className={styles.visuallyHidden}
+                        onChange={onEvidenceFromFiles}
+                      />
+                      <input
+                        ref={cameraInputRef}
+                        id="evidence-camera"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className={styles.visuallyHidden}
+                        onChange={onEvidenceFromCamera}
+                      />
+                      <GTButton
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => galleryInputRef.current?.click()}
+                      >
+                        Scan evidence — Files
+                      </GTButton>
+                      <GTButton
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
+                        Scan evidence — Camera
+                      </GTButton>
+                    </div>
+
                     {evidenceFile ? (
                       <p className={styles.fileName}>
-                        Selected: {evidenceFile.name} ({Math.round(evidenceFile.size / 1024)} KB)
+                        Locked in: {evidenceFile.name} ({Math.round(evidenceFile.size / 1024)} KB)
                       </p>
                     ) : null}
-                  </div>
+
+                    <GTInput
+                      label="Note for parent (optional)"
+                      value={evidenceNote}
+                      onChange={(e) => setEvidenceNote(e.target.value)}
+                      maxLength={500}
+                      placeholder="Anything your parent should know…"
+                    />
+
+                    <GTButton type="submit" variant="primary" size="lg" loading={submitBusy} disabled={submitBusy}>
+                      Submit for review
+                    </GTButton>
+                  </form>
                 </GTCard>
-
-                <div>
-                  <span className={styles.fieldLabel}>Note for parent (optional)</span>
-                  <input
-                    className={styles.textInput}
-                    value={evidenceNote}
-                    onChange={(e) => setEvidenceNote(e.target.value)}
-                    maxLength={500}
-                    placeholder="Add context for your proof…"
-                  />
-                </div>
-
-                <button className={styles.submitBtn} type="submit" disabled={submitBusy}>
-                  {submitBusy ? "Transmitting…" : "Submit for review"}
-                </button>
-              </form>
-            </section>
-          </>
-        ) : null}
+              </section>
+            </>
+          ) : null}
+        </main>
       </div>
     </div>
   );
