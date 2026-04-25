@@ -1,12 +1,12 @@
 "use client";
 
-import { LegacyAuthShell } from "@/components/LegacyAuthShell";
 import { ParentSignUpForm } from "@/components/auth/ParentSignUpForm";
+import styles from "@/styles/auth.module.css";
 
 export default function SignUpPage() {
   return (
-    <LegacyAuthShell>
+    <div className={styles.authPage}>
       <ParentSignUpForm />
-    </LegacyAuthShell>
+    </div>
   );
 }
