@@ -115,7 +115,8 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
       dueDate: defaultDueDate(),
       category: 'other',
       recurrenceDays: [],
-      templateId: ''
+      templateId: '',
+      requiredEvidenceType: 'Photo'
     });
     setError('');
     setTimeout(() => firstInputRef.current?.focus(), 50);
@@ -184,7 +185,8 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
           gpPoints:      gp,
           dueDate:       new Date(dueTs).toISOString(),
           category:      newRow.category || 'other',
-          recurrenceDays: orderedDays.length > 0 ? orderedDays.join(',') : null
+          recurrenceDays: orderedDays.length > 0 ? orderedDays.join(',') : null,
+          requiredEvidenceType: newRow.requiredEvidenceType === 'Video' ? 'Video' : 'Photo'
         }
       });
       setNewRow(null);
@@ -316,6 +318,23 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
                       <option value="">Select child *</option>
                       {children.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
+                    <div className="task-proof-inline" role="group" aria-label="Proof required">
+                      <span className="task-proof-label">Proof</span>
+                      <button
+                        type="button"
+                        className={`task-proof-chip${newRow.requiredEvidenceType === 'Photo' ? ' active' : ''}`}
+                        onClick={() => setNewRow((p) => ({ ...p, requiredEvidenceType: 'Photo' }))}
+                      >
+                        Photo
+                      </button>
+                      <button
+                        type="button"
+                        className={`task-proof-chip${newRow.requiredEvidenceType === 'Video' ? ' active' : ''}`}
+                        onClick={() => setNewRow((p) => ({ ...p, requiredEvidenceType: 'Video' }))}
+                      >
+                        Video
+                      </button>
+                    </div>
                   </div>
                 </td>
 
@@ -401,6 +420,9 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
                 <td><CategoryBadge category={task.category || 'other'} /></td>
                 <td>
                   <strong className="task-title-cell">{task.title}</strong>
+                  {task.requiredEvidenceType && (
+                    <span className="task-proof-badge">{task.requiredEvidenceType} proof</span>
+                  )}
                   {task.description && (
                     <div className="task-desc-sub">{task.description}</div>
                   )}

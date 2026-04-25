@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppRouter, useAppSearchParams } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 import ChildCreation from './ChildCreation.jsx';
+import ParentTheme from '../components/ParentTheme.jsx';
+import GTCard from '../components/GTCard.jsx';
+import GTInput from '../components/GTInput.jsx';
 
 /* ── Icons ──────────────────────────────────────────────────────────── */
 function IconChildren() {
@@ -24,6 +27,24 @@ function IconBack() {
 }
 function IconTrash() {
   return <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
+}
+
+function IconKey() {
+  return <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>;
+}
+
+function getAgeYears(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  const now = new Date();
+  let years = now.getUTCFullYear() - dob.getUTCFullYear();
+  const monthDiff = now.getUTCMonth() - dob.getUTCMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getUTCDate() < dob.getUTCDate())) years -= 1;
+  return years;
+}
+
+function randomFourDigitPin() {
+  return String(Math.floor(1000 + Math.random() * 9000));
 }
 
 /* ── Toggle sub-component ───────────────────────────────────────────── */
@@ -76,6 +97,8 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
   const [showAddChild,   setShowAddChild]   = useState(false);
   const [childMsg,       setChildMsg]       = useState('');
   const [childMsgKind,   setChildMsgKind]   = useState('success');
+  const [pinByChildId,   setPinByChildId]   = useState({});
+  const [pinSavingId,    setPinSavingId]    = useState('');
 
   /* ── Appearance ── */
   const [fontSize, setFontSize] = useState('medium');
@@ -181,6 +204,20 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
     setTimeout(() => setChildMsg(''), 4000);
   }
 
+  async function handleGeneratePin(childId) {
+    const pin = randomFourDigitPin();
+    setPinSavingId(childId);
+    try {
+      await apiRequest(`/children/${childId}/pin`, { method: 'PATCH', token, body: { pin } });
+      setPinByChildId((prev) => ({ ...prev, [childId]: pin }));
+      notifyChild('New PIN saved. Share it with your child once, then store it safely.', 'success');
+    } catch (err) {
+      notifyChild(err.message || 'Could not update PIN.', 'error');
+    } finally {
+      setPinSavingId('');
+    }
+  }
+
   async function handleDeleteChild(childId, childName) {
     if (!window.confirm(`Remove ${childName} from your Gametime account? This cannot be undone.`)) return;
     try {
@@ -264,78 +301,122 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
       <div className="settings-section">
         <div className="settings-section-head">
           <h2>Child Management</h2>
-          <p className="settings-section-sub">Add, view, and remove children from your family account.</p>
+          <p className="settings-section-sub">Family roster: add children, rotate PINs for younger profiles, or remove accounts.</p>
         </div>
 
         {childMsg && (
           <p className={childMsgKind === 'error' ? 'error' : 'notice'} role="alert">{childMsg}</p>
         )}
 
-        {childrenLoading ? (
-          <p className="settings-loading">Loading children...</p>
-        ) : children.length === 0 ? (
-          <div className="settings-empty-state">
-            <p>No children added yet. Add your first child to get started.</p>
-          </div>
-        ) : (
-          <div className="settings-child-list">
-            {children.map((child) => (
-              <div key={child.id} className="settings-child-card">
-                <div className="settings-child-avatar" aria-hidden="true">
-                  {child.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="settings-child-info">
-                  <strong className="settings-child-name">{child.name}</strong>
-                  <span className="settings-child-meta">
-                    {child.email || 'No email set'} &nbsp;|&nbsp;
-                    {child.hasPasswordLogin ? 'Password login' : ''}{child.hasPasswordLogin && child.hasPinLogin ? ' + ' : ''}
-                    {child.hasPinLogin ? 'PIN login' : ''}{!child.hasPasswordLogin && !child.hasPinLogin ? 'No login set up' : ''}
-                  </span>
-                  <span className="settings-child-balance">
-                    RP: {child.pointsBalance ?? 0} &nbsp;|&nbsp; GP: {child.giftcardPointsBalance ?? 0}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  className="settings-delete-btn"
-                  aria-label={`Remove ${child.name}`}
-                  onClick={() => handleDeleteChild(child.id, child.name)}
-                >
-                  <IconTrash />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {showAddChild ? (
-          <div className="settings-panel">
-            <div className="settings-panel-header">
-              <h3>Add New Child</h3>
-              <button type="button" className="icon-button" onClick={() => setShowAddChild(false)} aria-label="Close">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
+        <ParentTheme>
+          {childrenLoading ? (
+            <p className="settings-loading">Loading children...</p>
+          ) : children.length === 0 ? (
+            <GTCard title="Family roster" subtitle="No heroes yet — add your first child to unlock tasks and rewards.">
+              <p className="settings-roster-empty">When you add a child, they appear here with balances and login options.</p>
+            </GTCard>
+          ) : (
+            <div className="settings-roster-grid">
+              {children.map((child) => {
+                const age = getAgeYears(child.dateOfBirth);
+                const pinEligible = age != null && age <= 9;
+                const revealedPin = pinByChildId[child.id];
+                return (
+                  <GTCard
+                    key={child.id}
+                    className="settings-roster-card"
+                    title={child.name}
+                    subtitle={child.email || 'No email on file'}
+                    footer={(
+                      <div className="settings-roster-footer">
+                        <span className="settings-roster-balances">
+                          <strong>{child.pointsBalance ?? 0}</strong> RP · <strong>{child.giftcardPointsBalance ?? 0}</strong> GP
+                        </span>
+                        <div className="settings-roster-actions">
+                          {pinEligible ? (
+                            <button
+                              type="button"
+                              className="settings-roster-pill-btn"
+                              onClick={() => handleGeneratePin(child.id)}
+                              disabled={pinSavingId === child.id}
+                            >
+                              <IconKey />
+                              {pinSavingId === child.id ? 'Saving…' : 'New PIN'}
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className="settings-delete-btn settings-roster-remove"
+                            aria-label={`Remove ${child.name}`}
+                            onClick={() => handleDeleteChild(child.id, child.name)}
+                          >
+                            <IconTrash />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  >
+                    <div className="settings-roster-body">
+                      <div className="settings-child-avatar settings-roster-avatar" aria-hidden="true">
+                        {child.name.charAt(0).toUpperCase()}
+                      </div>
+                      <p className="settings-roster-login-line">
+                        {child.hasPasswordLogin ? 'Password login' : ''}
+                        {child.hasPasswordLogin && child.hasPinLogin ? ' · ' : ''}
+                        {child.hasPinLogin ? 'PIN login' : ''}
+                        {!child.hasPasswordLogin && !child.hasPinLogin ? 'No child login yet' : ''}
+                        {age != null ? ` · Age ${age}` : ''}
+                      </p>
+                      {!pinEligible && (
+                        <p className="gt-input-hint">Children 10+ use email and password; PIN is not available.</p>
+                      )}
+                      {pinEligible && revealedPin && (
+                        <GTInput
+                          readOnly
+                          label="New child PIN (copy now)"
+                          hint="This PIN is shown once after generation. Store it securely for your child."
+                          value={revealedPin}
+                          onFocus={(e) => e.target.select()}
+                        />
+                      )}
+                    </div>
+                  </GTCard>
+                );
+              })}
             </div>
-            <ChildCreation
-              token={token}
-              onCreate={async (form) => {
-                try {
-                  await apiRequest('/children/create', { method: 'POST', token, body: form });
-                  notifyChild(`Child account created: ${form.name}`);
-                  setShowAddChild(false);
-                  await loadChildren();
-                } catch (err) {
-                  notifyChild(err.message, 'error');
-                  throw err;
-                }
-              }}
-            />
-          </div>
-        ) : (
-          <button type="button" className="settings-action-btn" onClick={() => setShowAddChild(true)}>
-            + Add Child
-          </button>
-        )}
+          )}
+
+          {showAddChild ? (
+            <GTCard
+              title="Add to roster"
+              subtitle="Create a child profile with date of birth and login method."
+              footer={(
+                <button type="button" className="secondary-button" onClick={() => setShowAddChild(false)}>
+                  Cancel
+                </button>
+              )}
+            >
+              <ChildCreation
+                token={token}
+                onCreate={async (form) => {
+                  try {
+                    await apiRequest('/children/create', { method: 'POST', token, body: form });
+                    notifyChild(`Child account created: ${form.name}`);
+                    setShowAddChild(false);
+                    await loadChildren();
+                  } catch (err) {
+                    notifyChild(err.message, 'error');
+                    throw err;
+                  }
+                }}
+              />
+            </GTCard>
+          ) : (
+            <button type="button" className="settings-action-btn" onClick={() => setShowAddChild(true)}>
+              + Add Child
+            </button>
+          )}
+        </ParentTheme>
       </div>
     );
   }

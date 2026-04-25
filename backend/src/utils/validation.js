@@ -53,6 +53,11 @@ export const childCreateSchema = z.object({
   }
 });
 
+/** Parent sets or rotates a younger child's 4-digit PIN (age ≤9, PIN-eligible). */
+export const childPinSetSchema = z.object({
+  pin: z.string().regex(/^\d{4}$/, 'PIN must be exactly 4 digits')
+});
+
 export const childLoginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1)
@@ -76,7 +81,9 @@ export const taskCreateSchema = z.object({
   gpPoints: z.number().int().min(0).max(1000).default(0),
   dueDate: z.string().datetime(),
   category: z.enum(['school', 'chores', 'activities', 'health', 'other']).default('other'),
-  recurrenceDays: z.string().max(50).nullable().optional()
+  recurrenceDays: z.string().max(50).nullable().optional(),
+  /** When set, the child must submit this evidence type to complete the quest. */
+  requiredEvidenceType: z.enum(['Photo', 'Video']).nullable().optional()
 });
 
 export const taskScheduleUpdateSchema = z.object({

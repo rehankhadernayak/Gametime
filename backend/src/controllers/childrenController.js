@@ -4,7 +4,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
-import { childCreateSchema } from '../utils/validation.js';
+import { childCreateSchema, childPinSetSchema } from '../utils/validation.js';
 import { ApiError } from '../utils/errors.js';
 import { verifyEmailExists } from '../services/emailExistenceService.js';
 import { env } from '../config/env.js';
@@ -166,6 +166,46 @@ export async function leaderboard(req, res, next) {
     );
 
     return res.json(rows.map((r, i) => ({ ...r, rank: i + 1 })));
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /children/:id/pin
+ * Parent sets or rotates a 4-digit PIN for a child who is still PIN-eligible (age ≤9).
+ * Returns the plain PIN once so the parent can share it with the child.
+ */
+export async function updateChildPin(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { pin } = childPinSetSchema.parse(req.body);
+    const db = await getDb();
+
+    const child = await db.get(
+      'SELECT id, name, date_of_birth as dateOfBirth FROM child_profiles WHERE id = ? AND parent_id = ?',
+      [id, req.auth.parentId]
+    );
+    if (!child) throw new ApiError(404, 'Child not found');
+
+    const age = getAgeYears(child.dateOfBirth);
+    if (age > 9) {
+      throw new ApiError(400, 'PIN login is only available for children age 9 and under.');
+    }
+
+    const pinHash = await bcrypt.hash(pin, 10);
+    const now = new Date().toISOString();
+    await db.run(
+      'UPDATE child_profiles SET pin_hash = ?, updated_at = ? WHERE id = ?',
+      [pinHash, now, id]
+    );
+
+    return res.json({
+      message: 'PIN updated.',
+      pin,
+      childId: child.id,
+      childName: child.name
+    });
   } catch (error) {
     next(error);
   }
