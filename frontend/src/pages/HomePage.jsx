@@ -16,7 +16,13 @@ function IconArrow() {
     </svg>
   );
 }
-
+function IconChevronDown() {
+  return (
+    <svg viewBox="0 0 20 20" width="14" height="14" fill="none" aria-hidden="true">
+      <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 function IconAI() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
@@ -69,6 +75,7 @@ export default function HomePage({ auth }) {
   const heroSubRef = useRef(null);
   const heroCtaRef = useRef(null);
   const controllerRef = useRef(null);
+  const scrollHintRef = useRef(null);
   const bentoRef = useRef(null);
   const parallaxWordRef = useRef(null);
 
@@ -91,41 +98,54 @@ export default function HomePage({ auth }) {
       gsap.set(layers.cells,   { yPercent: 140,                 opacity: 0, transformOrigin: '50% 50%' });
       gsap.set('#hp-ctrl-telemetry', { scaleX: 0.05, transformOrigin: 'left center' });
 
-      /* ── Hero text: blur(30) + opacity 0 to start ────────────────── */
-      gsap.set(heroH1Ref.current,  { autoAlpha: 0, filter: 'blur(30px)', y: 40 });
-      gsap.set(heroSubRef.current, { autoAlpha: 0, filter: 'blur(20px)', y: 20 });
-      gsap.set(heroCtaRef.current, { autoAlpha: 0, y: 20 });
+      /* ── Hero text: hidden, blurred, BELOW center (emerges upward) ─ */
+      gsap.set(heroH1Ref.current,  { autoAlpha: 0, filter: 'blur(20px)', y: 120 });
+      gsap.set(heroSubRef.current, { autoAlpha: 0, filter: 'blur(20px)', y: 80 });
+      gsap.set(heroCtaRef.current, { autoAlpha: 0, y: 40 });
 
-      /* ── Pinned timeline: 2.5x viewport scrub ────────────────────── */
+      /* Controller starts perfectly centered. */
+      gsap.set(controllerRef.current, { y: 0, scale: 1, transformOrigin: '50% 50%' });
+
+      /* ── Pinned timeline: 4x viewport scrub (was 2.5x) ───────────── */
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: heroPinRef.current,
           start: 'top top',
-          end: '+=250%',          // exactly 2.5x viewport height
+          end: '+=400%',          // 4x viewport — buttery slow, impossible to miss
           pin: heroStageRef.current,
           pinSpacing: true,
-          scrub: 1,               // weighted, momentum follow
+          scrub: 1,
           anticipatePin: 1,
         },
       });
 
-      // Phase 1 (0 → 0.30): controller assembles
+      /* Phase 1 (0 → 0.30) — Controller assembles into formation. */
       tl.to(layers.outer,   { xPercent: 0, yPercent: 0, rotate: 0, opacity: 1, ease: 'power3.out', duration: 0.30 }, 0)
         .to(layers.core,    { yPercent: 0,              opacity: 1, ease: 'power3.out', duration: 0.30 }, 0.06)
         .to(layers.buttons, { xPercent: 0, yPercent: 0, rotate: 0, opacity: 1, ease: 'power3.out', duration: 0.30 }, 0.12)
         .to(layers.cells,   { yPercent: 0,              opacity: 1, ease: 'power3.out', duration: 0.30 }, 0.18);
 
-      // Phase 2 (0.30 → 0.55): kinetic headline reveals as core comes online
-      tl.to(heroH1Ref.current,  { autoAlpha: 1, filter: 'blur(0px)', y: 0, ease: 'power2.out', duration: 0.25 }, 0.30)
-        .to(heroSubRef.current, { autoAlpha: 1, filter: 'blur(0px)', y: 0, ease: 'power2.out', duration: 0.20 }, 0.40)
-        .to(heroCtaRef.current, { autoAlpha: 1, y: 0,                ease: 'power2.out', duration: 0.20 }, 0.48);
+      /* Phase 2 (0.30 → 0.50) — Telemetry charges to full. */
+      tl.to('#hp-ctrl-telemetry', { scaleX: 1, ease: 'power1.inOut', duration: 0.20 }, 0.30);
 
-      // Phase 3 (0.55 → 0.85): telemetry charges up + subtle controller breathing
-      tl.to('#hp-ctrl-telemetry', { scaleX: 1, ease: 'power1.inOut', duration: 0.30 }, 0.55)
-        .to(controllerRef.current, { scale: 1.04, ease: 'sine.inOut', duration: 0.30 }, 0.55);
+      /* Phase 3 (0.50 → 0.80) — SPATIAL CHOREOGRAPHY:
+         Controller scales to 0.8 and translates UP -150px,
+         clearing the center stage for the headline to emerge. */
+      tl.to(controllerRef.current, {
+        y: -150,
+        scale: 0.8,
+        ease: 'power2.inOut',
+        duration: 0.30,
+      }, 0.50);
 
-      // Phase 4 (0.85 → 1.0): release — soft scale down so it docks under the bento
-      tl.to(controllerRef.current, { scale: 0.96, ease: 'power2.in', duration: 0.15 }, 0.85);
+      /* Hide the scroll hint as soon as the user starts scrolling. */
+      tl.to(scrollHintRef.current, { autoAlpha: 0, y: 20, duration: 0.10 }, 0);
+
+      /* Phase 4 (0.60 → 0.95) — Hero copy blurs in from the bottom,
+         translating UP into the space the controller just vacated. */
+      tl.to(heroH1Ref.current,  { autoAlpha: 1, filter: 'blur(0px)', y: 0, ease: 'power3.out', duration: 0.25 }, 0.60)
+        .to(heroSubRef.current, { autoAlpha: 1, filter: 'blur(0px)', y: 0, ease: 'power3.out', duration: 0.22 }, 0.72)
+        .to(heroCtaRef.current, { autoAlpha: 1, y: 0,                ease: 'power2.out', duration: 0.20 }, 0.82);
 
       /* ── Horizontal parallax giant word behind the bento grid ────── */
       gsap.fromTo(
@@ -145,7 +165,7 @@ export default function HomePage({ auth }) {
 
       /* ── Floating Bento cards: each card has a different y offset ── */
       const cards = gsap.utils.toArray('.hp-bento-card');
-      const offsets = [120, 60, 180]; // staggered float per card
+      const offsets = [120, 60, 180];
       cards.forEach((card, i) => {
         gsap.fromTo(
           card,
@@ -180,9 +200,27 @@ export default function HomePage({ auth }) {
           },
         }
       );
+
+      /* ── Cinematic footer: massive headline blurs in on approach ──── */
+      gsap.fromTo(
+        '.hp-cinema-h2',
+        { autoAlpha: 0, filter: 'blur(28px)', y: 80, scale: 0.96 },
+        {
+          autoAlpha: 1,
+          filter: 'blur(0px)',
+          y: 0,
+          scale: 1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.hp-cinema',
+            start: 'top 80%',
+            end: 'top 30%',
+            scrub: 1,
+          },
+        }
+      );
     }, heroPinRef);
 
-    // Refresh after layout settles (fonts, images, late mounts).
     const refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 100);
 
     return () => {
@@ -205,7 +243,13 @@ export default function HomePage({ auth }) {
             aria-labelledby="hp-hero-heading"
           >
             <div ref={heroStageRef} className="hp-pin-stage">
+              {/* Static base layer */}
               <div className="hp-stage-bg" aria-hidden="true" />
+
+              {/* Pulsating ambient glow that sits BEHIND the controller */}
+              <div className="hp-ambient-glow" aria-hidden="true">
+                <div className="hp-ambient-glow-inner" />
+              </div>
 
               <div className="hp-controller-wrap" aria-hidden="true">
                 <MasterController ref={controllerRef} />
@@ -241,6 +285,16 @@ export default function HomePage({ auth }) {
                     </>
                   )}
                 </div>
+              </div>
+
+              {/* Scroll indicator at the bottom of the viewport */}
+              <div ref={scrollHintRef} className="hp-scroll-hint" aria-hidden="true">
+                <span className="hp-scroll-hint-bracket">[</span>
+                <span className="hp-scroll-hint-label">Scroll to Initiate</span>
+                <span className="hp-scroll-hint-bracket">]</span>
+                <span className="hp-scroll-hint-chevron">
+                  <IconChevronDown />
+                </span>
               </div>
             </div>
           </section>
@@ -297,21 +351,29 @@ export default function HomePage({ auth }) {
             </div>
           </section>
 
-          {/* ── Closing CTA ───────────────────────────────────────── */}
+          {/* ── Cinematic dark footer ──────────────────────────────── */}
           {!auth.token && (
-            <section className="hp-closing" aria-labelledby="hp-closing-heading">
-              <div className="hp-closing-inner">
-                <h2 id="hp-closing-heading" className="hp-closing-h2">
-                  Ready to start?
+            <section className="hp-cinema" aria-labelledby="hp-cinema-heading">
+              <div className="hp-cinema-grid" aria-hidden="true" />
+              <div className="hp-cinema-glow" aria-hidden="true" />
+              <div className="hp-cinema-inner">
+                <h2
+                  id="hp-cinema-heading"
+                  className="hp-cinema-h2"
+                >
+                  Ready to make<br />gaming fair?
                 </h2>
-                <Link to="/signup" className="hp-btn-primary hp-btn-lg">
-                  Get Started <IconArrow />
+                <Link to="/signup" className="hp-cinema-cta">
+                  Create Free Account <IconArrow />
                 </Link>
+                <p className="hp-cinema-subnote">
+                  No credit card. Cancel anytime.
+                </p>
               </div>
             </section>
           )}
 
-          {/* ── Footer ─────────────────────────────────────────────── */}
+          {/* ── Footer meta ────────────────────────────────────────── */}
           <footer className="hp-footer" role="contentinfo">
             <div className="hp-footer-inner">
               <span className="hp-footer-logo">Gametime</span>

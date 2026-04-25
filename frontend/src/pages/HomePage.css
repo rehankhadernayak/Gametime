@@ -17,7 +17,6 @@
   --gt-glass: rgba(255, 255, 255, 0.6);
   --gt-glass-border: rgba(0, 0, 0, 0.08);
 
-  /* Reset every dark-app token that bleeds in from styles/app.css */
   background: var(--gt-bg);
   color: var(--gt-ink);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -105,10 +104,40 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 25%, rgba(220, 38, 38, 0.06), transparent 55%),
+    radial-gradient(circle at 20% 25%, rgba(220, 38, 38, 0.05), transparent 55%),
     radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.04), transparent 55%),
     var(--gt-bg-soft);
   z-index: 0;
+}
+
+/* ── Pulsating ambient glow behind the controller ────────────────────── */
+[data-surface="landing"] .hp-ambient-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(110vw, 1100px);
+  height: min(110vw, 1100px);
+  z-index: 0;
+  pointer-events: none;
+}
+[data-surface="landing"] .hp-ambient-glow-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(220, 38, 38, 0.18) 0%,
+      rgba(220, 38, 38, 0.10) 22%,
+      rgba(220, 38, 38, 0.04) 42%,
+      transparent 65%);
+  filter: blur(12px);
+  animation: hp-ambient-pulse 4.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@keyframes hp-ambient-pulse {
+  0%, 100% { transform: scale(1);     opacity: 0.85; }
+  50%      { transform: scale(1.08);  opacity: 1;    }
 }
 
 /* Master Controller stage */
@@ -129,9 +158,7 @@
   filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.18));
   will-change: transform, opacity;
 }
-[data-surface="landing"] .hp-ctrl-layer {
-  will-change: transform, opacity;
-}
+[data-surface="landing"] .hp-ctrl-layer { will-change: transform, opacity; }
 
 /* Hero copy is layered on top of the controller assembly */
 [data-surface="landing"] .hp-hero-copy {
@@ -145,8 +172,6 @@
   flex-direction: column;
   align-items: center;
   gap: 1.25rem;
-  /* Pull copy slightly above center so the controller halos through it */
-  transform: translateY(-2vh);
 }
 
 [data-surface="landing"] .hp-hero-h1 {
@@ -156,7 +181,6 @@
   line-height: 1;
   margin: 0;
   color: var(--gt-ink);
-  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
   will-change: transform, filter, opacity;
 }
 [data-surface="landing"] .hp-hero-sub {
@@ -174,6 +198,46 @@
   justify-content: center;
   margin-top: 0.5rem;
   will-change: transform, opacity;
+}
+
+/* ── Scroll-to-Initiate indicator ────────────────────────────────────── */
+[data-surface="landing"] .hp-scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 2.5rem;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gt-ink-soft);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+[data-surface="landing"] .hp-scroll-hint-bracket {
+  color: var(--gt-red);
+  font-weight: 600;
+}
+[data-surface="landing"] .hp-scroll-hint-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+  background: var(--gt-red);
+  color: #fff;
+  animation: hp-chevron-bounce 1.4s ease-in-out infinite;
+}
+@keyframes hp-chevron-bounce {
+  0%, 100% { transform: translateY(0);   opacity: 0.85; }
+  50%      { transform: translateY(6px); opacity: 1;    }
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────── */
@@ -212,12 +276,8 @@
   background: rgba(255, 255, 255, 0.95);
   transform: translateY(-2px);
 }
-[data-surface="landing"] .hp-btn-lg {
-  padding: 1rem 1.75rem;
-  font-size: 1rem;
-}
 
-/* ── Bento section: 12-col grid with floating cards ──────────────────── */
+/* ── Bento section ───────────────────────────────────────────────────── */
 [data-surface="landing"] .hp-bento-section {
   position: relative;
   padding: 10rem 1.5rem 14rem;
@@ -277,14 +337,9 @@
   box-shadow: 0 14px 44px -16px rgba(0, 0, 0, 0.12);
   will-change: transform;
 }
-[data-surface="landing"] .hp-bento-card--tall {
-  grid-column: span 4;
-  min-height: 380px;
-}
-[data-surface="landing"] .hp-bento-card--wide {
-  grid-column: span 4;
-  min-height: 340px;
-}
+[data-surface="landing"] .hp-bento-card--tall { min-height: 380px; }
+[data-surface="landing"] .hp-bento-card--wide { min-height: 340px; }
+
 [data-surface="landing"] .hp-bento-icon {
   width: 56px;
   height: 56px;
@@ -330,34 +385,117 @@
   transition: width 0.6s ease;
 }
 
-/* ── Closing CTA ─────────────────────────────────────────────────────── */
-[data-surface="landing"] .hp-closing {
-  padding: 6rem 1.5rem;
-  background: var(--gt-bg-soft);
-  border-top: 1px solid var(--gt-line);
+/* ── Cinematic dark footer ───────────────────────────────────────────── */
+[data-surface="landing"] .hp-cinema {
+  position: relative;
+  background: #18181b; /* zinc-900 */
+  color: #fafafa;
+  padding: clamp(8rem, 18vw, 16rem) 1.5rem;
+  overflow: hidden;
+  isolation: isolate;
 }
-[data-surface="landing"] .hp-closing-inner {
-  max-width: 800px;
+[data-surface="landing"] .hp-cinema-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  z-index: 0;
+}
+[data-surface="landing"] .hp-cinema-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -30%;
+  transform: translateX(-50%);
+  width: min(120vw, 1400px);
+  height: 1400px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(220, 38, 38, 0.30) 0%,
+      rgba(220, 38, 38, 0.12) 25%,
+      transparent 60%);
+  filter: blur(40px);
+  z-index: 0;
+  animation: hp-ambient-pulse 5.5s ease-in-out infinite;
+}
+[data-surface="landing"] .hp-cinema-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
   margin: 0 auto;
-  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 3rem;
+  text-align: center;
 }
-[data-surface="landing"] .hp-closing-h2 {
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
+[data-surface="landing"] .hp-cinema-h2 {
   margin: 0;
-  color: var(--gt-ink);
+  font-weight: 800;
+  font-size: clamp(3.5rem, 14vw, 12rem);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  color: #fafafa;
+  text-wrap: balance;
+  will-change: transform, filter, opacity;
+}
+[data-surface="landing"] .hp-cinema-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem 2.5rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1.15rem;
+  text-decoration: none;
+  color: #fff;
+  background: var(--gt-red);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(220, 38, 38, 0.4),
+    0 12px 40px -6px rgba(220, 38, 38, 0.6),
+    0 0 80px rgba(220, 38, 38, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.15s ease;
+  animation: hp-cta-glow 3s ease-in-out infinite;
+}
+[data-surface="landing"] .hp-cinema-cta:hover {
+  background: #ef4444;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 0 0 1px rgba(220, 38, 38, 0.6),
+    0 18px 60px -6px rgba(220, 38, 38, 0.75),
+    0 0 120px rgba(220, 38, 38, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+@keyframes hp-cta-glow {
+  0%, 100% { box-shadow:
+      0 0 0 1px rgba(220, 38, 38, 0.4),
+      0 12px 40px -6px rgba(220, 38, 38, 0.6),
+      0 0 80px rgba(220, 38, 38, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+  50%      { box-shadow:
+      0 0 0 1px rgba(220, 38, 38, 0.55),
+      0 14px 48px -6px rgba(220, 38, 38, 0.7),
+      0 0 110px rgba(220, 38, 38, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22); }
+}
+[data-surface="landing"] .hp-cinema-subnote {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(250, 250, 250, 0.55);
+  letter-spacing: 0.04em;
 }
 
-/* ── Footer ──────────────────────────────────────────────────────────── */
+/* ── Footer meta ─────────────────────────────────────────────────────── */
 [data-surface="landing"] .hp-footer {
-  background: var(--gt-bg);
-  border-top: 1px solid var(--gt-line);
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 2rem 1.5rem;
 }
 [data-surface="landing"] .hp-footer-inner {
@@ -373,11 +511,11 @@
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: var(--gt-ink);
+  color: #fafafa;
 }
 [data-surface="landing"] .hp-footer-meta {
   font-size: 0.85rem;
-  color: var(--gt-ink-soft);
+  color: rgba(250, 250, 250, 0.5);
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
@@ -394,17 +532,12 @@
   [data-surface="landing"] .hp-bento-section {
     padding: 6rem 1.25rem 8rem;
   }
-  [data-surface="landing"] .hp-controller-wrap {
-    width: 92vw;
-  }
+  [data-surface="landing"] .hp-controller-wrap { width: 92vw; }
+  [data-surface="landing"] .hp-cinema { padding: 6rem 1.25rem; }
 }
 @media (max-width: 560px) {
-  [data-surface="landing"] .hp-nav-inner {
-    padding: 0.75rem 1rem;
-  }
-  [data-surface="landing"] .hp-nav-link {
-    display: none;
-  }
+  [data-surface="landing"] .hp-nav-inner { padding: 0.75rem 1rem; }
+  [data-surface="landing"] .hp-nav-link { display: none; }
   [data-surface="landing"] .hp-hero-ctas {
     flex-direction: column;
     width: 100%;
@@ -414,6 +547,7 @@
     width: 100%;
     justify-content: center;
   }
+  [data-surface="landing"] .hp-scroll-hint { font-size: 0.7rem; bottom: 1.5rem; }
 }
 
 /* ── Reduced motion: kill kinetic effects, no pin ────────────────────── */
@@ -424,11 +558,17 @@
   [data-surface="landing"] .hp-bento-card,
   [data-surface="landing"] .hp-bento-heading,
   [data-surface="landing"] .hp-parallax-word,
+  [data-surface="landing"] .hp-cinema-h2,
   [data-surface="landing"] .hp-controller,
-  [data-surface="landing"] .hp-ctrl-layer {
+  [data-surface="landing"] .hp-ctrl-layer,
+  [data-surface="landing"] .hp-ambient-glow-inner,
+  [data-surface="landing"] .hp-scroll-hint-chevron,
+  [data-surface="landing"] .hp-cinema-cta,
+  [data-surface="landing"] .hp-cinema-glow {
     transform: none !important;
     filter: none !important;
     opacity: 1 !important;
+    animation: none !important;
   }
   [data-surface="landing"] .hp-pin-stage {
     height: auto;
