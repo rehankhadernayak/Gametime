@@ -1,0 +1,16 @@
+.root {
+  border-radius: 16px;
+  background: var(--gt-bg);
+  box-shadow: var(--gt-shadow-widget);
+  padding: clamp(1rem, 2.5vw, 1.35rem);
+}
+
+:global(.gt-dashboard-child) .root {
+  background: var(--gt-bg-soft);
+}
+
+.glass {
+  background: var(--gt-glass);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}

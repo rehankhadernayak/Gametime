@@ -1,0 +1,45 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 0.5px solid transparent;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pending {
+  background: var(--gt-warning-bg);
+  color: var(--gt-warning-fg);
+  border-color: color-mix(in srgb, var(--gt-warning-fg) 22%, transparent);
+}
+
+.approved {
+  background: var(--gt-success-bg);
+  color: var(--gt-success-fg);
+  border-color: color-mix(in srgb, var(--gt-success-fg) 22%, transparent);
+}
+
+.needsReview {
+  background: var(--gt-neutral-bg);
+  color: var(--gt-neutral-fg);
+  border-color: color-mix(in srgb, var(--gt-neutral-fg) 18%, transparent);
+}
+
+:global(.gt-dashboard-child) .pending {
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--gt-warning-fg) 35%, transparent);
+}
+
+:global(.gt-dashboard-child) .approved {
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--gt-success-fg) 35%, transparent);
+}
+
+:global(.gt-dashboard-child) .needsReview {
+  box-shadow: 0 0 14px -2px var(--gt-neon-soft);
+  border-color: color-mix(in srgb, var(--gt-neon) 35%, transparent);
+}

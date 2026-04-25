@@ -1,0 +1,87 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.root:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.root:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gt-primary) 28%, transparent);
+}
+
+.primary {
+  background: var(--gt-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 18px -6px color-mix(in srgb, var(--gt-primary) 55%, transparent);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--gt-primary-hover);
+}
+
+:global(.gt-dashboard-child) .primary {
+  color: #050508;
+}
+
+.secondary {
+  background: var(--gt-bg-soft);
+  color: var(--gt-ink);
+  border: 0.5px solid var(--gt-line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--gt-line) 70%, var(--gt-ink-soft));
+  background: color-mix(in srgb, var(--gt-bg-soft) 85%, var(--gt-bg));
+}
+
+.ghost {
+  background: transparent;
+  color: var(--gt-ink-soft);
+  border: 0.5px solid transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--gt-ink);
+  background: color-mix(in srgb, var(--gt-bg-soft) 55%, transparent);
+  border-color: var(--gt-line);
+}
+
+.sm {
+  min-height: 2.25rem;
+  padding: 0 0.9rem;
+  font-size: 0.82rem;
+  border-radius: 10px;
+}
+
+.lg {
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  font-size: 0.95rem;
+  border-radius: 14px;
+}
+
+.fullWidth {
+  width: 100%;
+}

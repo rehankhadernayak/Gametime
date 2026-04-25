@@ -1,0 +1,83 @@
+/**
+ * Gametime dashboard theme utilities — Geist stack via layout;
+ * colour tokens use --gt-* (see globals.css defaults; themes override below).
+ *
+ * Pair module classes with global hooks `gt-dashboard-parent` / `gt-dashboard-child`
+ * (see ThemeSurface) so descendant components can target the active surface.
+ */
+
+/* ── Parent: clean professional light ─────────────────────────────────── */
+.parentTheme,
+:global(.gt-dashboard-parent) {
+  --gt-bg: #ffffff;
+  --gt-bg-soft: #f4f4f5;
+  --gt-ink: #0a0a0a;
+  --gt-ink-soft: #52525b;
+  --gt-line: rgba(0, 0, 0, 0.08);
+  --gt-red: #dc2626;
+  --gt-red-hover: #b91c1c;
+  --gt-glass: rgba(255, 255, 255, 0.62);
+  --gt-glass-border: rgba(0, 0, 0, 0.1);
+  --gt-primary: #dc2626;
+  --gt-primary-hover: #b91c1c;
+  --gt-shadow-widget: 0 14px 44px -18px rgba(0, 0, 0, 0.14);
+  --gt-success-bg: rgba(22, 163, 74, 0.12);
+  --gt-success-fg: #15803d;
+  --gt-warning-bg: rgba(217, 119, 6, 0.14);
+  --gt-warning-fg: #c2410c;
+  --gt-neutral-bg: rgba(113, 113, 122, 0.14);
+  --gt-neutral-fg: #52525b;
+  --gt-input-placeholder: #a1a1aa;
+  color: var(--gt-ink);
+  background-color: var(--gt-bg);
+  font-family: var(--font-geist-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Child: high-contrast dark + neon accents ─────────────────────────── */
+.childTheme,
+:global(.gt-dashboard-child) {
+  --gt-bg: #050508;
+  --gt-bg-soft: #0c0c12;
+  --gt-ink: #fafafa;
+  --gt-ink-soft: #a1a1aa;
+  --gt-line: rgba(255, 255, 255, 0.12);
+  --gt-red: #f87171;
+  --gt-red-hover: #fca5a5;
+  --gt-glass: rgba(12, 12, 20, 0.72);
+  --gt-glass-border: rgba(34, 211, 238, 0.28);
+  --gt-neon: #22d3ee;
+  --gt-neon-soft: rgba(34, 211, 238, 0.2);
+  --gt-primary: #22d3ee;
+  --gt-primary-hover: #06b6d4;
+  --gt-shadow-widget:
+    0 20px 50px -18px rgba(0, 0, 0, 0.75),
+    0 0 0 0.5px rgba(34, 211, 238, 0.12);
+  --gt-success-bg: rgba(52, 211, 153, 0.16);
+  --gt-success-fg: #34d399;
+  --gt-warning-bg: rgba(251, 191, 36, 0.14);
+  --gt-warning-fg: #fbbf24;
+  --gt-neutral-bg: rgba(161, 161, 170, 0.14);
+  --gt-neutral-fg: #d4d4d8;
+  --gt-input-placeholder: #71717a;
+  color: var(--gt-ink);
+  background-color: var(--gt-bg);
+  font-family: var(--font-geist-sans), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Glassmorphism ─────────────────────────────────────────────────────── */
+.glass {
+  background: var(--gt-glass);
+  backdrop-filter: blur(16px) saturate(165%);
+  -webkit-backdrop-filter: blur(16px) saturate(165%);
+  border: 1px solid var(--gt-glass-border);
+}
+
+/* ── Tactile hairline border ───────────────────────────────────────────── */
+.premiumBorder {
+  border: 0.5px solid var(--gt-line);
+  box-sizing: border-box;
+}

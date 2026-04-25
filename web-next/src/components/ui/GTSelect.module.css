@@ -1,0 +1,56 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gt-ink-soft);
+}
+
+.select {
+  width: 100%;
+  padding: 0.75rem 2.25rem 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--gt-ink);
+  background: var(--gt-bg);
+  border: 0.5px solid var(--gt-line);
+  border-radius: 12px;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--gt-ink-soft) 50%),
+    linear-gradient(135deg, var(--gt-ink-soft) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.1rem) 55%,
+    calc(100% - 0.65rem) 55%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.select:focus {
+  border-color: color-mix(in srgb, var(--gt-primary) 55%, var(--gt-line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gt-primary) 18%, transparent);
+}
+
+.select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.error {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--gt-red);
+}
+
+:global(.gt-dashboard-child) .select {
+  background-color: var(--gt-bg-soft);
+}
