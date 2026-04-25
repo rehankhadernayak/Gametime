@@ -1,0 +1,100 @@
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--gt-font-sans);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  border-radius: 0.625rem;
+  border: 0.5px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.button:focus-visible {
+  box-shadow: 0 0 0 3px var(--gt-focus-ring);
+}
+
+.primary {
+  background: var(--gt-accent);
+  color: var(--gt-accent-ink);
+  border-color: var(--gt-border-premium);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--gt-accent-hover);
+}
+
+.secondary {
+  background: var(--gt-secondary-bg);
+  color: var(--gt-secondary-ink);
+  border-color: var(--gt-border-hairline);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--gt-secondary-hover);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--gt-ghost-ink);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--gt-ghost-hover);
+}
+
+.danger {
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--gt-red);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--gt-red);
+  color: #fff;
+  border-color: transparent;
+}
+
+.sm {
+  min-height: 2.25rem;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.md {
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
+  font-size: 0.875rem;
+}
+
+.lg {
+  min-height: 2.875rem;
+  padding: 0 1.375rem;
+  font-size: 0.9375rem;
+}
+
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: gtSpin 0.55s linear infinite;
+}
+
+@keyframes gtSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

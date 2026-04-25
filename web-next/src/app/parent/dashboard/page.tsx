@@ -16,7 +16,6 @@ import {
   GTInput,
 } from "@/components/ui";
 import styles from "./dashboard.module.css";
-import gt from "@/components/ui/gt-ui.module.css";
 
 const SETTINGS_KEY = "gametime_parent_settings";
 const POLL_MS = 30_000;
@@ -315,7 +314,7 @@ function ParentDashboardInner() {
         </header>
 
         <div className={styles.settingsBar}>
-          <label className={gt.checkboxRow}>
+          <label className={styles.checkboxRow}>
             <input
               type="checkbox"
               checked={settings.requireApprovalNotes}
@@ -330,9 +329,10 @@ function ParentDashboardInner() {
         {banner ? (
           <p
             role={banner.kind === "error" ? "alert" : "status"}
-            className={[styles.bannerWrap, banner.kind === "error" ? gt.bannerError : gt.bannerSuccess].join(
-              " ",
-            )}
+            className={[
+              styles.bannerWrap,
+              banner.kind === "error" ? styles.bannerError : styles.bannerSuccess,
+            ].join(" ")}
           >
             {banner.text}
           </p>
@@ -367,13 +367,13 @@ function ParentDashboardInner() {
                 description="Chores waiting for your decision. Approve to award points, or reject to send back for retry."
               >
                 {Object.keys(pendingByChild).length === 0 ? (
-                  <p className={gt.emptyHint}>No tasks waiting for approval. You are all caught up.</p>
+                  <p className={styles.emptyHint}>No tasks waiting for approval. You are all caught up.</p>
                 ) : (
-                  <div className={gt.stack}>
+                  <div className={styles.stack}>
                     {Object.entries(pendingByChild).map(([childName, childTasks]) => (
                       <div key={childName}>
                         <p className={styles.groupLabel}>{childName}</p>
-                        <div className={gt.stack}>
+                        <div className={styles.stack}>
                           {childTasks.map((task) => {
                             const badge = taskStatusBadge(task.state);
                             return (
@@ -395,7 +395,7 @@ function ParentDashboardInner() {
                                     }))
                                   }
                                 />
-                                <div className={gt.rowActions}>
+                                <div className={styles.rowActions}>
                                   <GTButton
                                     variant="primary"
                                     disabled={actionBusy}
@@ -426,13 +426,13 @@ function ParentDashboardInner() {
               <div className={styles.sideStack}>
                 <GTCard title="Family overview" description="Children, balances, and task mix at a glance.">
                   {children.length === 0 ? (
-                    <p className={gt.emptyHint}>No children yet. Add profiles in settings.</p>
+                    <p className={styles.emptyHint}>No children yet. Add profiles in settings.</p>
                   ) : (
                     <div>
                       {children.map((c) => (
-                        <div key={c.id} className={gt.childRow}>
-                          <span className={gt.childName}>{c.name}</span>
-                          <span className={gt.balances}>
+                        <div key={c.id} className={styles.childRow}>
+                          <span className={styles.childName}>{c.name}</span>
+                          <span className={styles.balances}>
                             RP {c.pointsBalance ?? 0} · GP {c.giftcardPointsBalance ?? 0}
                           </span>
                           <GTButton
@@ -450,7 +450,7 @@ function ParentDashboardInner() {
 
                   <div className={styles.summaryBlock}>
                     <p className={styles.subsectionLabel}>Chore completion (states)</p>
-                    <ul className={gt.mutedList}>
+                    <ul className={styles.mutedList}>
                       {Object.entries(choreCompletionSummary).map(([state, count]) => (
                         <li key={state}>
                           {state}: {count}
@@ -462,9 +462,9 @@ function ParentDashboardInner() {
                   <div className={styles.rewardsBlock}>
                     <p className={styles.subsectionLabel}>Active rewards</p>
                     {activeRewards.length === 0 ? (
-                      <p className={gt.emptyHint}>No active rewards.</p>
+                      <p className={styles.emptyHint}>No active rewards.</p>
                     ) : (
-                      <ul className={gt.mutedList}>
+                      <ul className={styles.mutedList}>
                         {activeRewards.map((r) => (
                           <li key={r.id}>
                             {r.title} — {r.pointsCost} {r.pointsType ?? "RP"}
@@ -477,7 +477,7 @@ function ParentDashboardInner() {
                 </GTCard>
 
                 <GTCard title="Quick actions" description="Shortcuts without leaving the console.">
-                  <div className={gt.rowActions}>
+                  <div className={styles.rowActions}>
                     <GTButton variant="secondary" type="button" onClick={() => push("/parent/settings?tab=children")}>
                       Manage children
                     </GTButton>
@@ -485,14 +485,14 @@ function ParentDashboardInner() {
                 </GTCard>
 
                 <GTCard title="Add points (RP)" description="Manual balance adjustment with an audit trail.">
-                  <form onSubmit={(e) => void handleAddPoints(e)} className={gt.stack}>
-                    <div className={gt.field}>
-                      <label className={gt.label} htmlFor="points-child">
+                  <form onSubmit={(e) => void handleAddPoints(e)} className={styles.stack}>
+                    <div className={styles.field}>
+                      <label className={styles.label} htmlFor="points-child">
                         Child
                       </label>
                       <select
                         id="points-child"
-                        className={gt.select}
+                        className={styles.select}
                         value={pointsForm.childId}
                         onChange={(e) => setPointsForm((p) => ({ ...p, childId: e.target.value }))}
                         required

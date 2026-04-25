@@ -1,27 +1,47 @@
 "use client";
 
-import type { ReactNode } from "react";
-import styles from "./gt-ui.module.css";
+import { type ReactNode } from "react";
+import { motion, type HTMLMotionProps } from "framer-motion";
+import styles from "./GTBadge.module.css";
 
-const toneClass: Record<string, string> = {
-  neutral: styles.badgeNeutral,
-  warning: styles.badgeWarning,
-  success: styles.badgeSuccess,
-  danger: styles.badgeDanger,
-  info: styles.badgeInfo,
+export type GTBadgeTone = "neutral" | "success" | "warning" | "danger" | "accent" | "info";
+export type GTBadgeSize = "sm" | "md";
+
+export type GTBadgeProps = {
+  children?: ReactNode;
+  tone?: GTBadgeTone;
+  size?: GTBadgeSize;
+} & Omit<HTMLMotionProps<"span">, "children">;
+
+const toneClass: Record<GTBadgeTone, string> = {
+  neutral: styles.neutral,
+  success: styles.success,
+  warning: styles.warning,
+  danger: styles.danger,
+  accent: styles.accent,
+  info: styles.info,
 };
 
-type GTBadgeProps = {
-  children: ReactNode;
-  tone?: keyof typeof toneClass;
-  className?: string;
-};
+export function GTBadge({
+  children,
+  tone = "neutral",
+  size = "md",
+  className = "",
+  ...rest
+}: GTBadgeProps) {
+  const classNames = [styles.badge, toneClass[tone] ?? styles.neutral, styles[size], className]
+    .filter(Boolean)
+    .join(" ");
 
-export function GTBadge({ children, tone = "neutral", className }: GTBadgeProps) {
-  const toneStyle = toneClass[tone] ?? toneClass.neutral;
   return (
-    <span className={[styles.badge, toneStyle, className].filter(Boolean).join(" ")}>
+    <motion.span
+      className={classNames}
+      whileHover={{ scale: 1.04, y: -0.5 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
+      {...rest}
+    >
       {children}
-    </span>
+    </motion.span>
   );
 }

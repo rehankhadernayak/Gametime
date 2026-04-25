@@ -1,40 +1,58 @@
 "use client";
 
-import type { ButtonHTMLAttributes, ReactNode } from "react";
-import styles from "./gt-ui.module.css";
+import { forwardRef, type ReactNode } from "react";
+import { motion, type HTMLMotionProps } from "framer-motion";
+import styles from "./GTButton.module.css";
 
-type GTButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type GTButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type GTButtonSize = "sm" | "md" | "lg";
+
+export type GTButtonProps = {
+  variant?: GTButtonVariant;
+  size?: GTButtonSize;
+  loading?: boolean;
+  children?: ReactNode;
+} & Omit<HTMLMotionProps<"button">, "children">;
 
 const variantClass: Record<GTButtonVariant, string> = {
-  primary: styles.btnPrimary,
-  secondary: styles.btnSecondary,
-  ghost: styles.btnGhost,
-  danger: styles.btnDanger,
+  primary: styles.primary,
+  secondary: styles.secondary,
+  ghost: styles.ghost,
+  danger: styles.danger,
 };
 
-type GTButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode;
-  variant?: GTButtonVariant;
-  size?: "md" | "sm";
-  className?: string;
-};
+export const GTButton = forwardRef<HTMLButtonElement, GTButtonProps>(function GTButton(
+  {
+    variant = "primary",
+    size = "md",
+    loading = false,
+    disabled,
+    className = "",
+    children,
+    type = "button",
+    ...rest
+  },
+  ref,
+) {
+  const isDisabled = Boolean(disabled || loading);
+  const classNames = [styles.button, variantClass[variant], styles[size], className]
+    .filter(Boolean)
+    .join(" ");
 
-export function GTButton({
-  children,
-  variant = "primary",
-  size = "md",
-  className,
-  type = "button",
-  ...rest
-}: GTButtonProps) {
-  const sizeCls = size === "sm" ? styles.btnSm : styles.btnMd;
   return (
-    <button
+    <motion.button
+      ref={ref}
       type={type}
-      className={[styles.btn, variantClass[variant], sizeCls, className].filter(Boolean).join(" ")}
+      className={classNames}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
+      whileHover={isDisabled ? undefined : { scale: 1.02, y: -1 }}
+      whileTap={isDisabled ? undefined : { scale: 0.98, y: 0 }}
+      transition={{ type: "spring", stiffness: 520, damping: 28 }}
       {...rest}
     >
-      {children}
-    </button>
+      {loading ? <span className={styles.spinner} aria-hidden /> : null}
+      <span style={{ opacity: loading ? 0.85 : 1 }}>{children}</span>
+    </motion.button>
   );
-}
+});

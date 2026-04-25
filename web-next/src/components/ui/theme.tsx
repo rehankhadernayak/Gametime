@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import parentThemeStyles from "./parent-theme.module.css";
+import styles from "@/styles/theme.module.css";
 
 export const theme = {
-  parentTheme: parentThemeStyles.wrapper,
+  parentTheme: styles.parentTheme,
 } as const;
 
 type ParentThemeProps = {

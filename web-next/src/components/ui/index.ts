@@ -1,5 +1,5 @@
 export { theme, ParentTheme } from "./theme";
-export { GTCard } from "./GTCard";
-export { GTBadge } from "./GTBadge";
-export { GTButton } from "./GTButton";
-export { GTInput } from "./GTInput";
+export { GTButton, type GTButtonProps, type GTButtonSize, type GTButtonVariant } from "./GTButton";
+export { GTCard, type GTCardProps } from "./GTCard";
+export { GTInput, type GTInputProps, type GTInputSize } from "./GTInput";
+export { GTBadge, type GTBadgeProps, type GTBadgeSize, type GTBadgeTone } from "./GTBadge";
