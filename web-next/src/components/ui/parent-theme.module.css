@@ -1,0 +1,20 @@
+/* Parent “Mission Control” surface — scoped tokens layered on app.css design system */
+.wrapper {
+  min-height: calc(100vh - var(--nav-h, 60px));
+  padding: clamp(1rem, 3vw, 2rem);
+  background: var(--bg-root);
+  color: var(--text-main);
+}
+
+.wrapper :global(h1),
+.wrapper :global(h2),
+.wrapper :global(h3) {
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.wrapper :global(p),
+.wrapper :global(li) {
+  color: var(--text-sub);
+}
