@@ -154,7 +154,7 @@ export default function HomePage({ auth }) {
             <h2
               className={styles.monolith}
               string="parallax"
-              string-parallax="0.35"
+              string-parallax="0.55"
             >
               GAMETIME
             </h2>
@@ -162,7 +162,7 @@ export default function HomePage({ auth }) {
             <div
               className={styles.controllerWrapper}
               string="parallax"
-              string-parallax="0.12"
+              string-parallax="0.18"
             >
               <img src="/controller.svg" alt="Game controller" />
             </div>
