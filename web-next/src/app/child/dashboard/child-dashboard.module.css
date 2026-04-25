@@ -1,10 +1,18 @@
-/* Child Gamer Hub — scoped layout; tokens from theme.childTheme */
+/* Child Gamer Hub — layout + hero; hub wrapper supplies ChildGamerHub background */
+
+/* Layer design-system --gt-* tokens without painting over the hub gradient */
+.dsTokenScope {
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+}
+
+.welcomeName {
+  font-weight: 700;
+  color: var(--gt-ink);
+}
 
 .page {
-  min-height: 100dvh;
-  padding: 1rem 1rem 2.5rem;
-  max-width: 56rem;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
@@ -12,7 +20,6 @@
 
 @media (min-width: 640px) {
   .page {
-    padding: 1.5rem 1.5rem 3rem;
     gap: 2rem;
   }
 }
@@ -63,6 +70,36 @@
 .heroInner {
   position: relative;
   z-index: 1;
+}
+
+.heroBalances {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1.5rem 2.5rem;
+}
+
+.heroBalanceCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 6rem;
+}
+
+.heroBalanceColGp .heroValueGp {
+  text-shadow:
+    0 0 24px color-mix(in srgb, var(--gt-neon-magenta) 40%, transparent),
+    0 0 48px color-mix(in srgb, var(--gt-neon-magenta) 15%, transparent);
+}
+
+.heroValueGp {
+  color: var(--gt-ink);
+}
+
+.heroUnitGp {
+  color: var(--gt-neon-magenta);
 }
 
 .heroLabel {
