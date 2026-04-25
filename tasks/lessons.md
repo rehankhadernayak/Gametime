@@ -117,6 +117,18 @@
 
 ---
 
+### 2026-04-25 — Next.js App Router: `useSearchParams` needs Suspense for static prerender
+**What happened:** Building `web-next` failed because `ResetPassword` and `SettingsPage` use `useSearchParams` (via the Next nav shim) without a parent `<Suspense>` boundary, triggering Next’s CSR bailout error during static generation.
+**Rule:** Any client component tree that calls `useSearchParams()` must be wrapped in `<Suspense fallback={...}>` at the route (or a dedicated shell) so prerender can complete. Apply the same pattern anywhere `useSearchParams` is used under the App Router.
+
+---
+
+### 2026-04-25 — NavBar.css had a broken block comment (Turbopack/CSS parser)
+**What happened:** The file opened with `/* ═...` then a nested `/* NavBar...` without closing the outer comment, so the rest of the file was swallowed as a comment. Next’s CSS parser then failed on the stray `*/`.
+**Rule:** Keep CSS block comments well-formed (one opening `/*`, one closing `*/` per block). Avoid decorative multi-line comment headers that nest another `/*` inside.
+
+---
+
 ### 2026-04-25 — Mobile API client cannot ship a hard-coded LAN IP
 **What happened:** `mobile/src/api/client.js` defaulted `DEFAULT_DEVICE_API_URL` to `http://192.168.1.140:4000` — a developer's local LAN address baked into the source. That value would have been the production fallback for any device that loaded the app without an `EXPO_PUBLIC_API_URL` build env or a saved override.
 **Rule:** Never commit private IPs as defaults. Resolve the API URL in this order: (1) `process.env.EXPO_PUBLIC_API_URL` (set per `eas.json` build profile), (2) Expo dev `hostUri` for `expo start` flows, (3) `localhost:4000` as the safe last-resort. The in-app ApiSettings override always wins.

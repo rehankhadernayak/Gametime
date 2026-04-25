@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 
 function StatCard({ label, value, accent }) {
@@ -12,7 +12,7 @@ function StatCard({ label, value, accent }) {
 }
 
 export default function AdminPage({ token }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
   const [stats, setStats] = useState(null);
   const [families, setFamilies] = useState([]);
   const [total, setTotal] = useState(0);
@@ -82,7 +82,7 @@ export default function AdminPage({ token }) {
   return (
     <div className="admin-page">
       <header className="admin-header">
-        <button type="button" className="settings-back-btn" onClick={() => navigate(-1)}>
+        <button type="button" className="settings-back-btn" onClick={() => router.back()}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
           Back
         </button>

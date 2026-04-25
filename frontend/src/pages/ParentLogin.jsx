@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { GametimeLink, useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import './auth.css';
 
 export default function ParentLogin({ onAuth }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function ParentLogin({ onAuth }) {
     try {
       const data = await apiRequest('/auth/login', { method: 'POST', body: normalized });
       onAuth({ token: data.token, role: 'parent', user: data.parent });
-      navigate('/parent/ai');
+      router.push('/parent/ai');
     } catch (e) {
       setError(e.message);
     } finally {
@@ -166,7 +166,7 @@ export default function ParentLogin({ onAuth }) {
 
             {/* Forgot link */}
             <div className="al-field-footer">
-              <Link to="/forgot-password" className="al-link">Forgot password?</Link>
+              <GametimeLink href="/forgot-password" className="al-link">Forgot password?</GametimeLink>
             </div>
 
             {/* Error */}
@@ -192,11 +192,11 @@ export default function ParentLogin({ onAuth }) {
           <div className="al-footer-links">
             <span className="al-footer-text">
               No account?{' '}
-              <Link to="/signup" className="al-link">Create a parent account</Link>
+              <GametimeLink href="/signup" className="al-link">Create a parent account</GametimeLink>
             </span>
             <span className="al-footer-text">
               Child?{' '}
-              <Link to="/child-login" className="al-link">Child login</Link>
+              <GametimeLink href="/child-login" className="al-link">Child login</GametimeLink>
             </span>
           </div>
         </div>

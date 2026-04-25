@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import './ParentOnboarding.css';
 
@@ -127,8 +127,8 @@ function Confetti() {
 
 /* ── Main component ───────────────────────────────────────────────────────── */
 
-export default function ParentOnboarding({ token, onComplete }) {
-  const navigate = useNavigate();
+export default function ParentOnboarding({ token, onComplete = () => {} }) {
+  const router = useAppRouter();
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -155,7 +155,7 @@ export default function ParentOnboarding({ token, onComplete }) {
   const [createdReward, setCreatedReward] = useState(null);
 
   function skip() {
-    navigate('/parent/ai');
+    router.push('/parent/ai');
   }
 
   function back() {
@@ -267,7 +267,7 @@ export default function ParentOnboarding({ token, onComplete }) {
               Child PIN: <strong>{childPin}</strong> - share this with {createdChild?.name}
             </p>
           )}
-          <button className="ob-btn ob-btn--primary" onClick={() => navigate('/parent/ai')}>
+          <button className="ob-btn ob-btn--primary" onClick={() => router.push('/parent/ai')}>
             Open Family Dashboard
           </button>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
 import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
@@ -135,7 +135,7 @@ function pickGiftcardImage(card) {
 export default function ParentDashboard({ token, onSwitchToChild, parentName }) {
   /* ── Shell navigation ref - lets us drive DashboardShell section changes ── */
   const shellRef = useRef({});
-  const navigate = useNavigate();
+  const router = useAppRouter();
 
 
   const [children, setChildren] = useState([]);
@@ -198,10 +198,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [stripeLoading, setStripeLoading] = useState(false);
   const [briefing, setBriefing] = useState(null); // { briefing, stats, actions }
   const [briefingActionResults, setBriefingActionResults] = useState({});
-  const [settings, setSettings] = useState(() => {
-    const stored = localStorage.getItem(SETTINGS_KEY);
-    return stored ? JSON.parse(stored) : { defaultTaskPoints: 10, requireApprovalNotes: false };
-  });
+  const [settings, setSettings] = useState({ defaultTaskPoints: 10, requireApprovalNotes: false });
 
   async function executeBriefingAction(action, key) {
     try {
@@ -248,7 +245,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
         token,
         body: { amountSgd: stripeAmountSgd }
       });
-      window.location.href = url;
+      if (typeof window !== 'undefined') window.location.href = url;
     } catch (err) {
       notify(err.message || 'Could not start payment. Please try again.', 'error');
       setStripeLoading(false);
@@ -327,6 +324,18 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   }
 
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') setSettings((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
     loadAll();
   }, []);
 
@@ -343,6 +352,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
 
   // Detect Stripe redirect back from checkout
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const topup = params.get('topup');
     if (topup === 'success') {
@@ -1164,7 +1174,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               <button
                 type="button"
                 className="family-settings-redirect-btn"
-                onClick={() => navigate('/parent/settings?tab=children')}
+                onClick={() => router.push('/parent/settings?tab=children')}
               >
                 Open Settings
               </button>

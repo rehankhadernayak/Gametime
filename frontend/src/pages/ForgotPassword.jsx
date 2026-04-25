@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { GametimeLink } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import './auth.css';
 
@@ -47,12 +47,12 @@ export default function ForgotPassword() {
             <p className="al-success-sub">
               If that email is registered, a reset link is on its way. Check your inbox - and your spam folder.
             </p>
-            <Link to="/login" className="al-back-link">
+            <GametimeLink href="/login" className="al-back-link">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Back to login
-            </Link>
+            </GametimeLink>
           </div>
         ) : (
           /* ── Form state ── */
@@ -97,12 +97,12 @@ export default function ForgotPassword() {
             </form>
 
             <div className="al-footer-links">
-              <Link to="/login" className="al-back-link">
+              <GametimeLink href="/login" className="al-back-link">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Back to login
-              </Link>
+              </GametimeLink>
             </div>
           </>
         )}
