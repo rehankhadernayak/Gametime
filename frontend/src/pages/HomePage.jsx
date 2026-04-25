@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import StringTune, { StringParallax } from '@fiddle-digital/string-tune';
 import styles from '../styles/landing.module.css';
@@ -60,6 +60,9 @@ function NavBar({ auth }) {
 
 /* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
+  const kineticRef = useRef(null);
+  const heroTrackRef = useRef(null);
+
   /* ── StringTune bridge ─────────────────────────────────────────────────
      The library is a singleton (`getInstance()`), so it's safe under React
      Strict Mode's double-mount: `use()` no-ops on a class that's already
@@ -72,18 +75,58 @@ export default function HomePage({ auth }) {
      this, the engine — which boots before React mounts — would never see
      the `string="parallax"` nodes added by this page and the 500vh
      scroll progress would never map onto the Monolith / Controller.
+
+     We also register a scroll mark on the 500vh track so the engine
+     toggles the `.snapped` modifier (defined in landing.module.css) on
+     the kinetic text once the user has scrolled ~10% of the track. This
+     is what releases the headline from its blur(40px) / scale(1.5)
+     pre-snap state. The mark is removed on cleanup so a remount under
+     React Strict Mode doesn't stack duplicate listeners.
      ──────────────────────────────────────────────────────────────────── */
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return undefined;
 
     const stringTune = StringTune.getInstance();
     stringTune.use(StringParallax);
     stringTune.start(60);
 
-    const rescan = () => stringTune.onResize(true);
-    const raf = window.requestAnimationFrame(rescan);
+    const markId = 'gametime-hero-snap';
+    let cancelled = false;
 
-    return () => window.cancelAnimationFrame(raf);
+    const wire = () => {
+      if (cancelled) return;
+      stringTune.onResize(true);
+
+      const kineticEl = kineticRef.current;
+      const trackEl = heroTrackRef.current;
+      if (!kineticEl || !trackEl) return;
+
+      const trackTop = trackEl.getBoundingClientRect().top + window.scrollY;
+      const snapOffset = trackTop + window.innerHeight * 0.6;
+
+      stringTune.addScrollMark({
+        id: markId,
+        offset: snapOffset,
+        direction: 'any',
+        toggleClass: {
+          target: kineticEl,
+          className: styles.snapped,
+        },
+      });
+    };
+
+    const raf = window.requestAnimationFrame(wire);
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(raf);
+      try {
+        stringTune.removeScrollMark(markId);
+      } catch {
+        /* noop — mark may never have been added if the page unmounted
+           before the rAF callback ran. */
+      }
+    };
   }, []);
 
   return (
@@ -105,7 +148,7 @@ export default function HomePage({ auth }) {
             for the StringTune controller layer that drives its inline
             filter interpolation.
             ──────────────────────────────────────────────────────────── */}
-        <div className={styles.heroTrack}>
+        <div ref={heroTrackRef} className={styles.heroTrack}>
           <div className={styles.heroSection}>
             <h2
               className={styles.monolith}
@@ -123,7 +166,11 @@ export default function HomePage({ auth }) {
               <img src="/controller.svg" alt="Game controller" />
             </div>
 
-            <div className={styles.kineticText} data-string="blur">
+            <div
+              ref={kineticRef}
+              className={styles.kineticText}
+              data-string="blur"
+            >
               <h1>Screen time, earned.</h1>
             </div>
           </div>
