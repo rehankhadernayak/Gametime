@@ -17,6 +17,8 @@ import { apiRequest } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ThemeToggleButton from './components/ThemeToggleButton.jsx';
 import ToastStack from './components/ToastStack.jsx';
+import LayoutLanding from './components/LayoutLanding.jsx';
+import LayoutDashboard from './components/LayoutDashboard.jsx';
 import { trackEvent } from './utils/analytics.js';
 
 function BackIcon() {
@@ -146,15 +148,48 @@ export default function App() {
 
       {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} isAdmin={Boolean(auth.user?.isAdmin)} />}
       <Routes>
-        <Route path="/" element={<HomePage auth={auth} />} />
-        <Route path="/signup" element={<ParentSignUp onAuth={handleAuth} />} />
-        <Route path="/login" element={<ParentLogin onAuth={handleAuth} />} />
-        <Route path="/child-login" element={<ChildLogin onAuth={handleAuth} />} />
+        {/* ── Public landing surface (cinematic StringTune physics) ───── */}
+        <Route
+          path="/"
+          element={
+            <LayoutLanding>
+              <HomePage auth={auth} />
+            </LayoutLanding>
+          }
+        />
+
+        {/* ── Application surface (snappy SaaS, no scroll-jacking) ─────── */}
+        <Route
+          path="/signup"
+          element={
+            <LayoutDashboard>
+              <ParentSignUp onAuth={handleAuth} />
+            </LayoutDashboard>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <LayoutDashboard>
+              <ParentLogin onAuth={handleAuth} />
+            </LayoutDashboard>
+          }
+        />
+        <Route
+          path="/child-login"
+          element={
+            <LayoutDashboard>
+              <ChildLogin onAuth={handleAuth} />
+            </LayoutDashboard>
+          }
+        />
         <Route
           path="/parent/dashboard"
           element={
             auth.role === 'parent' ? (
-              <ParentDashboard token={auth.token} onSwitchToChild={switchToChild} parentName={auth.user?.name} />
+              <LayoutDashboard>
+                <ParentDashboard token={auth.token} onSwitchToChild={switchToChild} parentName={auth.user?.name} />
+              </LayoutDashboard>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -167,13 +202,23 @@ export default function App() {
         />
         <Route
           path="/child/dashboard"
-          element={auth.role === 'child' ? <ChildDashboard token={auth.token} /> : <Navigate to="/login" replace />}
+          element={
+            auth.role === 'child' ? (
+              <LayoutDashboard>
+                <ChildDashboard token={auth.token} />
+              </LayoutDashboard>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
         />
         <Route
           path="/parent/ai"
           element={
             auth.role === 'parent' ? (
-              <AiWorkspacePage token={auth.token} parentName={auth.user?.name} />
+              <LayoutDashboard>
+                <AiWorkspacePage token={auth.token} parentName={auth.user?.name} />
+              </LayoutDashboard>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -183,12 +228,14 @@ export default function App() {
           path="/parent/settings"
           element={
             auth.role === 'parent' ? (
-              <SettingsPage
-                token={auth.token}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-                parentName={auth.user?.name}
-              />
+              <LayoutDashboard>
+                <SettingsPage
+                  token={auth.token}
+                  theme={theme}
+                  onToggleTheme={toggleTheme}
+                  parentName={auth.user?.name}
+                />
+              </LayoutDashboard>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -198,7 +245,9 @@ export default function App() {
           path="/child/ai"
           element={
             auth.role === 'child' ? (
-              <ChildAiPage token={auth.token} childName={auth.user?.name} />
+              <LayoutDashboard>
+                <ChildAiPage token={auth.token} childName={auth.user?.name} />
+              </LayoutDashboard>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -208,7 +257,9 @@ export default function App() {
           path="/parent/onboarding"
           element={
             auth.role === 'parent' ? (
-              <ParentOnboarding token={auth.token} />
+              <LayoutDashboard>
+                <ParentOnboarding token={auth.token} />
+              </LayoutDashboard>
             ) : (
               <Navigate to="/login" replace />
             )
@@ -217,13 +268,31 @@ export default function App() {
         <Route
           path="/admin"
           element={
-            auth.role === 'parent' && auth.user?.isAdmin
-              ? <AdminPage token={auth.token} />
-              : <Navigate to="/login" replace />
+            auth.role === 'parent' && auth.user?.isAdmin ? (
+              <LayoutDashboard>
+                <AdminPage token={auth.token} />
+              </LayoutDashboard>
+            ) : (
+              <Navigate to="/login" replace />
+            )
           }
         />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/forgot-password"
+          element={
+            <LayoutDashboard>
+              <ForgotPassword />
+            </LayoutDashboard>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <LayoutDashboard>
+              <ResetPassword />
+            </LayoutDashboard>
+          }
+        />
       </Routes>
     </div>
   );
