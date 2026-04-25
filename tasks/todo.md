@@ -6,6 +6,16 @@
 
 ---
 
+## Sprint: Development Environment Setup
+
+- [x] Install dependencies for backend, web frontend, and mobile apps
+- [x] Start backend API and verify health endpoint
+- [x] Start Vite web frontend and verify it serves locally
+- [x] Start Expo mobile web app and verify it serves locally
+- [x] Configure minimal VM startup dependency refresh script
+
+---
+
 ## Phase 1 — Core Backend ✅ COMPLETE
 
 - [x] Parent auth (signup, login, logout, JWT, brute-force lockout)
