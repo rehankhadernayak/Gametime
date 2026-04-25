@@ -13,7 +13,8 @@
 html,
 body {
   max-width: 100vw;
-  overflow-x: hidden;
+  /* Do not set overflow-x: hidden on the document — it breaks
+     position: sticky for the StringTune hero (see landing.module.css). */
 }
 
 body {

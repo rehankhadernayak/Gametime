@@ -1,27 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
-/**
- * Thin wrapper around Next navigation for parity with the legacy SPA router.
- */
+/** Minimal shim for `useNavigate()` from react-router — uses Next.js App Router. */
 export function useAppRouter() {
   const router = useRouter();
 
-  const push = useCallback(
-    (href: string) => {
-      router.push(href);
-    },
-    [router]
-  );
+  const push = useCallback((path: string) => router.push(path), [router]);
+  const replace = useCallback((path: string) => router.replace(path), [router]);
+  const back = useCallback(() => router.back(), [router]);
+  const refresh = useCallback(() => router.refresh(), [router]);
 
-  const replace = useCallback(
-    (href: string) => {
-      router.replace(href);
-    },
-    [router]
+  return useMemo(
+    () => ({
+      push,
+      replace,
+      back,
+      refresh,
+    }),
+    [push, replace, back, refresh],
   );
-
-  return { push, replace, back: router.back, refresh: router.refresh };
 }
