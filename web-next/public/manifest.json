@@ -1,0 +1,24 @@
+{
+  "name": "Gametime",
+  "short_name": "Gametime",
+  "description": "Family gaming, earned and managed.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#09090B",
+  "icons": [
+    {
+      "src": "/gametime-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/gametime-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
