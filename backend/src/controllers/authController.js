@@ -301,9 +301,10 @@ export async function me(req, res, next) {
     const db = await getDb();
     if (req.auth.role === 'parent') {
       const parent = await db.get(
-        'SELECT id, name, email, gp_balance as gpBalance, created_at as createdAt FROM parent_accounts WHERE id = ?',
+        'SELECT id, name, email, gp_balance as gpBalance, is_admin as isAdmin, created_at as createdAt FROM parent_accounts WHERE id = ?',
         [req.auth.parentId]
       );
+      if (parent) parent.isAdmin = Boolean(parent.isAdmin);
       return res.json({ role: 'parent', user: parent });
     }
 
