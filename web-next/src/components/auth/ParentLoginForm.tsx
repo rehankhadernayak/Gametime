@@ -5,6 +5,7 @@ import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { saveAuth } from "./persistAuth";
+import styles from "@/styles/auth.module.css";
 
 type LoginResponse = { token: string; parent: unknown };
 
@@ -42,36 +43,34 @@ export function ParentLoginForm() {
   }
 
   return (
-    <div className="al-root">
-      <div className="al-panel">
-        <div className="al-panel-blob" aria-hidden="true" />
-
-        <div className="al-logo">
-          <div className="al-logo-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path
-                d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                fill="white"
-                fillOpacity="0.9"
-              />
-            </svg>
+    <div className={styles.splitRoot}>
+      <div className={styles.splitPromo}>
+        <div className={styles.splitPromoInner}>
+          <div className={styles.splitLogoRow}>
+            <div className={styles.splitLogoMark} aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path
+                  d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
+                  fill="white"
+                  fillOpacity="0.9"
+                />
+              </svg>
+            </div>
+            <span className={styles.splitBrandName}>Gametime</span>
           </div>
-          <span className="al-logo-name">Gametime</span>
-        </div>
 
-        <div className="al-features-wrap">
-          <h2 className="al-tagline">
+          <h2 className={styles.splitTagline}>
             Family gaming,
             <br />
             earned and managed.
           </h2>
-          <p className="al-tagline-sub">
+          <p className={styles.splitTaglineSub}>
             Set tasks, review evidence, and keep gaming time fair - all in one place.
           </p>
 
-          <ul className="al-features" aria-label="Key features">
-            <li className="al-feature-item">
-              <span className="al-feature-icon" aria-hidden="true">
+          <ul className={styles.splitFeatureList} aria-label="Key features">
+            <li className={styles.splitFeatureItem}>
+              <span className={styles.splitFeatureIcon} aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path
                     d="M8 1.5A1.5 1.5 0 0 1 9.5 3v.5H13A1.5 1.5 0 0 1 14.5 5v8A1.5 1.5 0 0 1 13 14.5H3A1.5 1.5 0 0 1 1.5 13V5A1.5 1.5 0 0 1 3 3.5h3.5V3A1.5 1.5 0 0 1 8 1.5Z"
@@ -88,26 +87,26 @@ export function ParentLoginForm() {
                   />
                 </svg>
               </span>
-              <span className="al-feature-text">
+              <span className={styles.splitFeatureText}>
                 <strong>AI Reviews Evidence</strong>
                 <span>Photos and videos reviewed instantly</span>
               </span>
             </li>
-            <li className="al-feature-item">
-              <span className="al-feature-icon" aria-hidden="true">
+            <li className={styles.splitFeatureItem}>
+              <span className={styles.splitFeatureIcon} aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <rect x="1.5" y="4" width="13" height="9" rx="1.5" stroke="white" strokeWidth="1.25" />
                   <path d="M5 4V3a3 3 0 0 1 6 0v1" stroke="white" strokeWidth="1.25" strokeLinecap="round" />
                   <circle cx="8" cy="8.5" r="1.5" fill="white" fillOpacity="0.85" />
                 </svg>
               </span>
-              <span className="al-feature-text">
+              <span className={styles.splitFeatureText}>
                 <strong>Real Gift Cards</strong>
                 <span>Roblox, Steam, Razer Gold &amp; more</span>
               </span>
             </li>
-            <li className="al-feature-item">
-              <span className="al-feature-icon" aria-hidden="true">
+            <li className={styles.splitFeatureItem}>
+              <span className={styles.splitFeatureIcon} aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <circle cx="8" cy="8" r="6" stroke="white" strokeWidth="1.25" />
                   <path
@@ -119,7 +118,7 @@ export function ParentLoginForm() {
                   />
                 </svg>
               </span>
-              <span className="al-feature-text">
+              <span className={styles.splitFeatureText}>
                 <strong>Gaming Time Control</strong>
                 <span>Daily caps and session rules</span>
               </span>
@@ -127,26 +126,26 @@ export function ParentLoginForm() {
           </ul>
         </div>
 
-        <p className="al-trust">
-          <span className="al-trust-dot" aria-hidden="true" />
+        <p className={styles.splitTrust}>
+          <span className={styles.splitTrustDot} aria-hidden="true" />
           Trusted by Singapore families
         </p>
       </div>
 
-      <div className="al-form-panel">
-        <div className="al-form-inner">
-          <h1 className="al-heading">Welcome back</h1>
-          <p className="al-subheading">Sign in to manage your family</p>
+      <div className={styles.splitFormPanel}>
+        <div className={styles.splitFormInner}>
+          <h1 className={styles.splitHeading}>Welcome back</h1>
+          <p className={styles.splitSubheading}>Sign in to manage your family</p>
 
           <form onSubmit={handleSubmit} noValidate>
-            <div className="al-field">
-              <label className="al-label" htmlFor="pl-email">
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="pl-email">
                 Email
               </label>
-              <div className="al-input-wrap">
+              <div className={styles.inputWrap}>
                 <input
                   id="pl-email"
-                  className="al-input"
+                  className={styles.input}
                   type="email"
                   placeholder="parent@email.com"
                   autoComplete="email"
@@ -157,14 +156,14 @@ export function ParentLoginForm() {
               </div>
             </div>
 
-            <div className="al-field">
-              <label className="al-label" htmlFor="pl-password">
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="pl-password">
                 Password
               </label>
-              <div className="al-input-wrap">
+              <div className={styles.inputWrap}>
                 <input
                   id="pl-password"
-                  className="al-input al-input--has-toggle"
+                  className={`${styles.input} ${styles.inputHasToggle}`}
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   autoComplete="current-password"
@@ -174,7 +173,7 @@ export function ParentLoginForm() {
                 />
                 <button
                   type="button"
-                  className="al-toggle-btn"
+                  className={styles.togglePw}
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
@@ -197,22 +196,22 @@ export function ParentLoginForm() {
               </div>
             </div>
 
-            <div className="al-field-footer">
-              <Link href="/forgot-password" className="al-link">
+            <div className={styles.fieldFooter}>
+              <Link href="/forgot-password" className={styles.link}>
                 Forgot password?
               </Link>
             </div>
 
             {error && (
-              <p className="al-error" role="alert">
+              <p className={styles.error} role="alert">
                 {error}
               </p>
             )}
 
-            <button type="submit" className="al-btn" disabled={loading}>
+            <button type="submit" className={styles.btn} disabled={loading}>
               {loading ? (
                 <>
-                  <svg className="al-spinner" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <svg className={styles.spinner} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
                     <path d="M8 2a6 6 0 0 1 6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
                   </svg>
@@ -224,16 +223,16 @@ export function ParentLoginForm() {
             </button>
           </form>
 
-          <div className="al-footer-links">
-            <span className="al-footer-text">
+          <div className={styles.footerLinks}>
+            <span className={styles.footerText}>
               No account?{" "}
-              <Link href="/signup" className="al-link">
+              <Link href="/signup" className={styles.link}>
                 Create a parent account
               </Link>
             </span>
-            <span className="al-footer-text">
+            <span className={styles.footerText}>
               Child?{" "}
-              <Link href="/login?tab=child" className="al-link">
+              <Link href="/login?tab=child" className={styles.link}>
                 Child login
               </Link>
             </span>

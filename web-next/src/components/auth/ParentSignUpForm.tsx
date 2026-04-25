@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { saveAuth } from "./persistAuth";
+import styles from "@/styles/auth.module.css";
 
 const AGES = ["Under 1", ...Array.from({ length: 18 }, (_, i) => `${i + 1}`), "18+"];
 const GRADES = [
@@ -88,18 +89,18 @@ function PasswordStep({
   }
 
   return (
-    <div className="signup-step">
-      <div className="signup-step-question">
-        <p className="signup-step-num">Final step</p>
-        <h2 className="signup-step-label">Create a secure password</h2>
-        <p className="signup-step-hint">At least 8 characters.</p>
+    <div className={styles.signupStep}>
+      <div className={styles.signupStepQuestion}>
+        <p className={styles.signupStepNum}>Final step</p>
+        <h2 className={styles.signupStepLabel}>Create a secure password</h2>
+        <p className={styles.signupStepHint}>At least 8 characters.</p>
       </div>
-      <form onSubmit={handleSubmit} className="signup-password-fields">
-        <label className="signup-field-label">
+      <form onSubmit={handleSubmit} className={styles.signupPasswordFields}>
+        <label className={styles.signupFieldLabel}>
           Password
           <input
             type="password"
-            className="signup-text-input"
+            className={styles.signupTextInput}
             placeholder="At least 8 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -107,11 +108,11 @@ function PasswordStep({
             required
           />
         </label>
-        <label className="signup-field-label">
+        <label className={styles.signupFieldLabel}>
           Confirm password
           <input
             type="password"
-            className="signup-text-input"
+            className={styles.signupTextInput}
             placeholder="Re-enter password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
@@ -119,11 +120,11 @@ function PasswordStep({
           />
         </label>
         {error && (
-          <p className="signup-field-error" role="alert">
+          <p className={styles.signupFieldError} role="alert">
             {error}
           </p>
         )}
-        <button type="submit" className="signup-next-btn" disabled={busy}>
+        <button type="submit" className={styles.signupNextBtn} disabled={busy}>
           {busy ? "Creating your account..." : "Create My Account"}
         </button>
       </form>
@@ -149,33 +150,33 @@ function ChildrenTable({
   const canAdd = data.length < 10;
 
   return (
-    <div className="signup-step">
-      <div className="signup-step-question">
-        <p className="signup-step-num">Step 4 of 6</p>
-        <h2 className="signup-step-label">Tell us about your children</h2>
-        <p className="signup-step-hint">Age is required. Grade is optional.</p>
+    <div className={styles.signupStep}>
+      <div className={styles.signupStepQuestion}>
+        <p className={styles.signupStepNum}>Step 4 of 6</p>
+        <h2 className={styles.signupStepLabel}>Tell us about your children</h2>
+        <p className={styles.signupStepHint}>Age is required. Grade is optional.</p>
       </div>
 
-      <div className="signup-children-table-wrap">
-        <table className="signup-children-table">
+      <div className={styles.signupChildrenTableWrap}>
+        <table className={styles.signupChildrenTable}>
           <thead>
             <tr>
               <th>Child</th>
               <th>
-                Age <span className="required-star">*</span>
+                Age <span className={styles.requiredStar}>*</span>
               </th>
               <th>
-                Grade <span className="optional-label">(optional)</span>
+                Grade <span className={styles.optionalLabel}>(optional)</span>
               </th>
             </tr>
           </thead>
           <tbody>
             {data.map((row, idx) => (
               <tr key={idx}>
-                <td className="child-label">Child {idx + 1}</td>
+                <td className={styles.signupChildLabel}>Child {idx + 1}</td>
                 <td>
                   <select
-                    className="signup-table-select"
+                    className={styles.signupTableSelect}
                     value={row.age}
                     onChange={(e) => update(idx, "age", e.target.value)}
                   >
@@ -189,7 +190,7 @@ function ChildrenTable({
                 </td>
                 <td>
                   <select
-                    className="signup-table-select"
+                    className={styles.signupTableSelect}
                     value={row.grade}
                     onChange={(e) => update(idx, "grade", e.target.value)}
                   >
@@ -207,16 +208,16 @@ function ChildrenTable({
         </table>
 
         {canAdd && (
-          <button type="button" className="signup-add-child-btn" onClick={() => onChange([...data, { age: "", grade: "" }])}>
+          <button type="button" className={styles.signupAddChildBtn} onClick={() => onChange([...data, { age: "", grade: "" }])}>
             + Add Another Child
           </button>
         )}
       </div>
 
-      <button type="button" className="signup-next-btn" disabled={!allAgesSet} onClick={onContinue}>
+      <button type="button" className={styles.signupNextBtn} disabled={!allAgesSet} onClick={onContinue}>
         Continue
       </button>
-      {!allAgesSet && <p className="signup-field-error">Please select an age for each child to continue.</p>}
+      {!allAgesSet && <p className={styles.signupFieldError}>Please select an age for each child to continue.</p>}
     </div>
   );
 }
@@ -246,19 +247,19 @@ function McqStep({
   const canContinue = Boolean(value && (value !== "Other" || otherText.trim()));
 
   return (
-    <div className="signup-step">
-      <div className="signup-step-question">
-        <p className="signup-step-num">{stepNum}</p>
-        <h2 className="signup-step-label">{label}</h2>
-        {hint && <p className="signup-step-hint">{hint}</p>}
+    <div className={styles.signupStep}>
+      <div className={styles.signupStepQuestion}>
+        <p className={styles.signupStepNum}>{stepNum}</p>
+        <h2 className={styles.signupStepLabel}>{label}</h2>
+        {hint && <p className={styles.signupStepHint}>{hint}</p>}
       </div>
 
-      <div className="signup-choices">
+      <div className={styles.signupChoices}>
         {options.map((opt) => (
           <button
             key={opt}
             type="button"
-            className={`signup-choice-btn${value === opt ? " selected" : ""}`}
+            className={`${styles.signupChoiceBtn}${value === opt ? ` ${styles.signupChoiceBtnSelected}` : ""}`}
             onClick={() => onChange(opt)}
           >
             {opt}
@@ -269,7 +270,7 @@ function McqStep({
           <input
             autoFocus
             type="text"
-            className="signup-text-input signup-other-input"
+            className={`${styles.signupTextInput} ${styles.signupOtherInput}`}
             placeholder="Please specify..."
             value={otherText}
             onChange={(e) => onOtherText(e.target.value)}
@@ -277,7 +278,7 @@ function McqStep({
         )}
 
         {value && (
-          <button type="button" className="signup-next-btn" disabled={!canContinue} onClick={onContinue}>
+          <button type="button" className={styles.signupNextBtn} disabled={!canContinue} onClick={onContinue}>
             Continue
           </button>
         )}
@@ -333,7 +334,7 @@ export function ParentSignUpForm() {
     setTextVal(stepId === "name" ? name : stepId === "email" ? email : "");
     setTextErr("");
     setTimeout(() => inputRef.current?.focus(), 80);
-  }, [stepIdx]); // eslint-disable-line react-hooks/exhaustive-deps -- mirror legacy: sync text field on step change only
+  }, [stepIdx]); // eslint-disable-line react-hooks/exhaustive-deps -- sync text field on step change only
 
   function advance() {
     setAnimating(true);
@@ -390,159 +391,161 @@ export function ParentSignUpForm() {
   };
 
   return (
-    <div className="auth-split">
-      <div className="auth-split-panel">
-        <div className="auth-brand-block">
-          <div className="auth-brand-logo" aria-hidden="true" />
-          <h1 className="auth-brand-name">Gametime</h1>
-          <p className="auth-brand-tagline">Family gaming, fairly managed.</p>
+    <div className={styles.signupRoot}>
+      <div className={styles.signupPromo}>
+        <div className={styles.signupBrandBlock}>
+          <div className={styles.signupBrandLogo} aria-hidden="true" />
+          <h1 className={styles.signupBrandName}>Gametime</h1>
+          <p className={styles.signupBrandTagline}>Family gaming, fairly managed.</p>
         </div>
-        <ul className="auth-features" aria-label="Key features">
+        <ul className={styles.signupFeatureList} aria-label="Key features">
           <li>
-            <span className="auth-feature-dot" aria-hidden="true" />
+            <span className={styles.signupFeatureDot} aria-hidden="true" />
             6 quick questions, then your account is ready
           </li>
           <li>
-            <span className="auth-feature-dot" aria-hidden="true" />
+            <span className={styles.signupFeatureDot} aria-hidden="true" />
             Tailored quests and rewards built around your family
           </li>
           <li>
-            <span className="auth-feature-dot" aria-hidden="true" />
+            <span className={styles.signupFeatureDot} aria-hidden="true" />
             Full control over gaming time, rules, and settings
           </li>
         </ul>
       </div>
 
-      <div className="auth-split-form signup-step-panel">
-        <div className="signup-progress-bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-          <div className="signup-progress-fill" style={{ width: `${pct}%` }} />
-        </div>
+      <div className={styles.signupFormColumn}>
+        <div className={styles.signupFormInner}>
+          <div className={styles.signupProgressBar} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+            <div className={styles.signupProgressFill} style={{ width: `${pct}%` }} />
+          </div>
 
-        {!isDone && <p className="signup-step-counter">Question {displayStep} of {totalSteps}</p>}
+          {!isDone && <p className={styles.signupStepCounter}>Question {displayStep} of {totalSteps}</p>}
 
-        <div className={`signup-step-content${animating ? " fade-out" : ""}`}>
-          {stepId === "name" && (
-            <div className="signup-step">
-              <div className="signup-step-question">
-                <p className="signup-step-num">Step 1 of {totalSteps}</p>
-                <h2 className="signup-step-label">What is your full name?</h2>
-                <p className="signup-step-hint">We will use this to personalise your dashboard.</p>
-              </div>
-              <form className="signup-text-form" onSubmit={handleTextNext}>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  className="signup-text-input"
-                  placeholder="e.g. Jane Smith"
-                  value={textVal}
-                  onChange={(e) => {
-                    setTextVal(e.target.value);
-                    setTextErr("");
-                  }}
-                  autoComplete="name"
-                />
-                {textErr && (
-                  <p className="signup-field-error" role="alert">
-                    {textErr}
-                  </p>
-                )}
-                <button type="submit" className="signup-next-btn" disabled={!textVal.trim()}>
-                  Continue
-                </button>
-              </form>
-            </div>
-          )}
-
-          {stepId === "email" && (
-            <div className="signup-step">
-              <div className="signup-step-question">
-                <p className="signup-step-num">Step 2 of {totalSteps}</p>
-                <h2 className="signup-step-label">What is your email address?</h2>
-                <p className="signup-step-hint">Your login email. We never share it.</p>
-              </div>
-              <form className="signup-text-form" onSubmit={handleTextNext}>
-                <input
-                  ref={inputRef}
-                  type="email"
-                  className="signup-text-input"
-                  placeholder="e.g. jane@example.com"
-                  value={textVal}
-                  onChange={(e) => {
-                    setTextVal(e.target.value);
-                    setTextErr("");
-                  }}
-                  autoComplete="email"
-                />
-                {textErr && (
-                  <p className="signup-field-error" role="alert">
-                    {textErr}
-                  </p>
-                )}
-                <button type="submit" className="signup-next-btn" disabled={!textVal.trim()}>
-                  Continue
-                </button>
-              </form>
-            </div>
-          )}
-
-          {stepId === "numChildren" && (
-            <div className="signup-step">
-              <div className="signup-step-question">
-                <p className="signup-step-num">Step 3 of {totalSteps}</p>
-                <h2 className="signup-step-label">How many children will use Gametime?</h2>
-                <p className="signup-step-hint">You can add more later in Settings.</p>
-              </div>
-              <div className="signup-choices">
-                {NUM_CHILDREN_OPTS.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    className={`signup-choice-btn${numChildren === opt ? " selected" : ""}`}
-                    onClick={() => handleNumChildrenSelect(opt)}
-                  >
-                    {opt}
+          <div className={`${styles.signupStepContent}${animating ? ` ${styles.signupStepContentFade}` : ""}`}>
+            {stepId === "name" && (
+              <div className={styles.signupStep}>
+                <div className={styles.signupStepQuestion}>
+                  <p className={styles.signupStepNum}>Step 1 of {totalSteps}</p>
+                  <h2 className={styles.signupStepLabel}>What is your full name?</h2>
+                  <p className={styles.signupStepHint}>We will use this to personalise your dashboard.</p>
+                </div>
+                <form className={styles.signupTextForm} onSubmit={handleTextNext}>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    className={styles.signupTextInput}
+                    placeholder="e.g. Jane Smith"
+                    value={textVal}
+                    onChange={(e) => {
+                      setTextVal(e.target.value);
+                      setTextErr("");
+                    }}
+                    autoComplete="name"
+                  />
+                  {textErr && (
+                    <p className={styles.signupFieldError} role="alert">
+                      {textErr}
+                    </p>
+                  )}
+                  <button type="submit" className={styles.signupNextBtn} disabled={!textVal.trim()}>
+                    Continue
                   </button>
-                ))}
+                </form>
               </div>
-            </div>
-          )}
+            )}
 
-          {stepId === "children" && (
-            <ChildrenTable data={childrenData} onChange={setChildrenData} onContinue={advance} />
-          )}
+            {stepId === "email" && (
+              <div className={styles.signupStep}>
+                <div className={styles.signupStepQuestion}>
+                  <p className={styles.signupStepNum}>Step 2 of {totalSteps}</p>
+                  <h2 className={styles.signupStepLabel}>What is your email address?</h2>
+                  <p className={styles.signupStepHint}>Your login email. We never share it.</p>
+                </div>
+                <form className={styles.signupTextForm} onSubmit={handleTextNext}>
+                  <input
+                    ref={inputRef}
+                    type="email"
+                    className={styles.signupTextInput}
+                    placeholder="e.g. jane@example.com"
+                    value={textVal}
+                    onChange={(e) => {
+                      setTextVal(e.target.value);
+                      setTextErr("");
+                    }}
+                    autoComplete="email"
+                  />
+                  {textErr && (
+                    <p className={styles.signupFieldError} role="alert">
+                      {textErr}
+                    </p>
+                  )}
+                  <button type="submit" className={styles.signupNextBtn} disabled={!textVal.trim()}>
+                    Continue
+                  </button>
+                </form>
+              </div>
+            )}
 
-          {stepId === "concern" && (
-            <McqStep
-              stepNum={`Step ${isNoChildren ? 4 : 5} of ${totalSteps}`}
-              label="What is your biggest concern about your kids' gaming?"
-              options={CONCERN_OPTS}
-              value={concern}
-              otherText={concernOther}
-              onChange={setConcern}
-              onOtherText={setConcernOther}
-              onContinue={advance}
-            />
-          )}
+            {stepId === "numChildren" && (
+              <div className={styles.signupStep}>
+                <div className={styles.signupStepQuestion}>
+                  <p className={styles.signupStepNum}>Step 3 of {totalSteps}</p>
+                  <h2 className={styles.signupStepLabel}>How many children will use Gametime?</h2>
+                  <p className={styles.signupStepHint}>You can add more later in Settings.</p>
+                </div>
+                <div className={styles.signupChoices}>
+                  {NUM_CHILDREN_OPTS.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      className={`${styles.signupChoiceBtn}${numChildren === opt ? ` ${styles.signupChoiceBtnSelected}` : ""}`}
+                      onClick={() => handleNumChildrenSelect(opt)}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {stepId === "referral" && (
-            <McqStep
-              stepNum={`Step ${isNoChildren ? 5 : 6} of ${totalSteps}`}
-              label="How did you hear about Gametime?"
-              options={REFERRAL_OPTS}
-              value={referral}
-              otherText={referralOther}
-              onChange={setReferral}
-              onOtherText={setReferralOther}
-              onContinue={advance}
-            />
-          )}
+            {stepId === "children" && (
+              <ChildrenTable data={childrenData} onChange={setChildrenData} onContinue={advance} />
+            )}
 
-          {isDone && <PasswordStep answers={answers} onCreated={handleAuth} />}
+            {stepId === "concern" && (
+              <McqStep
+                stepNum={`Step ${isNoChildren ? 4 : 5} of ${totalSteps}`}
+                label="What is your biggest concern about your kids' gaming?"
+                options={CONCERN_OPTS}
+                value={concern}
+                otherText={concernOther}
+                onChange={setConcern}
+                onOtherText={setConcernOther}
+                onContinue={advance}
+              />
+            )}
+
+            {stepId === "referral" && (
+              <McqStep
+                stepNum={`Step ${isNoChildren ? 5 : 6} of ${totalSteps}`}
+                label="How did you hear about Gametime?"
+                options={REFERRAL_OPTS}
+                value={referral}
+                otherText={referralOther}
+                onChange={setReferral}
+                onOtherText={setReferralOther}
+                onContinue={advance}
+              />
+            )}
+
+            {isDone && <PasswordStep answers={answers} onCreated={handleAuth} />}
+          </div>
+
+          <p className={styles.signupLoginLink}>
+            Already have an account? <Link href="/login">Log in</Link>
+          </p>
         </div>
-
-        <p className="signup-login-link">
-          Already have an account? <Link href="/login">Log in</Link>
-        </p>
       </div>
     </div>
   );
