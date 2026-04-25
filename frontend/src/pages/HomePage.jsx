@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import StringTune, { StringParallax } from '@fiddle-digital/string-tune';
 import styles from '../styles/landing.module.css';
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
@@ -58,6 +60,32 @@ function NavBar({ auth }) {
 
 /* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
+  /* ── StringTune bridge ─────────────────────────────────────────────────
+     The library is a singleton (`getInstance()`), so it's safe under React
+     Strict Mode's double-mount: `use()` no-ops on a class that's already
+     registered, and `start()` is idempotent because the loop guards on
+     `hasStarted` internally. After the JSX paints we call `onResize(true)`
+     — that's the documented "rebuild layout + re-scan attribute-tagged
+     DOM" entry point in this version of StringTune (there is no public
+     `refresh()` / `update()`; `onResize(force)` is what its own JSDoc
+     describes as "Rebuilds layout and triggers module resize"). Without
+     this, the engine — which boots before React mounts — would never see
+     the `string="parallax"` nodes added by this page and the 500vh
+     scroll progress would never map onto the Monolith / Controller.
+     ──────────────────────────────────────────────────────────────────── */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const stringTune = StringTune.getInstance();
+    stringTune.use(StringParallax);
+    stringTune.start(60);
+
+    const rescan = () => stringTune.onResize(true);
+    const raf = window.requestAnimationFrame(rescan);
+
+    return () => window.cancelAnimationFrame(raf);
+  }, []);
+
   return (
     <div className={styles.root}>
       <NavBar auth={auth} />
@@ -69,13 +97,30 @@ export default function HomePage({ auth }) {
             defines as the positioned anchor for the monolith / controller /
             kinetic text. Sticky pinning is owned by the CSS module so we
             don't need Tailwind utilities to reproduce it.
+
+            The Monolith and Controller use StringTune's real attribute API
+            (`string="parallax"` + `string-factor`) so the engine actually
+            picks them up after `onResize(true)` runs in the bridge effect
+            above. The kinetic text keeps `data-string="blur"` as a hook
+            for the StringTune controller layer that drives its inline
+            filter interpolation.
             ──────────────────────────────────────────────────────────── */}
         <div className={styles.heroTrack}>
           <div className={styles.heroSection}>
-            <h2 className={styles.monolith} data-string-parallax="0.8">GAMETIME</h2>
+            <h2
+              className={styles.monolith}
+              string="parallax"
+              string-factor="0.8"
+            >
+              GAMETIME
+            </h2>
 
-            <div className={styles.controllerWrapper} data-string-parallax="0.2">
-              <img src="/controller.svg" alt="Controller" />
+            <div
+              className={styles.controllerWrapper}
+              string="parallax"
+              string-factor="0.2"
+            >
+              <img src="/controller.svg" alt="Game controller" />
             </div>
 
             <div className={styles.kineticText} data-string="blur">

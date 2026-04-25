@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  controller.svg
+  --------------
+  Hero stage iconography for the StringTune Phase 2 landing.
+  Drawn at 480x300 with currentColor strokes so it inherits the hero text
+  colour. Kept attribute-light so the StringTune controllerWrapper parallax
+  can transform the wrapper without thrashing inner SVG geometry.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 480 300"
+  width="100%"
+  height="100%"
+  fill="none"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <!-- Body / silhouette -->
+  <path
+    d="M120 80
+       C 70 80, 30 130, 30 190
+       C 30 240, 60 270, 100 270
+       C 120 270, 135 258, 150 240
+       L 330 240
+       C 345 258, 360 270, 380 270
+       C 420 270, 450 240, 450 190
+       C 450 130, 410 80, 360 80
+       Z"
+    stroke-width="6"
+  />
+
+  <!-- Left D-pad -->
+  <rect x="92"  y="148" width="56" height="18" rx="4" stroke-width="5" />
+  <rect x="111" y="129" width="18" height="56" rx="4" stroke-width="5" />
+
+  <!-- Right action buttons (diamond cluster) -->
+  <circle cx="358" cy="138" r="9" stroke-width="5" />
+  <circle cx="388" cy="158" r="9" stroke-width="5" />
+  <circle cx="358" cy="178" r="9" stroke-width="5" />
+  <circle cx="328" cy="158" r="9" stroke-width="5" />
+
+  <!-- Centre cluster: select / start / glowing dot -->
+  <circle cx="240" cy="158" r="6"  stroke-width="4" />
+  <line   x1="210" y1="158" x2="222" y2="158" stroke-width="4" />
+  <line   x1="258" y1="158" x2="270" y2="158" stroke-width="4" />
+
+  <!-- Analog sticks -->
+  <circle cx="180" cy="208" r="20" stroke-width="5" />
+  <circle cx="180" cy="208" r="6"  stroke-width="4" />
+  <circle cx="300" cy="208" r="20" stroke-width="5" />
+  <circle cx="300" cy="208" r="6"  stroke-width="4" />
+
+  <!-- Top shoulder line (subtle parallax cue) -->
+  <path
+    d="M150 78 Q 240 50 330 78"
+    stroke-width="5"
+    opacity="0.55"
+  />
+</svg>
