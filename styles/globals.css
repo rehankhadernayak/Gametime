@@ -1,0 +1,39 @@
+/* Next.js / StringTune template — global shell (light mode default).
+ * Legacy dashboard UI loads scoped tokens from `dashboard-legacy.module.css`.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Light-mode defaults (template + landing shell) */
+  --background: #fafafa;
+  --foreground: #09090b;
+
+  /* Common aliases for components that expect these names */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+html {
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+body {
+  font-family: 'Inter Tight', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
