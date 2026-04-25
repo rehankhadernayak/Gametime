@@ -1,5 +1,43 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import './HomePage.css';
+
+/* ── Scroll reveal hook (GSAP-style stagger via IntersectionObserver) ─── */
+function useReveal() {
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const targets = root.querySelectorAll('[data-reveal]');
+
+    if (reduce) {
+      targets.forEach((el) => el.classList.add('is-visible'));
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            const delay = Number(el.getAttribute('data-reveal-delay') || 0);
+            window.setTimeout(() => el.classList.add('is-visible'), delay);
+            io.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+    );
+
+    targets.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  return rootRef;
+}
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
 function IconAI() {
@@ -26,32 +64,6 @@ function IconClock() {
     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8"/>
       <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function IconGift() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
-      <rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-      <path d="M3 10V8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="1.8"/>
-      <path d="M12 6V21M12 6c0 0-1.5-3 0-4s3 1 3 1-2 3-3 3Zm0 0c0 0 1.5-3 0-4S9 3 9 3s2 3 3 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function IconStar() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
-      <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function IconChart() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
-      <path d="M3 20h18M5 20V14m4 6V9m4 11V4m4 16v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -91,52 +103,13 @@ function IconArrow() {
   );
 }
 
-/* ── Feature data ───────────────────────────────────────────────────────── */
-const FEATURES = [
-  {
-    icon: <IconAI />,
-    title: 'AI Evidence Review',
-    description: 'Claude Vision checks every photo and video submission automatically before it reaches the parent queue.',
-    color: 'indigo',
-  },
-  {
-    icon: <IconCoin />,
-    title: 'Dual Currency',
-    description: 'Reward Points (RP) unlock milestones and badges. Gift-card Points (GP) convert to real Roblox, Steam, and Razer Gold credit.',
-    color: 'purple',
-  },
-  {
-    icon: <IconClock />,
-    title: 'Gaming Time Control',
-    description: 'Set daily and weekly screen-time caps. Every extra minute is earned through quests, never negotiated.',
-    color: 'indigo',
-  },
-  {
-    icon: <IconGift />,
-    title: 'Real Gift Cards',
-    description: 'Kids redeem GP for actual gift cards - Roblox, Steam, Razer Gold - delivered instantly via the Athena network.',
-    color: 'purple',
-  },
-  {
-    icon: <IconStar />,
-    title: 'Streaks & Achievements',
-    description: 'Daily streaks, milestone badges, and a leaderboard keep kids intrinsically motivated without extra pressure.',
-    color: 'indigo',
-  },
-  {
-    icon: <IconChart />,
-    title: 'Family Insights',
-    description: 'A weekly AI digest surfaces completion trends, screen-time patterns, and personalised coaching tips for parents.',
-    color: 'purple',
-  },
-];
-
+/* ── How it works data ──────────────────────────────────────────────────── */
 const HOW_IT_WORKS = [
   {
     number: '01',
     icon: <IconQuest />,
     title: 'Set Quests',
-    description: 'Parents create tasks - clean your room, finish homework, read for 20 minutes - each worth a set number of RP points.',
+    description: 'Parents create tasks — clean your room, finish homework, read for 20 minutes — each worth a set number of RP.',
   },
   {
     number: '02',
@@ -148,7 +121,7 @@ const HOW_IT_WORKS = [
     number: '03',
     icon: <IconShieldCheck />,
     title: 'AI Reviews, Parent Approves',
-    description: 'Claude Vision analyses the evidence for completeness. Parent gets a smart summary and one-tap approve - child earns their RP.',
+    description: 'Claude Vision analyses the evidence. Parent gets a summary and one-tap approve — child earns their RP.',
   },
 ];
 
@@ -159,6 +132,7 @@ function NavBar({ auth }) {
     <nav className="hp-nav" aria-label="Site navigation">
       <div className="hp-nav-inner">
         <Link to="/" className="hp-nav-logo" aria-label="Gametime home">
+          <span className="hp-nav-logo-dot" aria-hidden="true" />
           Gametime
         </Link>
         <div className="hp-nav-actions">
@@ -170,12 +144,11 @@ function NavBar({ auth }) {
   );
 }
 
-/* ── Device Mockup ──────────────────────────────────────────────────────── */
+/* ── Device Mockup (Antigravity Light) ─────────────────────────────────── */
 function DeviceMockup() {
   return (
     <div className="hp-device-wrap" aria-hidden="true">
       <div className="hp-device">
-        {/* Status bar */}
         <div className="hp-device-statusbar">
           <span className="hp-device-time">9:41</span>
           <div className="hp-device-dots">
@@ -183,11 +156,10 @@ function DeviceMockup() {
           </div>
         </div>
 
-        {/* App header inside device */}
         <div className="hp-device-appbar">
           <div className="hp-device-avatar" />
           <div>
-            <div className="hp-device-name">Hi, Alex!</div>
+            <div className="hp-device-name">Hi, Alex</div>
             <div className="hp-device-subtitle">3 quests waiting</div>
           </div>
           <div className="hp-device-rp-badge">
@@ -195,11 +167,10 @@ function DeviceMockup() {
           </div>
         </div>
 
-        {/* Quest cards inside device */}
         <div className="hp-device-quests">
-          <div className="hp-device-quest hp-device-quest--green">
+          <div className="hp-device-quest">
             <div className="hp-dq-left">
-              <div className="hp-dq-icon hp-dq-icon--green" />
+              <div className="hp-dq-icon hp-dq-icon--red" />
               <div>
                 <div className="hp-dq-title">Clean your room</div>
                 <div className="hp-dq-pts">+50 RP</div>
@@ -207,19 +178,19 @@ function DeviceMockup() {
             </div>
             <div className="hp-dq-status hp-dq-status--done">Done</div>
           </div>
-          <div className="hp-device-quest hp-device-quest--indigo">
+          <div className="hp-device-quest">
             <div className="hp-dq-left">
-              <div className="hp-dq-icon hp-dq-icon--indigo" />
+              <div className="hp-dq-icon hp-dq-icon--ink" />
               <div>
                 <div className="hp-dq-title">Finish homework</div>
                 <div className="hp-dq-pts">+80 RP</div>
               </div>
             </div>
-            <div className="hp-dq-status hp-dq-status--pending">Pending</div>
+            <div className="hp-dq-status hp-dq-status--pending">Review</div>
           </div>
-          <div className="hp-device-quest hp-device-quest--purple">
+          <div className="hp-device-quest">
             <div className="hp-dq-left">
-              <div className="hp-dq-icon hp-dq-icon--purple" />
+              <div className="hp-dq-icon hp-dq-icon--mist" />
               <div>
                 <div className="hp-dq-title">Read for 20 min</div>
                 <div className="hp-dq-pts">+40 RP</div>
@@ -229,7 +200,6 @@ function DeviceMockup() {
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="hp-device-progress-wrap">
           <div className="hp-device-progress-label">
             <span>Daily goal</span>
@@ -240,7 +210,6 @@ function DeviceMockup() {
           </div>
         </div>
 
-        {/* Redeem strip */}
         <div className="hp-device-redeem">
           <div className="hp-device-redeem-badge hp-device-redeem-badge--roblox">Roblox</div>
           <div className="hp-device-redeem-badge hp-device-redeem-badge--steam">Steam</div>
@@ -251,99 +220,166 @@ function DeviceMockup() {
   );
 }
 
+/* ── Bento visuals (per-card illustrations, no stock imagery) ─────────── */
+function BentoAiVisual() {
+  return (
+    <div className="hp-bento-visual hp-bento-visual--ai" aria-hidden="true">
+      <div className="hp-bento-ai-photo">
+        <div className="hp-bento-ai-scan" />
+        <div className="hp-bento-ai-frame" />
+      </div>
+      <div className="hp-bento-ai-chip">
+        <span className="hp-bento-ai-chip-dot" />
+        Claude Vision · verified
+      </div>
+    </div>
+  );
+}
+
+function BentoCurrencyVisual() {
+  return (
+    <div className="hp-bento-visual hp-bento-visual--currency" aria-hidden="true">
+      <div className="hp-bento-coin hp-bento-coin--rp">
+        <span>RP</span>
+      </div>
+      <div className="hp-bento-coin hp-bento-coin--gold">
+        <span>G</span>
+      </div>
+      <div className="hp-bento-rail">
+        <div className="hp-bento-rail-step hp-bento-rail-step--filled">Earn</div>
+        <div className="hp-bento-rail-step hp-bento-rail-step--filled">Convert</div>
+        <div className="hp-bento-rail-step">Redeem</div>
+      </div>
+    </div>
+  );
+}
+
+function BentoTimeVisual() {
+  return (
+    <div className="hp-bento-visual hp-bento-visual--time" aria-hidden="true">
+      <div className="hp-bento-time-row">
+        <span className="hp-bento-time-label">Mon</span>
+        <div className="hp-bento-time-bar"><i style={{ width: '55%' }} /></div>
+        <span className="hp-bento-time-val">1h 05m</span>
+      </div>
+      <div className="hp-bento-time-row">
+        <span className="hp-bento-time-label">Tue</span>
+        <div className="hp-bento-time-bar"><i style={{ width: '80%' }} /></div>
+        <span className="hp-bento-time-val">1h 35m</span>
+      </div>
+      <div className="hp-bento-time-row">
+        <span className="hp-bento-time-label">Wed</span>
+        <div className="hp-bento-time-bar"><i style={{ width: '38%' }} /></div>
+        <span className="hp-bento-time-val">45m</span>
+      </div>
+      <div className="hp-bento-time-row">
+        <span className="hp-bento-time-label">Thu</span>
+        <div className="hp-bento-time-bar"><i style={{ width: '92%' }} /></div>
+        <span className="hp-bento-time-val">1h 50m</span>
+      </div>
+    </div>
+  );
+}
+
 /* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
+  const rootRef = useReveal();
+
   return (
-    <div className="hp-root">
-      {/* ── 1. Navigation ───────────────────────────────────────── */}
+    <div className="hp-root" ref={rootRef}>
+      {/* ── Ambient background (Antigravity Light) ──────────────── */}
+      <div className="hp-ambient" aria-hidden="true">
+        <div className="hp-ambient-glow hp-ambient-glow--1" />
+        <div className="hp-ambient-glow hp-ambient-glow--2" />
+        <div className="hp-ambient-grid" />
+      </div>
+
       <NavBar auth={auth} />
 
       <main role="main">
-        {/* ── 2. Hero ─────────────────────────────────────────────── */}
+        {/* ── 1. Hero ─────────────────────────────────────────────── */}
         <section className="hp-hero" aria-labelledby="hp-hero-heading">
-          <div className="hp-hero-bg" aria-hidden="true">
-            <div className="hp-hero-orb hp-hero-orb--1" />
-            <div className="hp-hero-orb hp-hero-orb--2" />
-          </div>
-
           <div className="hp-hero-inner">
             <div className="hp-hero-content">
-              <div className="hp-eyebrow">
+              <div className="hp-eyebrow" data-reveal>
                 <span className="hp-eyebrow-dot" aria-hidden="true" />
-                Singapore's #1 Family Gaming Platform
+                Family protocol · Singapore
               </div>
 
-              <h1 id="hp-hero-heading" className="hp-hero-h1">
-                Screen time,<br />earned.
+              <h1 id="hp-hero-heading" className="hp-hero-h1" data-reveal data-reveal-delay="80">
+                Screen Time,<br />
+                <span className="hp-hero-accent">Earned.</span>
               </h1>
 
-              <p className="hp-hero-sub">
-                Gametime helps Singapore families turn gaming into a reward kids
-                actually work for. Set quests, review evidence with AI, and let
-                children redeem real gift cards.
+              <p className="hp-hero-sub" data-reveal data-reveal-delay="160">
+                The family-authoritative protocol that turns chores into digital rewards.
               </p>
 
-              <div className="hp-hero-ctas">
+              <div className="hp-hero-ctas" data-reveal data-reveal-delay="240">
                 {auth.token ? (
                   <Link
                     to={auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'}
                     className="hp-btn-primary hp-btn-lg"
                   >
                     Go to Dashboard
+                    <IconArrow />
                   </Link>
                 ) : (
                   <>
                     <Link to="/signup" className="hp-btn-primary hp-btn-lg">
                       Get Started Free
+                      <IconArrow />
                     </Link>
                     <a href="#how-it-works" className="hp-btn-ghost hp-btn-lg">
-                      See how it works <IconArrow />
+                      See how it works
                     </a>
                   </>
                 )}
               </div>
+
+              <div className="hp-hero-meta" data-reveal data-reveal-delay="320">
+                <div className="hp-hero-meta-item">
+                  <span className="hp-hero-meta-num">500+</span>
+                  <span className="hp-hero-meta-label">families</span>
+                </div>
+                <div className="hp-hero-meta-divider" aria-hidden="true" />
+                <div className="hp-hero-meta-item">
+                  <span className="hp-hero-meta-num">2,000+</span>
+                  <span className="hp-hero-meta-label">quests completed</span>
+                </div>
+                <div className="hp-hero-meta-divider" aria-hidden="true" />
+                <div className="hp-hero-meta-item">
+                  <span className="hp-hero-meta-num">4.9</span>
+                  <span className="hp-hero-meta-label">parent rating</span>
+                </div>
+              </div>
             </div>
 
-            <DeviceMockup />
-          </div>
-        </section>
-
-        {/* ── 3. Social Proof Strip ───────────────────────────────── */}
-        <section className="hp-social-proof" aria-label="Social proof">
-          <div className="hp-social-proof-inner">
-            <span className="hp-social-label">Trusted by Singapore families</span>
-            <div className="hp-social-pills">
-              <div className="hp-social-pill">
-                <span className="hp-pill-number">2,000+</span>
-                <span className="hp-pill-label">tasks completed</span>
-              </div>
-              <div className="hp-social-divider" aria-hidden="true" />
-              <div className="hp-social-pill">
-                <span className="hp-pill-number">500+</span>
-                <span className="hp-pill-label">families</span>
-              </div>
-              <div className="hp-social-divider" aria-hidden="true" />
-              <div className="hp-social-pill">
-                <span className="hp-pill-number">4.9★</span>
-                <span className="hp-pill-label">rating</span>
-              </div>
+            <div data-reveal data-reveal-delay="200">
+              <DeviceMockup />
             </div>
           </div>
         </section>
 
-        {/* ── 4. How It Works ─────────────────────────────────────── */}
+        {/* ── 2. How It Works ─────────────────────────────────────── */}
         <section id="how-it-works" className="hp-how" aria-labelledby="hp-how-heading">
           <div className="hp-section-inner">
-            <div className="hp-section-header">
-              <div className="hp-section-kicker">How It Works</div>
+            <div className="hp-section-header" data-reveal>
+              <div className="hp-section-kicker">How it works</div>
               <h2 id="hp-how-heading" className="hp-section-h2">
-                Simple for parents.<br />Exciting for kids.
+                Simple for parents.<br />
+                <span className="hp-hero-accent">Exciting for kids.</span>
               </h2>
             </div>
 
             <div className="hp-how-grid">
-              {HOW_IT_WORKS.map((step) => (
-                <article key={step.number} className="hp-how-card">
+              {HOW_IT_WORKS.map((step, i) => (
+                <article
+                  key={step.number}
+                  className="hp-how-card"
+                  data-reveal
+                  data-reveal-delay={i * 120}
+                >
                   <div className="hp-how-number" aria-hidden="true">{step.number}</div>
                   <div className="hp-how-icon">{step.icon}</div>
                   <h3 className="hp-how-title">{step.title}</h3>
@@ -354,56 +390,107 @@ export default function HomePage({ auth }) {
           </div>
         </section>
 
-        {/* ── 5. Features Grid ────────────────────────────────────── */}
-        <section className="hp-features" aria-labelledby="hp-features-heading">
+        {/* ── 3. Bento Grid ───────────────────────────────────────── */}
+        <section className="hp-bento" aria-labelledby="hp-bento-heading">
           <div className="hp-section-inner">
-            <div className="hp-section-header">
-              <div className="hp-section-kicker">Features</div>
-              <h2 id="hp-features-heading" className="hp-section-h2">
-                Everything a family needs.
+            <div className="hp-section-header" data-reveal>
+              <div className="hp-section-kicker">The platform</div>
+              <h2 id="hp-bento-heading" className="hp-section-h2">
+                Everything a Family <span className="hp-hero-accent">Needs.</span>
               </h2>
+              <p className="hp-section-lede">
+                One protocol. Three pillars. Every chore routed to a reward your child actually cares about.
+              </p>
             </div>
 
-            <div className="hp-features-grid">
-              {FEATURES.map((f) => (
-                <article key={f.title} className={`hp-feature-card hp-feature-card--${f.color}`}>
-                  <div className="hp-feature-icon">{f.icon}</div>
-                  <h3 className="hp-feature-title">{f.title}</h3>
-                  <p className="hp-feature-desc">{f.description}</p>
-                </article>
-              ))}
+            <div className="hp-bento-grid">
+              {/* AI Evidence Review — large */}
+              <article className="hp-bento-card hp-bento-card--ai" data-reveal>
+                <div className="hp-bento-head">
+                  <div className="hp-bento-icon"><IconAI /></div>
+                  <span className="hp-bento-tag">Core</span>
+                </div>
+                <h3 className="hp-bento-title">AI Evidence Review</h3>
+                <p className="hp-bento-desc">
+                  Claude Vision inspects every photo and video submission before it ever reaches the parent queue —
+                  flagging mismatches, rewarding real effort, and cutting approval time to seconds.
+                </p>
+                <BentoAiVisual />
+                <ul className="hp-bento-bullets">
+                  <li>Auto-summary per submission</li>
+                  <li>One-tap parent approval</li>
+                  <li>Zero manual triage</li>
+                </ul>
+              </article>
+
+              {/* Dual Currency — medium */}
+              <article className="hp-bento-card hp-bento-card--currency" data-reveal data-reveal-delay="100">
+                <div className="hp-bento-head">
+                  <div className="hp-bento-icon"><IconCoin /></div>
+                  <span className="hp-bento-tag">Economy</span>
+                </div>
+                <h3 className="hp-bento-title">Dual Currency <span className="hp-bento-title-sub">RP &amp; Gold</span></h3>
+                <p className="hp-bento-desc">
+                  Reward Points unlock streaks and badges. Gold converts to real Roblox, Steam, and Razer credit —
+                  cleanly separated so motivation never leaks.
+                </p>
+                <BentoCurrencyVisual />
+              </article>
+
+              {/* Gaming Time Control — wide */}
+              <article className="hp-bento-card hp-bento-card--time" data-reveal data-reveal-delay="200">
+                <div className="hp-bento-head">
+                  <div className="hp-bento-icon"><IconClock /></div>
+                  <span className="hp-bento-tag">Authority</span>
+                </div>
+                <h3 className="hp-bento-title">Gaming Time Control</h3>
+                <p className="hp-bento-desc">
+                  Daily and weekly screen-time caps, enforced at the device. Every extra minute is earned through a quest,
+                  never negotiated at the dinner table.
+                </p>
+                <BentoTimeVisual />
+              </article>
             </div>
           </div>
         </section>
 
-        {/* ── 6. Bottom CTA ───────────────────────────────────────── */}
+        {/* ── 4. Bottom CTA ───────────────────────────────────────── */}
         {!auth.token && (
           <section className="hp-cta-section" aria-labelledby="hp-cta-heading">
-            <div className="hp-cta-bg" aria-hidden="true">
-              <div className="hp-cta-orb hp-cta-orb--1" />
-              <div className="hp-cta-orb hp-cta-orb--2" />
-            </div>
-            <div className="hp-cta-inner">
+            <div className="hp-cta-inner" data-reveal>
+              <div className="hp-cta-kicker">
+                <span className="hp-eyebrow-dot" aria-hidden="true" />
+                Join the protocol
+              </div>
               <h2 id="hp-cta-heading" className="hp-cta-h2">
-                Ready to make gaming fair?
+                Ready to make gaming <span className="hp-hero-accent">fair?</span>
               </h2>
               <p className="hp-cta-sub">
-                Join Singapore families already using Gametime.
+                Turn the next chore into the next reward. Set up a family account in under two minutes.
               </p>
-              <Link to="/signup" className="hp-btn-white hp-btn-lg">
-                Create Free Account
-              </Link>
+              <div className="hp-cta-actions">
+                <Link to="/signup" className="hp-btn-primary hp-btn-lg">
+                  Create Free Account
+                  <IconArrow />
+                </Link>
+                <Link to="/login" className="hp-btn-ghost hp-btn-lg">
+                  Parent Login
+                </Link>
+              </div>
             </div>
           </section>
         )}
 
-        {/* ── 7. Footer ───────────────────────────────────────────── */}
+        {/* ── 5. Footer ───────────────────────────────────────────── */}
         <footer className="hp-footer" role="contentinfo">
           <div className="hp-footer-inner">
             <div className="hp-footer-brand">
-              <span className="hp-footer-logo">Gametime</span>
+              <span className="hp-footer-logo">
+                <span className="hp-nav-logo-dot" aria-hidden="true" />
+                Gametime
+              </span>
               <p className="hp-footer-tagline">
-                Screen time, earned. Singapore's family gaming platform.
+                The family-authoritative protocol that turns chores into digital rewards.
               </p>
             </div>
 
@@ -431,6 +518,10 @@ export default function HomePage({ auth }) {
 
           <div className="hp-footer-bottom">
             <span>© 2026 Gametime · Singapore</span>
+            <span className="hp-footer-status">
+              <span className="hp-footer-status-dot" aria-hidden="true" />
+              All systems operational
+            </span>
           </div>
         </footer>
       </main>
