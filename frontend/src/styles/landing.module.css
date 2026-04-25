@@ -1,0 +1,170 @@
+/* =============================================================================
+   landing.module.css — Cinematic Hero (StringTune snap aesthetic)
+   -----------------------------------------------------------------------------
+   Phase 2 of the Hero refactor. Pairs with Agent 1's JSX, which renders:
+       <div class={styles.heroTrack}>            // 500vh scroll track
+         <div class={styles.heroSection}>        // sticky 100vh stage
+           <h2  class={styles.monolith}>…</h2>
+           <div class={styles.controllerWrapper}>…StringTune controller…</div>
+           <div class={styles.kineticText} data-string="blur">
+             <h1>…</h1>
+           </div>
+         </div>
+       </div>
+
+   The "physics" model:
+     • kineticText h1 defaults to blur(40px) + scale(1.5) (pre-snap state).
+     • The StringTune engine interpolates filter/transform inline as the user
+       scrolls through the 500vh track and snaps the headline to its
+       resolved geometry — no CSS transition is declared on those properties
+       so the engine never fights a competing CSS animation.
+     • .snapped h1 is the resolved state (blur 0, scale 1) used as a JS-free
+       fallback before StringTune hydrates.
+   ============================================================================= */
+
+/* Geist must be loaded once, globally. We also self-host through @import here
+   so the module is self-sufficient if it's the only stylesheet on the page. */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;900&display=swap');
+
+/* ── Track ─────────────────────────────────────────────────────────────────
+   The 500vh tall scroll surface that drives the StringTune timeline. Its
+   height is what gives the sticky stage room to "play" while the user
+   scrolls; do NOT shrink this without re-tuning StringTune's keyframes.
+   ────────────────────────────────────────────────────────────────────────── */
+.heroTrack {
+  position: relative;
+  width: 100%;
+  height: 500vh;
+}
+
+/* ── Stage ─────────────────────────────────────────────────────────────────
+   The viewport-locked stage that the Monolith, Controller, and kinetic text
+   all align to. Made sticky here (not via Tailwind utilities) so the module
+   is self-sufficient on a project without Tailwind. The absolute children
+   below resolve against this ancestor.
+   ────────────────────────────────────────────────────────────────────────── */
+.heroSection {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  isolation: isolate; /* keeps the z-index stack local to the hero */
+}
+
+/* ── 1. The Monolith ──────────────────────────────────────────────────────
+   Giant ghost word behind everything. Drives the "weight" of the composition.
+   ────────────────────────────────────────────────────────────────────────── */
+.monolith {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Geist', sans-serif;
+  font-size: 18vw;
+  font-weight: 900;
+  opacity: 0.04;
+  white-space: nowrap;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: currentColor;
+}
+
+/* ── 2. The Controller Wrapper ────────────────────────────────────────────
+   Hosts the StringTune controller (knob / slider / instrument). Centred
+   horizontally; vertical placement is left to the JSX so Agent 1 can pin
+   it above or below the kinetic text.
+   ────────────────────────────────────────────────────────────────────────── */
+.controllerWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: 60vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ── 3. Kinetic Text ──────────────────────────────────────────────────────
+   The headline that the StringTune engine snaps into focus.
+   ────────────────────────────────────────────────────────────────────────── */
+.kineticText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  text-align: center;
+  pointer-events: none; /* hand pointer events to the controller below */
+  width: 100%;
+}
+
+.kineticText h1 {
+  margin: 0;
+  font-family: 'Geist', sans-serif;
+  font-size: 8vw;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  color: #fff;
+
+  /* ── 4. The Physics State ──────────────────────────────────────────────
+     Default ("loose string") state: heavily blurred and over-scaled. The
+     StringTune engine (data-string="blur") interpolates `filter` and
+     `transform` inline as the user scrolls, then resolves them to the
+     `.snapped` geometry below. We deliberately DO NOT declare a CSS
+     transition on filter/transform here: the JS engine is already
+     producing per-frame values, and a CSS transition would race against
+     the scroll-bound interpolation and cause visible jitter.
+     ──────────────────────────────────────────────────────────────────── */
+  filter: blur(40px);
+  transform: scale(1.5);
+  transform-origin: center;
+  will-change: filter, transform;
+}
+
+/* The "snapped" resolved state — set by the StringTune engine when its
+   scroll-bound timeline reaches the resolved frame. Acts as a fallback
+   for non-JS / pre-hydration so the headline still settles correctly. */
+.snapped h1 {
+  filter: blur(0);
+  transform: scale(1);
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────
+   Respect users who request reduced motion: drop the over-scale + blur so
+   they never see the violent pre-snap state. StringTune itself should
+   honour the same media query and skip its interpolation.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .kineticText h1 {
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+/* ── Mobile fallback ──────────────────────────────────────────────────────
+   18vw / 8vw read fine on desktop but get crushed on phones. Cap them so
+   the headline stays legible without breaking the cinematic ratio.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .monolith {
+    font-size: 28vw;
+  }
+  .kineticText h1 {
+    font-size: 14vw;
+  }
+  .controllerWrapper {
+    width: 90vw;
+  }
+}

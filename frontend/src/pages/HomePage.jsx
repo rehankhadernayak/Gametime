@@ -1,7 +1,5 @@
-import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import './HomePage.css';
+import styles from '../styles/landing.module.css';
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
 function IconAI() {
@@ -40,32 +38,18 @@ function IconArrow() {
   );
 }
 
-/* ── Kinetic headline (blur + scale on scroll) ──────────────────────────── */
-function KineticText({ progress, range = [0, 0.5], children, className = '' }) {
-  const blur = useTransform(progress, range, [20, 0]);
-  const scale = useTransform(progress, range, [0.8, 1]);
-  const opacity = useTransform(progress, range, [0, 1]);
-  const filter = useTransform(blur, (v) => `blur(${v}px)`);
-
-  return (
-    <motion.div style={{ filter, scale, opacity }} className={className}>
-      {children}
-    </motion.div>
-  );
-}
-
 /* ── NavBar ─────────────────────────────────────────────────────────────── */
 function NavBar({ auth }) {
   if (auth.token) return null;
   return (
-    <nav className="hp-nav" aria-label="Site navigation">
-      <div className="hp-nav-inner">
-        <Link to="/" className="hp-nav-logo" aria-label="Gametime home">
+    <nav className={styles.nav} aria-label="Site navigation">
+      <div className={styles.navInner}>
+        <Link to="/" className={styles.navLogo} aria-label="Gametime home">
           Gametime
         </Link>
-        <div className="hp-nav-actions">
-          <Link to="/login" className="hp-nav-link">Parent Login</Link>
-          <Link to="/signup" className="hp-nav-cta">Get Started</Link>
+        <div className={styles.navActions}>
+          <Link to="/login" className={styles.navLink}>Parent Login</Link>
+          <Link to="/signup" className={styles.navCta}>Get Started</Link>
         </div>
       </div>
     </nav>
@@ -74,167 +58,96 @@ function NavBar({ auth }) {
 
 /* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
-  const containerRef = useRef(null);
-  const bentoRef = useRef(null);
-
-  // Hero scroll progress (drives pin + kinetic hero text)
-  const { scrollYProgress: heroProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
-
-  // Bento section scroll progress
-  const { scrollYProgress: bentoProgress } = useScroll({
-    target: bentoRef,
-    offset: ['start end', 'end start'],
-  });
-
-  // Hero pin: lock hero in place while scrolling through the pin section
-  const heroY = useTransform(heroProgress, [0, 0.6, 1], ['0%', '0%', '-20%']);
-  const heroOpacity = useTransform(heroProgress, [0, 0.6, 1], [1, 1, 0]);
-  const heroScale = useTransform(heroProgress, [0, 0.6, 1], [1, 1, 0.92]);
-
-  // Hero kinetic text — clears as user begins scrolling
-  const heroTextBlur = useTransform(heroProgress, [0, 0.15], [20, 0]);
-  const heroTextScale = useTransform(heroProgress, [0, 0.15], [0.8, 1]);
-  const heroTextFilter = useTransform(heroTextBlur, (v) => `blur(${v}px)`);
-
-  // Horizontal parallax giant "GAMETIME" word — slides L→R across whole page
-  const parallaxX = useTransform(bentoProgress, [0, 1], ['-30%', '30%']);
-
-  // Bento card y-offsets — different per card for floating effect
-  const card1Y = useTransform(bentoProgress, [0, 1], [120, -80]);
-  const card2Y = useTransform(bentoProgress, [0, 1], [60, -140]);
-  const card3Y = useTransform(bentoProgress, [0, 1], [180, -40]);
-
   return (
-    <div className="hp-root">
+    <div className={styles.root}>
       <NavBar auth={auth} />
 
       <main role="main">
-        {/* ── Pinned Hero ──────────────────────────────────────────── */}
-        <section ref={containerRef} className="hp-pin-section" aria-labelledby="hp-hero-heading">
-          <div className="hp-pin-sticky">
-            <motion.div
-              className="hp-hero"
-              style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
-            >
-              <motion.h1
-                id="hp-hero-heading"
-                className="hp-hero-h1"
-                style={{ filter: heroTextFilter, scale: heroTextScale }}
-              >
-                Screen Time, Earned.
-              </motion.h1>
+        {/* ── StringTune Hero Stage ──────────────────────────────────
+            500vh tracking div drives the scroll-bound StringTune timeline.
+            The inner sticky stage uses `styles.heroSection`, which Agent 2
+            defines as the positioned anchor for the monolith / controller /
+            kinetic text. Sticky pinning is owned by the CSS module so we
+            don't need Tailwind utilities to reproduce it.
+            ──────────────────────────────────────────────────────────── */}
+        <div className={styles.heroTrack}>
+          <div className={styles.heroSection}>
+            <h2 className={styles.monolith} data-string-parallax="0.8">GAMETIME</h2>
 
-              <motion.p
-                className="hp-hero-sub"
-                style={{ filter: heroTextFilter }}
-              >
-                Do chores. Get gaming time.
-              </motion.p>
+            <div className={styles.controllerWrapper} data-string-parallax="0.2">
+              <img src="/controller.svg" alt="Controller" />
+            </div>
 
-              <motion.div className="hp-hero-ctas" style={{ opacity: heroTextScale }}>
-                {auth.token ? (
-                  <Link
-                    to={auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'}
-                    className="hp-btn-primary"
-                  >
-                    Go to Dashboard <IconArrow />
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/signup" className="hp-btn-primary">
-                      Get Started <IconArrow />
-                    </Link>
-                    <a href="#bento" className="hp-btn-ghost">
-                      How it works
-                    </a>
-                  </>
-                )}
-              </motion.div>
-            </motion.div>
+            <div className={styles.kineticText} data-string="blur">
+              <h1>Screen time, earned.</h1>
+            </div>
           </div>
-        </section>
+        </div>
 
         {/* ── Bento Grid with floating cards + parallax word ─────── */}
         <section
           id="bento"
-          ref={bentoRef}
-          className="hp-bento-section"
+          className={styles.bentoSection}
           aria-label="Features"
         >
           {/* Horizontal parallax giant text behind cards */}
-          <motion.div
-            className="hp-parallax-word"
-            style={{ x: parallaxX }}
-            aria-hidden="true"
-          >
+          <div className={styles.parallaxWord} aria-hidden="true">
             GAMETIME
-          </motion.div>
+          </div>
 
-          <div className="hp-bento-inner">
-            <KineticText progress={bentoProgress} range={[0.05, 0.25]}>
-              <h2 className="hp-bento-heading">How it works.</h2>
-            </KineticText>
+          <div className={styles.bentoInner}>
+            <div className={styles.bentoHeadingWrap}>
+              <h2 className={styles.bentoHeading}>How it works.</h2>
+            </div>
 
-            <div className="hp-bento-grid">
-              <motion.article
-                className="hp-bento-card hp-bento-card--tall"
-                style={{ y: card1Y }}
-              >
-                <div className="hp-bento-icon">
+            <div className={styles.bentoGrid}>
+              <article className={`${styles.bentoCard} ${styles.bentoCardTall}`}>
+                <div className={styles.bentoIcon}>
                   <IconAI />
                 </div>
-                <div className="hp-bento-label">Card 1</div>
-                <h3 className="hp-bento-title">AI Evidence</h3>
-                <p className="hp-bento-desc">Simple photo proof.</p>
-                <div className="hp-bento-progress">
-                  <div className="hp-bento-progress-fill" style={{ width: '78%' }} />
+                <div className={styles.bentoLabel}>Card 1</div>
+                <h3 className={styles.bentoTitle}>AI Evidence</h3>
+                <p className={styles.bentoDesc}>Simple photo proof.</p>
+                <div className={styles.bentoProgress}>
+                  <div className={styles.bentoProgressFill} style={{ width: '78%' }} />
                 </div>
-              </motion.article>
+              </article>
 
-              <motion.article
-                className="hp-bento-card"
-                style={{ y: card2Y }}
-              >
-                <div className="hp-bento-icon">
+              <article className={styles.bentoCard}>
+                <div className={styles.bentoIcon}>
                   <IconCoin />
                 </div>
-                <div className="hp-bento-label">Card 2</div>
-                <h3 className="hp-bento-title">Points</h3>
-                <p className="hp-bento-desc">Earn Gold &amp; RP.</p>
-                <div className="hp-bento-progress">
-                  <div className="hp-bento-progress-fill" style={{ width: '54%' }} />
+                <div className={styles.bentoLabel}>Card 2</div>
+                <h3 className={styles.bentoTitle}>Points</h3>
+                <p className={styles.bentoDesc}>Earn Gold &amp; RP.</p>
+                <div className={styles.bentoProgress}>
+                  <div className={styles.bentoProgressFill} style={{ width: '54%' }} />
                 </div>
-              </motion.article>
+              </article>
 
-              <motion.article
-                className="hp-bento-card hp-bento-card--wide"
-                style={{ y: card3Y }}
-              >
-                <div className="hp-bento-icon">
+              <article className={`${styles.bentoCard} ${styles.bentoCardWide}`}>
+                <div className={styles.bentoIcon}>
                   <IconShield />
                 </div>
-                <div className="hp-bento-label">Card 3</div>
-                <h3 className="hp-bento-title">Controls</h3>
-                <p className="hp-bento-desc">Stop gaming instantly.</p>
-                <div className="hp-bento-progress">
-                  <div className="hp-bento-progress-fill" style={{ width: '92%' }} />
+                <div className={styles.bentoLabel}>Card 3</div>
+                <h3 className={styles.bentoTitle}>Controls</h3>
+                <p className={styles.bentoDesc}>Stop gaming instantly.</p>
+                <div className={styles.bentoProgress}>
+                  <div className={styles.bentoProgressFill} style={{ width: '92%' }} />
                 </div>
-              </motion.article>
+              </article>
             </div>
           </div>
         </section>
 
         {/* ── Closing CTA ─────────────────────────────────────────── */}
         {!auth.token && (
-          <section className="hp-closing" aria-labelledby="hp-closing-heading">
-            <div className="hp-closing-inner">
-              <h2 id="hp-closing-heading" className="hp-closing-h2">
+          <section className={styles.closing} aria-labelledby="hp-closing-heading">
+            <div className={styles.closingInner}>
+              <h2 id="hp-closing-heading" className={styles.closingH2}>
                 Ready to start?
               </h2>
-              <Link to="/signup" className="hp-btn-primary hp-btn-lg">
+              <Link to="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
                 Get Started <IconArrow />
               </Link>
             </div>
@@ -242,10 +155,10 @@ export default function HomePage({ auth }) {
         )}
 
         {/* ── Footer ──────────────────────────────────────────────── */}
-        <footer className="hp-footer" role="contentinfo">
-          <div className="hp-footer-inner">
-            <span className="hp-footer-logo">Gametime</span>
-            <span className="hp-footer-meta">© 2026 · Singapore</span>
+        <footer className={styles.footer} role="contentinfo">
+          <div className={styles.footerInner}>
+            <span className={styles.footerLogo}>Gametime</span>
+            <span className={styles.footerMeta}>© 2026 · Singapore</span>
           </div>
         </footer>
       </main>
