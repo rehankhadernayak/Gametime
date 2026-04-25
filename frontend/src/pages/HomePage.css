@@ -1,9 +1,11 @@
 /* ────────────────────────────────────────────────────────────────────────
-   Gametime — StringTune Physics Edition
-   Light mode · Glassmorphic cards · Bold red accent · Pinned hero
+   Gametime — StringTune-Fidelity Landing
+   Light-mode marketing surface, scoped under [data-surface="landing"].
+   GSAP + Lenis drive the physics — this stylesheet only lays things out
+   and reserves transform/filter/will-change for the animated elements.
    ──────────────────────────────────────────────────────────────────────── */
 
-:root {
+[data-surface="landing"] {
   --gt-bg: #ffffff;
   --gt-bg-soft: #f4f4f5;
   --gt-ink: #0a0a0a;
@@ -12,32 +14,34 @@
   --gt-line-strong: rgba(0, 0, 0, 0.12);
   --gt-red: #dc2626;
   --gt-red-hover: #b91c1c;
-  --gt-glass: rgba(255, 255, 255, 0.55);
-  --gt-glass-border: rgba(0, 0, 0, 0.1);
+  --gt-glass: rgba(255, 255, 255, 0.6);
+  --gt-glass-border: rgba(0, 0, 0, 0.08);
+
+  /* Reset every dark-app token that bleeds in from styles/app.css */
+  background: var(--gt-bg);
+  color: var(--gt-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.hp-root {
+[data-surface="landing"] .hp-root {
   background: var(--gt-bg);
   color: var(--gt-ink);
   min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow-x: hidden;
 }
 
 /* ── NavBar ──────────────────────────────────────────────────────────── */
-.hp-nav {
+[data-surface="landing"] .hp-nav {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto 0;
   z-index: 50;
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   background: rgba(255, 255, 255, 0.7);
   border-bottom: 1px solid var(--gt-line);
 }
-
-.hp-nav-inner {
+[data-surface="landing"] .hp-nav-inner {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem 1.5rem;
@@ -45,22 +49,19 @@
   align-items: center;
   justify-content: space-between;
 }
-
-.hp-nav-logo {
+[data-surface="landing"] .hp-nav-logo {
   font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--gt-ink);
   text-decoration: none;
 }
-
-.hp-nav-actions {
+[data-surface="landing"] .hp-nav-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
-
-.hp-nav-link {
+[data-surface="landing"] .hp-nav-link {
   color: var(--gt-ink-soft);
   text-decoration: none;
   font-size: 0.9rem;
@@ -69,12 +70,8 @@
   border-radius: 8px;
   transition: color 0.15s ease;
 }
-
-.hp-nav-link:hover {
-  color: var(--gt-ink);
-}
-
-.hp-nav-cta {
+[data-surface="landing"] .hp-nav-link:hover { color: var(--gt-ink); }
+[data-surface="landing"] .hp-nav-cta {
   background: var(--gt-red);
   color: #fff;
   text-decoration: none;
@@ -84,73 +81,104 @@
   border-radius: 999px;
   transition: background 0.15s ease, transform 0.15s ease;
 }
-
-.hp-nav-cta:hover {
+[data-surface="landing"] .hp-nav-cta:hover {
   background: var(--gt-red-hover);
   transform: translateY(-1px);
 }
 
-/* ── Pinned Hero Section ─────────────────────────────────────────────── */
-.hp-pin-section {
+/* ── Pinned hero section ─────────────────────────────────────────────── */
+[data-surface="landing"] #hero-pinnable {
   position: relative;
-  height: 220vh; /* Pin duration: longer = more scroll-locked feel */
 }
-
-.hp-pin-sticky {
-  position: sticky;
-  top: 0;
+[data-surface="landing"] .hp-pin-stage {
+  position: relative;
   height: 100vh;
-  display: flex;
+  width: 100%;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
   align-items: center;
-  justify-content: center;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(220, 38, 38, 0.04), transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.03), transparent 50%),
-    var(--gt-bg-soft);
+  justify-items: center;
 }
 
-.hp-hero {
+[data-surface="landing"] .hp-stage-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(220, 38, 38, 0.06), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.04), transparent 55%),
+    var(--gt-bg-soft);
+  z-index: 0;
+}
+
+/* Master Controller stage */
+[data-surface="landing"] .hp-controller-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(86vw, 720px);
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
+}
+[data-surface="landing"] .hp-controller {
   width: 100%;
-  max-width: 900px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.18));
+  will-change: transform, opacity;
+}
+[data-surface="landing"] .hp-ctrl-layer {
+  will-change: transform, opacity;
+}
+
+/* Hero copy is layered on top of the controller assembly */
+[data-surface="landing"] .hp-hero-copy {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 880px;
   padding: 0 1.5rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  will-change: transform, opacity;
+  gap: 1.25rem;
+  /* Pull copy slightly above center so the controller halos through it */
+  transform: translateY(-2vh);
 }
 
-.hp-hero-h1 {
+[data-surface="landing"] .hp-hero-h1 {
   font-size: clamp(3rem, 9vw, 7rem);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
   margin: 0;
   color: var(--gt-ink);
-  will-change: filter, transform;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  will-change: transform, filter, opacity;
 }
-
-.hp-hero-sub {
+[data-surface="landing"] .hp-hero-sub {
   font-size: clamp(1.1rem, 2vw, 1.5rem);
   font-weight: 400;
   color: var(--gt-ink-soft);
   margin: 0;
   letter-spacing: -0.01em;
-  will-change: filter;
+  will-change: transform, filter, opacity;
 }
-
-.hp-hero-ctas {
+[data-surface="landing"] .hp-hero-ctas {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
   justify-content: center;
   margin-top: 0.5rem;
+  will-change: transform, opacity;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────────────── */
-.hp-btn-primary,
-.hp-btn-ghost {
+[data-surface="landing"] .hp-btn-primary,
+[data-surface="landing"] .hp-btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -163,46 +191,40 @@
   cursor: pointer;
   border: none;
 }
-
-.hp-btn-primary {
+[data-surface="landing"] .hp-btn-primary {
   background: var(--gt-red);
   color: #fff;
   box-shadow: 0 8px 24px -8px rgba(220, 38, 38, 0.5);
 }
-
-.hp-btn-primary:hover {
+[data-surface="landing"] .hp-btn-primary:hover {
   background: var(--gt-red-hover);
   transform: translateY(-2px);
   box-shadow: 0 12px 32px -8px rgba(220, 38, 38, 0.6);
 }
-
-.hp-btn-ghost {
-  background: rgba(255, 255, 255, 0.6);
+[data-surface="landing"] .hp-btn-ghost {
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
   color: var(--gt-ink);
   border: 1px solid var(--gt-glass-border);
 }
-
-.hp-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.9);
+[data-surface="landing"] .hp-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.95);
   transform: translateY(-2px);
 }
-
-.hp-btn-lg {
+[data-surface="landing"] .hp-btn-lg {
   padding: 1rem 1.75rem;
   font-size: 1rem;
 }
 
-/* ── Bento Section ───────────────────────────────────────────────────── */
-.hp-bento-section {
+/* ── Bento section: 12-col grid with floating cards ──────────────────── */
+[data-surface="landing"] .hp-bento-section {
   position: relative;
-  padding: 8rem 1.5rem 12rem;
+  padding: 10rem 1.5rem 14rem;
   background: var(--gt-bg);
   overflow: hidden;
 }
-
-.hp-parallax-word {
+[data-surface="landing"] .hp-parallax-word {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -217,15 +239,13 @@
   z-index: 0;
   will-change: transform;
 }
-
-.hp-bento-inner {
+[data-surface="landing"] .hp-bento-inner {
   position: relative;
   z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
 }
-
-.hp-bento-heading {
+[data-surface="landing"] .hp-bento-heading {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -233,18 +253,17 @@
   text-align: center;
   margin: 0 0 5rem;
   color: var(--gt-ink);
-  will-change: filter, transform;
+  will-change: transform, filter, opacity;
 }
 
-.hp-bento-grid {
+[data-surface="landing"] .hp-bento-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
-
-.hp-bento-card {
-  grid-column: span 2;
+[data-surface="landing"] .hp-bento-card {
+  grid-column: span 4;
   background: var(--gt-glass);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
@@ -254,65 +273,57 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-height: 280px;
-  box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.1);
+  min-height: 300px;
+  box-shadow: 0 14px 44px -16px rgba(0, 0, 0, 0.12);
   will-change: transform;
 }
-
-.hp-bento-card--tall {
-  grid-column: span 2;
-  min-height: 360px;
+[data-surface="landing"] .hp-bento-card--tall {
+  grid-column: span 4;
+  min-height: 380px;
 }
-
-.hp-bento-card--wide {
-  grid-column: span 2;
-  min-height: 320px;
+[data-surface="landing"] .hp-bento-card--wide {
+  grid-column: span 4;
+  min-height: 340px;
 }
-
-.hp-bento-icon {
+[data-surface="landing"] .hp-bento-icon {
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.85);
   border: 1px solid var(--gt-glass-border);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--gt-ink);
 }
-
-.hp-bento-label {
+[data-surface="landing"] .hp-bento-label {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gt-ink-soft);
 }
-
-.hp-bento-title {
+[data-surface="landing"] .hp-bento-title {
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
   color: var(--gt-ink);
 }
-
-.hp-bento-desc {
+[data-surface="landing"] .hp-bento-desc {
   font-size: 1rem;
   color: var(--gt-ink-soft);
   margin: 0;
   flex-grow: 1;
 }
-
-.hp-bento-progress {
+[data-surface="landing"] .hp-bento-progress {
   height: 6px;
   background: rgba(0, 0, 0, 0.06);
   border-radius: 999px;
   overflow: hidden;
   margin-top: auto;
 }
-
-.hp-bento-progress-fill {
+[data-surface="landing"] .hp-bento-progress-fill {
   height: 100%;
   background: var(--gt-red);
   border-radius: 999px;
@@ -320,13 +331,12 @@
 }
 
 /* ── Closing CTA ─────────────────────────────────────────────────────── */
-.hp-closing {
+[data-surface="landing"] .hp-closing {
   padding: 6rem 1.5rem;
   background: var(--gt-bg-soft);
   border-top: 1px solid var(--gt-line);
 }
-
-.hp-closing-inner {
+[data-surface="landing"] .hp-closing-inner {
   max-width: 800px;
   margin: 0 auto;
   text-align: center;
@@ -335,8 +345,7 @@
   align-items: center;
   gap: 2rem;
 }
-
-.hp-closing-h2 {
+[data-surface="landing"] .hp-closing-h2 {
   font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -346,13 +355,12 @@
 }
 
 /* ── Footer ──────────────────────────────────────────────────────────── */
-.hp-footer {
+[data-surface="landing"] .hp-footer {
   background: var(--gt-bg);
   border-top: 1px solid var(--gt-line);
   padding: 2rem 1.5rem;
 }
-
-.hp-footer-inner {
+[data-surface="landing"] .hp-footer-inner {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
@@ -361,73 +369,68 @@
   flex-wrap: wrap;
   gap: 1rem;
 }
-
-.hp-footer-logo {
+[data-surface="landing"] .hp-footer-logo {
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--gt-ink);
 }
-
-.hp-footer-meta {
+[data-surface="landing"] .hp-footer-meta {
   font-size: 0.85rem;
   color: var(--gt-ink-soft);
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
-  .hp-bento-grid {
+  [data-surface="landing"] .hp-bento-grid {
     grid-template-columns: 1fr;
   }
-  .hp-bento-card,
-  .hp-bento-card--tall,
-  .hp-bento-card--wide {
+  [data-surface="landing"] .hp-bento-card,
+  [data-surface="landing"] .hp-bento-card--tall,
+  [data-surface="landing"] .hp-bento-card--wide {
     grid-column: span 1;
     min-height: 240px;
   }
-  .hp-pin-section {
-    height: 180vh;
-  }
-  .hp-bento-section {
+  [data-surface="landing"] .hp-bento-section {
     padding: 6rem 1.25rem 8rem;
   }
+  [data-surface="landing"] .hp-controller-wrap {
+    width: 92vw;
+  }
 }
-
 @media (max-width: 560px) {
-  .hp-nav-inner {
+  [data-surface="landing"] .hp-nav-inner {
     padding: 0.75rem 1rem;
   }
-  .hp-nav-link {
+  [data-surface="landing"] .hp-nav-link {
     display: none;
   }
-  .hp-hero-ctas {
+  [data-surface="landing"] .hp-hero-ctas {
     flex-direction: column;
     width: 100%;
   }
-  .hp-btn-primary,
-  .hp-btn-ghost {
+  [data-surface="landing"] .hp-btn-primary,
+  [data-surface="landing"] .hp-btn-ghost {
     width: 100%;
     justify-content: center;
   }
 }
 
-/* Reduced motion: disable kinetic effects */
+/* ── Reduced motion: kill kinetic effects, no pin ────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .hp-hero,
-  .hp-hero-h1,
-  .hp-hero-sub,
-  .hp-bento-card,
-  .hp-bento-heading,
-  .hp-parallax-word {
+  [data-surface="landing"] .hp-hero-h1,
+  [data-surface="landing"] .hp-hero-sub,
+  [data-surface="landing"] .hp-hero-ctas,
+  [data-surface="landing"] .hp-bento-card,
+  [data-surface="landing"] .hp-bento-heading,
+  [data-surface="landing"] .hp-parallax-word,
+  [data-surface="landing"] .hp-controller,
+  [data-surface="landing"] .hp-ctrl-layer {
     transform: none !important;
     filter: none !important;
     opacity: 1 !important;
   }
-  .hp-pin-section {
-    height: auto;
-  }
-  .hp-pin-sticky {
-    position: relative;
+  [data-surface="landing"] .hp-pin-stage {
     height: auto;
     padding: 6rem 0;
   }

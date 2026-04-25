@@ -1,9 +1,22 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import MasterController from '../components/MasterController.jsx';
+import { ParentLayout } from '../components/Layouts.jsx';
 import './HomePage.css';
 
-/* ── Inline SVG Icons ───────────────────────────────────────────────────── */
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── Inline icons ─────────────────────────────────────────────────────── */
+function IconArrow() {
+  return (
+    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+      <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 function IconAI() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
@@ -13,7 +26,6 @@ function IconAI() {
     </svg>
   );
 }
-
 function IconCoin() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
@@ -22,7 +34,6 @@ function IconCoin() {
     </svg>
   );
 }
-
 function IconShield() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
@@ -32,29 +43,7 @@ function IconShield() {
   );
 }
 
-function IconArrow() {
-  return (
-    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
-      <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-/* ── Kinetic headline (blur + scale on scroll) ──────────────────────────── */
-function KineticText({ progress, range = [0, 0.5], children, className = '' }) {
-  const blur = useTransform(progress, range, [20, 0]);
-  const scale = useTransform(progress, range, [0.8, 1]);
-  const opacity = useTransform(progress, range, [0, 1]);
-  const filter = useTransform(blur, (v) => `blur(${v}px)`);
-
-  return (
-    <motion.div style={{ filter, scale, opacity }} className={className}>
-      {children}
-    </motion.div>
-  );
-}
-
-/* ── NavBar ─────────────────────────────────────────────────────────────── */
+/* ── NavBar ───────────────────────────────────────────────────────────── */
 function NavBar({ auth }) {
   if (auth.token) return null;
   return (
@@ -72,183 +61,265 @@ function NavBar({ auth }) {
   );
 }
 
-/* ── HomePage ───────────────────────────────────────────────────────────── */
+/* ── HomePage ─────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
-  const containerRef = useRef(null);
+  const heroPinRef = useRef(null);
+  const heroStageRef = useRef(null);
+  const heroH1Ref = useRef(null);
+  const heroSubRef = useRef(null);
+  const heroCtaRef = useRef(null);
+  const controllerRef = useRef(null);
   const bentoRef = useRef(null);
+  const parallaxWordRef = useRef(null);
 
-  // Hero scroll progress (drives pin + kinetic hero text)
-  const { scrollYProgress: heroProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
+  useEffect(() => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) return undefined;
 
-  // Bento section scroll progress
-  const { scrollYProgress: bentoProgress } = useScroll({
-    target: bentoRef,
-    offset: ['start end', 'end start'],
-  });
+    const ctx = gsap.context(() => {
+      /* ── Master Controller: position layers off-screen at start ──── */
+      const layers = {
+        outer: '#hp-ctrl-outer-frame',
+        core: '#hp-ctrl-core',
+        buttons: '#hp-ctrl-buttons',
+        cells: '#hp-ctrl-cells',
+      };
 
-  // Hero pin: lock hero in place while scrolling through the pin section
-  const heroY = useTransform(heroProgress, [0, 0.6, 1], ['0%', '0%', '-20%']);
-  const heroOpacity = useTransform(heroProgress, [0, 0.6, 1], [1, 1, 0]);
-  const heroScale = useTransform(heroProgress, [0, 0.6, 1], [1, 1, 0.92]);
+      gsap.set(layers.outer,   { xPercent: -120, yPercent: -10, rotate: -8,  opacity: 0, transformOrigin: '50% 50%' });
+      gsap.set(layers.core,    { yPercent: -140,                opacity: 0, transformOrigin: '50% 50%' });
+      gsap.set(layers.buttons, { xPercent: 120,  yPercent: 20,  rotate: 12, opacity: 0, transformOrigin: '50% 50%' });
+      gsap.set(layers.cells,   { yPercent: 140,                 opacity: 0, transformOrigin: '50% 50%' });
+      gsap.set('#hp-ctrl-telemetry', { scaleX: 0.05, transformOrigin: 'left center' });
 
-  // Hero kinetic text — clears as user begins scrolling
-  const heroTextBlur = useTransform(heroProgress, [0, 0.15], [20, 0]);
-  const heroTextScale = useTransform(heroProgress, [0, 0.15], [0.8, 1]);
-  const heroTextFilter = useTransform(heroTextBlur, (v) => `blur(${v}px)`);
+      /* ── Hero text: blur(30) + opacity 0 to start ────────────────── */
+      gsap.set(heroH1Ref.current,  { autoAlpha: 0, filter: 'blur(30px)', y: 40 });
+      gsap.set(heroSubRef.current, { autoAlpha: 0, filter: 'blur(20px)', y: 20 });
+      gsap.set(heroCtaRef.current, { autoAlpha: 0, y: 20 });
 
-  // Horizontal parallax giant "GAMETIME" word — slides L→R across whole page
-  const parallaxX = useTransform(bentoProgress, [0, 1], ['-30%', '30%']);
+      /* ── Pinned timeline: 2.5x viewport scrub ────────────────────── */
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: heroPinRef.current,
+          start: 'top top',
+          end: '+=250%',          // exactly 2.5x viewport height
+          pin: heroStageRef.current,
+          pinSpacing: true,
+          scrub: 1,               // weighted, momentum follow
+          anticipatePin: 1,
+        },
+      });
 
-  // Bento card y-offsets — different per card for floating effect
-  const card1Y = useTransform(bentoProgress, [0, 1], [120, -80]);
-  const card2Y = useTransform(bentoProgress, [0, 1], [60, -140]);
-  const card3Y = useTransform(bentoProgress, [0, 1], [180, -40]);
+      // Phase 1 (0 → 0.30): controller assembles
+      tl.to(layers.outer,   { xPercent: 0, yPercent: 0, rotate: 0, opacity: 1, ease: 'power3.out', duration: 0.30 }, 0)
+        .to(layers.core,    { yPercent: 0,              opacity: 1, ease: 'power3.out', duration: 0.30 }, 0.06)
+        .to(layers.buttons, { xPercent: 0, yPercent: 0, rotate: 0, opacity: 1, ease: 'power3.out', duration: 0.30 }, 0.12)
+        .to(layers.cells,   { yPercent: 0,              opacity: 1, ease: 'power3.out', duration: 0.30 }, 0.18);
+
+      // Phase 2 (0.30 → 0.55): kinetic headline reveals as core comes online
+      tl.to(heroH1Ref.current,  { autoAlpha: 1, filter: 'blur(0px)', y: 0, ease: 'power2.out', duration: 0.25 }, 0.30)
+        .to(heroSubRef.current, { autoAlpha: 1, filter: 'blur(0px)', y: 0, ease: 'power2.out', duration: 0.20 }, 0.40)
+        .to(heroCtaRef.current, { autoAlpha: 1, y: 0,                ease: 'power2.out', duration: 0.20 }, 0.48);
+
+      // Phase 3 (0.55 → 0.85): telemetry charges up + subtle controller breathing
+      tl.to('#hp-ctrl-telemetry', { scaleX: 1, ease: 'power1.inOut', duration: 0.30 }, 0.55)
+        .to(controllerRef.current, { scale: 1.04, ease: 'sine.inOut', duration: 0.30 }, 0.55);
+
+      // Phase 4 (0.85 → 1.0): release — soft scale down so it docks under the bento
+      tl.to(controllerRef.current, { scale: 0.96, ease: 'power2.in', duration: 0.15 }, 0.85);
+
+      /* ── Horizontal parallax giant word behind the bento grid ────── */
+      gsap.fromTo(
+        parallaxWordRef.current,
+        { xPercent: -30 },
+        {
+          xPercent: 30,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: bentoRef.current,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        }
+      );
+
+      /* ── Floating Bento cards: each card has a different y offset ── */
+      const cards = gsap.utils.toArray('.hp-bento-card');
+      const offsets = [120, 60, 180]; // staggered float per card
+      cards.forEach((card, i) => {
+        gsap.fromTo(
+          card,
+          { y: offsets[i] || 100 },
+          {
+            y: -((offsets[i] || 100) * 0.6),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: bentoRef.current,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: 1,
+            },
+          }
+        );
+      });
+
+      /* ── Bento heading kinetic reveal ─────────────────────────────── */
+      gsap.fromTo(
+        '.hp-bento-heading',
+        { autoAlpha: 0, filter: 'blur(20px)', y: 40 },
+        {
+          autoAlpha: 1,
+          filter: 'blur(0px)',
+          y: 0,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.hp-bento-heading',
+            start: 'top 85%',
+            end: 'top 50%',
+            scrub: 1,
+          },
+        }
+      );
+    }, heroPinRef);
+
+    // Refresh after layout settles (fonts, images, late mounts).
+    const refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 100);
+
+    return () => {
+      window.clearTimeout(refreshId);
+      ctx.revert();
+    };
+  }, []);
 
   return (
-    <div className="hp-root">
-      <NavBar auth={auth} />
+    <ParentLayout>
+      <div className="hp-root">
+        <NavBar auth={auth} />
 
-      <main role="main">
-        {/* ── Pinned Hero ──────────────────────────────────────────── */}
-        <section ref={containerRef} className="hp-pin-section" aria-labelledby="hp-hero-heading">
-          <div className="hp-pin-sticky">
-            <motion.div
-              className="hp-hero"
-              style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
-            >
-              <motion.h1
-                id="hp-hero-heading"
-                className="hp-hero-h1"
-                style={{ filter: heroTextFilter, scale: heroTextScale }}
-              >
-                Screen Time, Earned.
-              </motion.h1>
-
-              <motion.p
-                className="hp-hero-sub"
-                style={{ filter: heroTextFilter }}
-              >
-                Do chores. Get gaming time.
-              </motion.p>
-
-              <motion.div className="hp-hero-ctas" style={{ opacity: heroTextScale }}>
-                {auth.token ? (
-                  <Link
-                    to={auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'}
-                    className="hp-btn-primary"
-                  >
-                    Go to Dashboard <IconArrow />
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/signup" className="hp-btn-primary">
-                      Get Started <IconArrow />
-                    </Link>
-                    <a href="#bento" className="hp-btn-ghost">
-                      How it works
-                    </a>
-                  </>
-                )}
-              </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ── Bento Grid with floating cards + parallax word ─────── */}
-        <section
-          id="bento"
-          ref={bentoRef}
-          className="hp-bento-section"
-          aria-label="Features"
-        >
-          {/* Horizontal parallax giant text behind cards */}
-          <motion.div
-            className="hp-parallax-word"
-            style={{ x: parallaxX }}
-            aria-hidden="true"
+        <main role="main">
+          {/* ── Pinned Hero ────────────────────────────────────────── */}
+          <section
+            ref={heroPinRef}
+            id="hero-pinnable"
+            className="hp-pin-section"
+            aria-labelledby="hp-hero-heading"
           >
-            GAMETIME
-          </motion.div>
+            <div ref={heroStageRef} className="hp-pin-stage">
+              <div className="hp-stage-bg" aria-hidden="true" />
 
-          <div className="hp-bento-inner">
-            <KineticText progress={bentoProgress} range={[0.05, 0.25]}>
-              <h2 className="hp-bento-heading">How it works.</h2>
-            </KineticText>
+              <div className="hp-controller-wrap" aria-hidden="true">
+                <MasterController ref={controllerRef} />
+              </div>
 
-            <div className="hp-bento-grid">
-              <motion.article
-                className="hp-bento-card hp-bento-card--tall"
-                style={{ y: card1Y }}
-              >
-                <div className="hp-bento-icon">
-                  <IconAI />
+              <div className="hp-hero-copy">
+                <h1
+                  id="hp-hero-heading"
+                  ref={heroH1Ref}
+                  className="hp-hero-h1"
+                >
+                  Screen time, earned.
+                </h1>
+                <p ref={heroSubRef} className="hp-hero-sub">
+                  Do chores. Get gaming time.
+                </p>
+                <div ref={heroCtaRef} className="hp-hero-ctas">
+                  {auth.token ? (
+                    <Link
+                      to={auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'}
+                      className="hp-btn-primary"
+                    >
+                      Go to Dashboard <IconArrow />
+                    </Link>
+                  ) : (
+                    <>
+                      <Link to="/signup" className="hp-btn-primary">
+                        Get Started <IconArrow />
+                      </Link>
+                      <a href="#bento" className="hp-btn-ghost">
+                        How it works
+                      </a>
+                    </>
+                  )}
                 </div>
-                <div className="hp-bento-label">Card 1</div>
-                <h3 className="hp-bento-title">AI Evidence</h3>
-                <p className="hp-bento-desc">Simple photo proof.</p>
-                <div className="hp-bento-progress">
-                  <div className="hp-bento-progress-fill" style={{ width: '78%' }} />
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="hp-bento-card"
-                style={{ y: card2Y }}
-              >
-                <div className="hp-bento-icon">
-                  <IconCoin />
-                </div>
-                <div className="hp-bento-label">Card 2</div>
-                <h3 className="hp-bento-title">Points</h3>
-                <p className="hp-bento-desc">Earn Gold &amp; RP.</p>
-                <div className="hp-bento-progress">
-                  <div className="hp-bento-progress-fill" style={{ width: '54%' }} />
-                </div>
-              </motion.article>
-
-              <motion.article
-                className="hp-bento-card hp-bento-card--wide"
-                style={{ y: card3Y }}
-              >
-                <div className="hp-bento-icon">
-                  <IconShield />
-                </div>
-                <div className="hp-bento-label">Card 3</div>
-                <h3 className="hp-bento-title">Controls</h3>
-                <p className="hp-bento-desc">Stop gaming instantly.</p>
-                <div className="hp-bento-progress">
-                  <div className="hp-bento-progress-fill" style={{ width: '92%' }} />
-                </div>
-              </motion.article>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Closing CTA ─────────────────────────────────────────── */}
-        {!auth.token && (
-          <section className="hp-closing" aria-labelledby="hp-closing-heading">
-            <div className="hp-closing-inner">
-              <h2 id="hp-closing-heading" className="hp-closing-h2">
-                Ready to start?
-              </h2>
-              <Link to="/signup" className="hp-btn-primary hp-btn-lg">
-                Get Started <IconArrow />
-              </Link>
+              </div>
             </div>
           </section>
-        )}
 
-        {/* ── Footer ──────────────────────────────────────────────── */}
-        <footer className="hp-footer" role="contentinfo">
-          <div className="hp-footer-inner">
-            <span className="hp-footer-logo">Gametime</span>
-            <span className="hp-footer-meta">© 2026 · Singapore</span>
-          </div>
-        </footer>
-      </main>
-    </div>
+          {/* ── Bento Grid (12-col) with floating cards + parallax ─── */}
+          <section
+            id="bento"
+            ref={bentoRef}
+            className="hp-bento-section"
+            aria-label="Features"
+          >
+            <div
+              ref={parallaxWordRef}
+              className="hp-parallax-word"
+              aria-hidden="true"
+            >
+              GAMETIME
+            </div>
+
+            <div className="hp-bento-inner">
+              <h2 className="hp-bento-heading">How it works.</h2>
+
+              <div className="hp-bento-grid">
+                <article className="hp-bento-card hp-bento-card--tall">
+                  <div className="hp-bento-icon"><IconAI /></div>
+                  <div className="hp-bento-label">Step 01</div>
+                  <h3 className="hp-bento-title">AI Evidence</h3>
+                  <p className="hp-bento-desc">Snap a photo. Our AI verifies the chore is done.</p>
+                  <div className="hp-bento-progress">
+                    <div className="hp-bento-progress-fill" style={{ width: '78%' }} />
+                  </div>
+                </article>
+
+                <article className="hp-bento-card">
+                  <div className="hp-bento-icon"><IconCoin /></div>
+                  <div className="hp-bento-label">Step 02</div>
+                  <h3 className="hp-bento-title">Earn Points</h3>
+                  <p className="hp-bento-desc">Approved chores convert to Gold &amp; RP.</p>
+                  <div className="hp-bento-progress">
+                    <div className="hp-bento-progress-fill" style={{ width: '54%' }} />
+                  </div>
+                </article>
+
+                <article className="hp-bento-card hp-bento-card--wide">
+                  <div className="hp-bento-icon"><IconShield /></div>
+                  <div className="hp-bento-label">Step 03</div>
+                  <h3 className="hp-bento-title">Parent Controls</h3>
+                  <p className="hp-bento-desc">Pause sessions and adjust limits in one tap.</p>
+                  <div className="hp-bento-progress">
+                    <div className="hp-bento-progress-fill" style={{ width: '92%' }} />
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          {/* ── Closing CTA ───────────────────────────────────────── */}
+          {!auth.token && (
+            <section className="hp-closing" aria-labelledby="hp-closing-heading">
+              <div className="hp-closing-inner">
+                <h2 id="hp-closing-heading" className="hp-closing-h2">
+                  Ready to start?
+                </h2>
+                <Link to="/signup" className="hp-btn-primary hp-btn-lg">
+                  Get Started <IconArrow />
+                </Link>
+              </div>
+            </section>
+          )}
+
+          {/* ── Footer ─────────────────────────────────────────────── */}
+          <footer className="hp-footer" role="contentinfo">
+            <div className="hp-footer-inner">
+              <span className="hp-footer-logo">Gametime</span>
+              <span className="hp-footer-meta">© 2026 · Singapore</span>
+            </div>
+          </footer>
+        </main>
+      </div>
+    </ParentLayout>
   );
 }

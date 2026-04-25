@@ -17,6 +17,7 @@ import { apiRequest } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ThemeToggleButton from './components/ThemeToggleButton.jsx';
 import ToastStack from './components/ToastStack.jsx';
+import SmoothScrollProvider from './components/SmoothScrollProvider.jsx';
 import { trackEvent } from './utils/analytics.js';
 
 function BackIcon() {
@@ -124,7 +125,7 @@ export default function App() {
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   return (
-    <div>
+    <SmoothScrollProvider>
       <ToastStack toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
       {showUtility && (
         <div className="utility-bar" aria-label="Global navigation controls">
@@ -225,6 +226,6 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
-    </div>
+    </SmoothScrollProvider>
   );
 }
