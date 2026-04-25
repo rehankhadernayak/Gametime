@@ -1,10 +1,11 @@
 import { trackEvent } from '../utils/analytics.js';
 // Support both VITE_API_BASE_URL (legacy) and VITE_API_URL (Vercel docs default).
-// Whichever is set first wins; falls back to localhost for dev.
+// In dev, default to same-origin `/api` (Vite proxies to the backend — works with Cloudflare Quick Tunnels).
+// In production builds, explicit env or localhost fallback.
+const explicitApi =
+  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 export const API_BASE = String(
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  'http://localhost:4000'
+  import.meta.env.DEV && !explicitApi ? '/api' : explicitApi || 'http://localhost:4000'
 ).replace(/\/$/, '');
 const REQUEST_TIMEOUT_MS = 15000;
 
