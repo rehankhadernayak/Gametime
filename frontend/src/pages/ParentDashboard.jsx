@@ -4,6 +4,7 @@ import { API_BASE, apiRequest } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
 import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
 import ChildAvatar from '../components/ChildAvatar.jsx';
+import AssignQuestModal from '../components/AssignQuestModal.jsx';
 
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
@@ -186,6 +187,8 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [txnDateFrom, setTxnDateFrom] = useState('');
   const [txnDateTo, setTxnDateTo] = useState('');
   const [showTopUp, setShowTopUp] = useState(false);
+  const [showAssignQuest, setShowAssignQuest] = useState(false);
+  const [questModalChildId, setQuestModalChildId] = useState('');
   const [undoAdjustment, setUndoAdjustment] = useState(null);
   const [undoSecondsLeft, setUndoSecondsLeft] = useState(0);
   const [message, setMessage] = useState('');
@@ -235,6 +238,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   function notify(text, kind = 'success') {
     setMessage(text);
     setMsgKind(kind);
+  }
+
+  function openAssignQuest(childId = '') {
+    setQuestModalChildId(childId);
+    setShowAssignQuest(true);
   }
 
   async function handleStripeTopUp() {
@@ -604,7 +612,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 <p className="section-subtitle">Manage RP, GP, tasks, and approvals from one place.</p>
               </div>
               <div className="quick-actions">
-                <button type="button" className="secondary-button" onClick={() => goToSection('tasks')}>Create Task</button>
+                <button type="button" className="secondary-button" onClick={() => openAssignQuest('')}>Assign quest</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('family')}>Add Child</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('gaming')}>Set Game Rules</button>
@@ -1191,6 +1199,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                       <th>RP</th>
                       <th>GP</th>
                       <th>Login</th>
+                      <th>Quest</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -1227,6 +1236,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                           {child.hasPasswordLogin && child.hasPinLogin ? ' + ' : ''}
                           {child.hasPinLogin ? 'PIN enabled' : ''}
                           {!child.hasPasswordLogin && !child.hasPinLogin ? 'No child login yet' : ''}
+                        </td>
+                        <td className="table-actions">
+                          <button type="button" className="secondary-button small" onClick={() => openAssignQuest(child.id)}>
+                            Assign quest
+                          </button>
                         </td>
                         <td className="table-actions">
                           <button type="button" onClick={() => onSwitchToChild(child.id)}>Open Child View</button>
@@ -1490,12 +1504,23 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       id: 'tasks',
       label: 'Tasks',
       content: (
-        <TaskTable
-          token={token}
-          tasks={tasks}
-          children={children}
-          onRefresh={loadAll}
-        />
+        <>
+          <div className="panel panel-top task-quest-launch">
+            <div>
+              <h2 className="task-quest-launch-title">Assign a New Quest</h2>
+              <p className="section-subtitle">Launch a guided quest with RP, due date, and required proof type.</p>
+            </div>
+            <button type="button" className="primary-button" onClick={() => openAssignQuest('')}>
+              Open quest creator
+            </button>
+          </div>
+          <TaskTable
+            token={token}
+            tasks={tasks}
+            children={children}
+            onRefresh={loadAll}
+          />
+        </>
       )
     },
     {
@@ -2028,6 +2053,20 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           onSuccess={() => {
             setShowTopUp(false);
             loadAll();
+          }}
+        />
+      )}
+      {showAssignQuest && (
+        <AssignQuestModal
+          token={token}
+          children={children}
+          defaultChildId={questModalChildId}
+          onClose={() => setShowAssignQuest(false)}
+          onCreated={() => {
+            setShowAssignQuest(false);
+            notify('Quest assigned.');
+            loadAll();
+            shellRef.current?.jumpToSection?.('tasks');
           }}
         />
       )}

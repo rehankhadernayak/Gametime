@@ -50,6 +50,12 @@ export async function initDb() {
   await ensureColumn(db, 'tasks', 'gp_points', 'gp_points INTEGER NOT NULL DEFAULT 0 CHECK(gp_points >= 0 AND gp_points <= 1000)');
   await ensureColumn(db, 'tasks', 'category', "category TEXT NOT NULL DEFAULT 'other'");
   await ensureColumn(db, 'tasks', 'recurrence_days', 'recurrence_days TEXT');
+  await ensureColumn(
+    db,
+    'tasks',
+    'required_evidence_type',
+    "required_evidence_type TEXT CHECK(required_evidence_type IS NULL OR required_evidence_type IN ('Photo','Video'))"
+  );
   await ensureColumn(db, 'rewards', 'points_type', "points_type TEXT NOT NULL DEFAULT 'RP' CHECK(points_type IN ('RP','GP'))");
   await ensureColumn(db, 'redemptions', 'points_type', "points_type TEXT NOT NULL DEFAULT 'RP' CHECK(points_type IN ('RP','GP'))");
   await ensureColumn(db, 'points_transactions', 'points_kind', "points_kind TEXT NOT NULL DEFAULT 'RP' CHECK(points_kind IN ('RP','GP'))");

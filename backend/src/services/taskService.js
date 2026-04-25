@@ -37,6 +37,10 @@ export async function createTask(parentId, payload) {
   const title = sanitizeText(payload.title);
   const description = sanitizeText(payload.description);
   const gpPoints = Number(payload.gpPoints || 0);
+  const requiredEvidenceType = payload.requiredEvidenceType ?? null;
+  if (requiredEvidenceType != null && requiredEvidenceType !== 'Photo' && requiredEvidenceType !== 'Video') {
+    throw new ApiError(400, 'Invalid required evidence type');
+  }
 
   if (!title || !description) {
     throw new ApiError(400, 'Task title and description cannot be empty');
@@ -55,8 +59,8 @@ export async function createTask(parentId, payload) {
     const category = payload.category || 'other';
     const recurrenceDays = payload.recurrenceDays || null;
     await db.run(
-      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         payload.childId,
@@ -68,6 +72,7 @@ export async function createTask(parentId, payload) {
         payload.dueDate,
         category,
         recurrenceDays,
+        requiredEvidenceType,
         now,
         now
       ]
@@ -89,10 +94,11 @@ export async function createTask(parentId, payload) {
     throw error;
   }
 
+  const proofHint = requiredEvidenceType ? ` | Proof: ${requiredEvidenceType}` : '';
   await createNotification(
     'Child',
     payload.childId,
-    `New task: ${title}${buildRewardSummary({ rpPoints: payload.points, gpPoints }) ? ` | Reward: ${buildRewardSummary({ rpPoints: payload.points, gpPoints })}` : ''}`
+    `New task: ${title}${buildRewardSummary({ rpPoints: payload.points, gpPoints }) ? ` | Reward: ${buildRewardSummary({ rpPoints: payload.points, gpPoints })}` : ''}${proofHint}`
   );
 
   return { id };
@@ -138,6 +144,7 @@ export async function listTasksForParent(parentId) {
   return db.all(
     `SELECT t.id, t.child_id as childId, c.name as childName, t.title, t.description, t.points, t.gp_points as gpPoints, t.state, t.due_date as dueDate,
             t.category, t.recurrence_days as recurrenceDays,
+            t.required_evidence_type as requiredEvidenceType,
             t.created_at as createdAt, t.updated_at as updatedAt,
             tc.id as completionId,
             CASE WHEN tc.evidence_data IS NOT NULL AND tc.evidence_data != '' THEN 1 ELSE 0 END as hasEvidence,
@@ -161,6 +168,7 @@ export async function listTasksForChild(childId) {
   return db.all(
     `SELECT t.id, t.title, t.description, t.points, t.gp_points as gpPoints, t.state, t.due_date as dueDate,
             t.category, t.recurrence_days as recurrenceDays,
+            t.required_evidence_type as requiredEvidenceType,
             t.created_at as createdAt, t.updated_at as updatedAt,
             tc.id as completionId,
             CASE WHEN tc.evidence_data IS NOT NULL AND tc.evidence_data != '' THEN 1 ELSE 0 END as hasEvidence,
@@ -188,6 +196,11 @@ export async function completeTask(childId, payload) {
   }
   if (!payload.evidenceData || !payload.evidenceMime || !payload.evidenceType) {
     throw new ApiError(400, 'Evidence (photo/video) is required for task completion');
+  }
+
+  const requiredType = task.required_evidence_type;
+  if (requiredType && payload.evidenceType !== requiredType) {
+    throw new ApiError(400, `This quest requires ${requiredType} proof. Please upload a ${requiredType.toLowerCase()}.`);
   }
 
   const existingCompletion = await db.get('SELECT * FROM task_completions WHERE task_id = ? AND child_id = ?', [taskId, childId]);
@@ -645,8 +658,8 @@ export async function approveTaskRequest(parentId, requestId, payload) {
   await db.exec('BEGIN');
   try {
     await db.run(
-      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'other', NULL, NULL, ?, ?)`,
       [
         taskId,
         request.child_id,

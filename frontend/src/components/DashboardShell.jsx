@@ -152,6 +152,13 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
     setSidebarOpen(false);
   }
 
+  /** Switch section without pushing history (e.g. after a modal action). */
+  function jumpToSection(nextId) {
+    if (!nextId) return;
+    setActiveSectionId(nextId);
+    setSidebarOpen(false);
+  }
+
   /* In AI mode, clicking any section just navigates normally - the AI panel
      stays visible on the right regardless of which section is active. */
   function handleMenuClick(sectionId) {
@@ -159,7 +166,7 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
   }
 
   /* Expose navigation imperatively so parent components can drive section changes */
-  if (controlRef) controlRef.current = { goToSection };
+  if (controlRef) controlRef.current = { goToSection, jumpToSection };
 
   function goBackSection() {
     setHistory((prev) => {
