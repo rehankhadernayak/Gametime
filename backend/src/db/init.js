@@ -1,6 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { getDb } from './connection.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function ensureColumn(db, table, column, definition) {
   const columns = await db.all(`PRAGMA table_info(${table})`);
@@ -12,7 +15,7 @@ async function ensureColumn(db, table, column, definition) {
 
 export async function initDb() {
   const db = await getDb();
-  const schemaPath = path.resolve(process.cwd(), 'src/db/schema.sql');
+  const schemaPath = path.resolve(__dirname, 'schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
   await db.exec(schemaSql);
 

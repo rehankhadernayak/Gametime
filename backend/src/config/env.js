@@ -17,6 +17,14 @@ const frontendOrigins = frontendOriginRaw
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+function parseTrustProxy(value) {
+  const raw = String(value || '').trim();
+  if (!raw || raw === 'false') return false;
+  if (raw === 'true') return true;
+  if (/^\d+$/.test(raw)) return Number(raw);
+  return raw;
+}
+
 /* ── Security-critical defaults ─────────────────────────────────────────
    In production these MUST be overridden via real environment variables.
    The app will refuse to start (throw) if it detects dev placeholder values
@@ -49,6 +57,8 @@ if (process.env.NODE_ENV === 'production') {
 
 export const env = {
   port: Number(process.env.PORT || 4000),
+  trustProxy: parseTrustProxy(process.env.TRUST_PROXY),
+  backendRoot: resolve(__dirname, '../..'),
   jwtSecret: rawJwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
   databasePath: process.env.DATABASE_PATH || './data/gametime.db',

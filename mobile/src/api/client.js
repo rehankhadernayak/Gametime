@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 
 const API_URL_KEY = 'gametime_mobile_api_url';
 const DEFAULT_WEB_API_URL = 'http://localhost:4000';
-const DEFAULT_DEVICE_API_URL = 'http://192.168.1.140:4000'; // auto-detected local IP
+const DEFAULT_DEVICE_API_URL = 'http://localhost:4000';
 const REQUEST_TIMEOUT_MS = 15000;
 let unauthorizedHandler = null;
 
@@ -12,7 +12,20 @@ function normalizeUrl(url) {
   return String(url || '').trim().replace(/\/$/, '');
 }
 
+function getConfiguredApiUrl() {
+  return normalizeUrl(
+    process.env.EXPO_PUBLIC_API_URL ||
+      Constants.expoConfig?.extra?.apiUrl ||
+      Constants.expoConfig?.extra?.apiBaseUrl ||
+      Constants.manifest2?.extra?.expoClient?.extra?.apiUrl ||
+      ''
+  );
+}
+
 function inferDefaultApiUrl() {
+  const configuredUrl = getConfiguredApiUrl();
+  if (configuredUrl) return configuredUrl;
+
   if (Platform.OS === 'web') return DEFAULT_WEB_API_URL;
 
   const hostUri = String(

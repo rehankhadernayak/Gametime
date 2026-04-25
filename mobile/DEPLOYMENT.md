@@ -100,7 +100,8 @@ eas submit --platform android --latest
 
 **Before building for staging/production:**
 
-1. Update backend API endpoints in `eas.json`:
+1. Update backend API endpoints in `eas.json`. The app reads `EXPO_PUBLIC_API_URL`
+   at build time and uses it as the default API host for fresh installs:
    ```json
    "preview": {
      "env": {
@@ -141,6 +142,11 @@ eas credentials configure --platform ios
 - Check `EXPO_PUBLIC_API_URL` is correct in eas.json
 - Verify backend API is accessible
 - Check iOS/Android logs: `eas logs --platform ios --status in-progress`
+
+### Fresh install cannot log in
+- Confirm the build profile includes `EXPO_PUBLIC_API_URL=https://api.yourdomain.com`
+- Confirm the backend `/health` endpoint responds over HTTPS
+- In the app's Connection Settings, clear any saved development API URL override
 
 ### Version conflicts
 ```bash

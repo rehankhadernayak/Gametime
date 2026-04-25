@@ -24,6 +24,10 @@ import { env } from './config/env.js';
 
 export function createApp() {
   const app = express();
+  if (env.trustProxy) {
+    app.set('trust proxy', env.trustProxy);
+  }
+
   const allowedOrigins = new Set([
     ...env.frontendOrigins,
     'http://localhost:5173',
