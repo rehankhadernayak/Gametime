@@ -1,0 +1,433 @@
+/* Immersive child Gamer Hub — scoped neon / glass (page owns theme wrapper) */
+
+.childTheme {
+  --gh-accent: #22d8e7;
+  --gh-accent-glow: rgba(34, 216, 231, 0.45);
+  --gh-purple: #7c5bff;
+  --gh-purple-glow: rgba(124, 91, 255, 0.35);
+  --gh-glass-bg: rgba(12, 14, 28, 0.72);
+  --gh-glass-border: rgba(124, 91, 255, 0.28);
+  --gh-glass-highlight: rgba(34, 216, 231, 0.12);
+  --gh-text: #f8faff;
+  --gh-text-soft: #aab3d3;
+  --gh-text-dim: #6f7caa;
+
+  color-scheme: dark;
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100vh - var(--nav-h, 60px));
+  width: 100%;
+  padding: 1.25rem clamp(1rem, 4vw, 2rem) 2.75rem;
+  color: var(--gh-text);
+  background:
+    radial-gradient(ellipse 100% 70% at 50% -15%, var(--gh-purple-glow), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 50%, rgba(34, 216, 231, 0.08), transparent 45%),
+    linear-gradient(165deg, #05060d 0%, #0a1022 42%, #060818 100%);
+}
+
+.childTheme::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.35;
+  pointer-events: none;
+  background-image: linear-gradient(
+      rgba(34, 216, 231, 0.03) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(34, 216, 231, 0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 20%, black, transparent);
+}
+
+.shell {
+  max-width: 42rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.75rem;
+}
+
+.pageTitle {
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-align: center;
+  background: linear-gradient(135deg, #c4b5fd 0%, var(--gh-accent) 55%, #7c5bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.welcome {
+  text-align: center;
+  color: var(--gh-text-soft);
+  font-size: 0.95rem;
+}
+
+.heroCard {
+  text-align: center;
+}
+
+.heroLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gh-text-dim);
+  margin-bottom: 0.75rem;
+}
+
+.balanceRow {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.balanceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 6.5rem;
+}
+
+.balanceValue {
+  font-size: clamp(2rem, 8vw, 2.75rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-shadow: 0 0 28px var(--gh-accent-glow);
+  color: var(--gh-text);
+}
+
+.balanceValueGp {
+  text-shadow: 0 0 24px var(--gh-purple-glow);
+}
+
+.balanceUnit {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gh-accent);
+}
+
+.balanceUnitGp {
+  color: #c4b5fd;
+}
+
+.sectionTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gh-text-dim);
+  margin-bottom: 0.85rem;
+}
+
+.questGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 1rem;
+}
+
+.questMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.65rem;
+  font-size: 0.82rem;
+  color: var(--gh-text-soft);
+}
+
+.questTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--gh-text);
+  line-height: 1.25;
+}
+
+.questHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.formBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gh-text-dim);
+  margin-bottom: 0.4rem;
+}
+
+.select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--gh-glass-border);
+  background: rgba(8, 10, 22, 0.65);
+  color: var(--gh-text);
+}
+
+.select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 216, 231, 0.25);
+}
+
+.textInput {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--gh-glass-border);
+  background: rgba(8, 10, 22, 0.65);
+  color: var(--gh-text);
+}
+
+.textInput:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(34, 216, 231, 0.25);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #05060d;
+  background: linear-gradient(135deg, var(--gh-accent) 0%, #5ee7f5 50%, var(--gh-purple) 100%);
+  background-size: 200% 200%;
+  box-shadow:
+    0 0 0 1px rgba(34, 216, 231, 0.35),
+    0 8px 28px rgba(34, 216, 231, 0.22);
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s ease;
+}
+
+.submitBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(34, 216, 231, 0.5),
+    0 12px 36px rgba(124, 91, 255, 0.35);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submitBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.statusOk {
+  font-size: 0.9rem;
+  color: #66f7b2;
+}
+
+.statusErr {
+  font-size: 0.9rem;
+  color: #f76f74;
+}
+
+.loadingRow {
+  text-align: center;
+  color: var(--gh-text-soft);
+}
+
+.retryBtn {
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid var(--gh-glass-border);
+  background: rgba(124, 91, 255, 0.15);
+  color: var(--gh-text);
+  cursor: pointer;
+}
+
+.emptyQuests {
+  color: var(--gh-text-soft);
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+/* —— GTCard —— */
+.gtCard {
+  position: relative;
+  border-radius: 16px;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid rgba(124, 91, 255, 0.22);
+  background: linear-gradient(145deg, rgba(22, 28, 48, 0.95) 0%, rgba(10, 14, 28, 0.98) 100%);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.45, 0.64, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.gtCardGlass {
+  background: var(--gh-glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: var(--gh-glass-border);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.45),
+    0 0 0 1px var(--gh-glass-highlight) inset,
+    0 0 40px rgba(124, 91, 255, 0.08);
+}
+
+.gtCardInteractive:hover {
+  transform: translateY(-10px);
+  border-color: rgba(34, 216, 231, 0.35);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(34, 216, 231, 0.15) inset,
+    0 12px 40px rgba(34, 216, 231, 0.12);
+}
+
+.gtCardInteractive:active {
+  transform: translateY(-4px) scale(0.97);
+  transition-duration: 0.08s;
+}
+
+/* —— GTBadge —— */
+.gtBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gh-text-soft);
+}
+
+.gtBadgeAccent {
+  color: #05060d;
+  background: linear-gradient(135deg, #5ee7f5 0%, var(--gh-accent) 40%, #0eb4c1 100%);
+  border-color: rgba(34, 216, 231, 0.65);
+  box-shadow:
+    0 0 16px var(--gh-accent-glow),
+    0 0 32px rgba(34, 216, 231, 0.2);
+}
+
+/* —— Scan evidence card —— */
+.scanCardInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: center;
+  padding: 0.35rem 0.25rem 0.15rem;
+}
+
+.scanIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 216, 231, 0.12);
+  border: 1px solid rgba(34, 216, 231, 0.35);
+  color: var(--gh-accent);
+  box-shadow: 0 0 24px rgba(34, 216, 231, 0.15);
+}
+
+.scanTitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gh-text);
+}
+
+.scanHint {
+  font-size: 0.8rem;
+  color: var(--gh-text-soft);
+  max-width: 16rem;
+}
+
+.visuallyHiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.scanTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.25rem;
+  padding: 0.65rem 1.35rem;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: #05060d;
+  background: linear-gradient(135deg, var(--gh-accent), #8af0ff);
+  border: 1px solid rgba(34, 216, 231, 0.6);
+  box-shadow: 0 4px 20px rgba(34, 216, 231, 0.35);
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s ease;
+}
+
+.scanTrigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(34, 216, 231, 0.45);
+}
+
+.scanTrigger:active {
+  transform: scale(0.96);
+}
+
+.fileName {
+  font-size: 0.8rem;
+  color: var(--gh-text-soft);
+}
+
+.galleryLink {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--gh-text-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.galleryLink:hover {
+  color: var(--gh-accent);
+}
