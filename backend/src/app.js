@@ -22,6 +22,22 @@ import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
 import { env } from './config/env.js';
 
+function isDevTunnelOrigin(origin) {
+  if (process.env.NODE_ENV === 'production') return false;
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== 'https:') return false;
+    const h = u.hostname;
+    return (
+      h.endsWith('.trycloudflare.com') ||
+      h.endsWith('.cfargotunnel.com') ||
+      h.endsWith('.cvm.dev')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function createApp() {
   const app = express();
   const allowedOrigins = new Set([
@@ -38,6 +54,7 @@ export function createApp() {
       origin(origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedOrigins.has(origin)) return callback(null, true);
+        if (isDevTunnelOrigin(origin)) return callback(null, true);
         return callback(new Error(`CORS blocked for origin: ${origin}`));
       },
       credentials: true
