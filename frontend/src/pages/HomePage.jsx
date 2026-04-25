@@ -140,18 +140,21 @@ export default function HomePage({ auth }) {
             don't need Tailwind utilities to reproduce it.
 
             The Monolith and Controller use StringTune's real attribute API
-            (`string="parallax"` + `string-factor`) so the engine actually
-            picks them up after `onResize(true)` runs in the bridge effect
-            above. The kinetic text uses the `.snapped` modifier toggled
-            by the bridge's scroll listener instead — see the comment on
-            the useEffect above for why.
+            for parallax: `string="parallax"` registers the element with
+            the parallax module, and `string-parallax="<intensity>"` sets
+            the depth factor (the engine reads `string-${key}` for each
+            entry in StringParallax.attributesToMap, so the modifier
+            attribute MUST be `string-parallax`, not `string-factor`).
+            The kinetic text uses the `.snapped` modifier toggled by the
+            bridge's scroll listener instead — see the useEffect above
+            for why.
             ──────────────────────────────────────────────────────────── */}
         <div ref={heroTrackRef} className={styles.heroTrack}>
           <div className={styles.heroSection}>
             <h2
               className={styles.monolith}
               string="parallax"
-              string-factor="0.8"
+              string-parallax="0.35"
             >
               GAMETIME
             </h2>
@@ -159,7 +162,7 @@ export default function HomePage({ auth }) {
             <div
               className={styles.controllerWrapper}
               string="parallax"
-              string-factor="0.2"
+              string-parallax="0.12"
             >
               <img src="/controller.svg" alt="Game controller" />
             </div>
