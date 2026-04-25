@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, type ReactNode } from "react";
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import styles from "./GTButton.module.css";
 
 export type GTButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -11,21 +11,16 @@ export type GTButtonProps = {
   variant?: GTButtonVariant;
   size?: GTButtonSize;
   loading?: boolean;
+  fullWidth?: boolean;
   children?: ReactNode;
 } & Omit<HTMLMotionProps<"button">, "children">;
-
-const variantClass: Record<GTButtonVariant, string> = {
-  primary: styles.primary,
-  secondary: styles.secondary,
-  ghost: styles.ghost,
-  danger: styles.danger,
-};
 
 export const GTButton = forwardRef<HTMLButtonElement, GTButtonProps>(function GTButton(
   {
     variant = "primary",
     size = "md",
     loading = false,
+    fullWidth = false,
     disabled,
     className = "",
     children,
@@ -34,8 +29,9 @@ export const GTButton = forwardRef<HTMLButtonElement, GTButtonProps>(function GT
   },
   ref,
 ) {
+  const reduceMotion = useReducedMotion();
   const isDisabled = Boolean(disabled || loading);
-  const classNames = [styles.button, variantClass[variant], styles[size], className]
+  const classNames = [styles.button, styles[variant], styles[size], fullWidth ? styles.fullWidth : "", className]
     .filter(Boolean)
     .join(" ");
 
@@ -46,8 +42,8 @@ export const GTButton = forwardRef<HTMLButtonElement, GTButtonProps>(function GT
       className={classNames}
       disabled={isDisabled}
       aria-busy={loading || undefined}
-      whileHover={isDisabled ? undefined : { scale: 1.02, y: -1 }}
-      whileTap={isDisabled ? undefined : { scale: 0.98, y: 0 }}
+      whileHover={reduceMotion || isDisabled ? undefined : { scale: 1.02, y: -1 }}
+      whileTap={reduceMotion || isDisabled ? undefined : { scale: 0.97, y: 0 }}
       transition={{ type: "spring", stiffness: 520, damping: 28 }}
       {...rest}
     >

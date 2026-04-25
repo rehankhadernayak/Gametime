@@ -57,3 +57,32 @@
   background: rgba(37, 99, 235, 0.12);
   color: var(--gt-blue);
 }
+
+/* Chore workflow presets (map to semantic badge colours) */
+.pending {
+  background: var(--gt-badge-warning-bg);
+  color: var(--gt-badge-warning-ink);
+}
+
+.approved {
+  background: var(--gt-badge-success-bg);
+  color: var(--gt-badge-success-ink);
+}
+
+.needsReview {
+  background: var(--gt-badge-neutral-bg);
+  color: var(--gt-badge-neutral-ink);
+}
+
+:global(.gt-dashboard-child) .pending {
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--gt-badge-warning-ink) 35%, transparent);
+}
+
+:global(.gt-dashboard-child) .approved {
+  box-shadow: 0 0 12px -2px color-mix(in srgb, var(--gt-badge-success-ink) 35%, transparent);
+}
+
+:global(.gt-dashboard-child) .needsReview {
+  box-shadow: 0 0 14px -2px var(--gt-neon-soft);
+  border-color: color-mix(in srgb, var(--gt-neon) 35%, transparent);
+}

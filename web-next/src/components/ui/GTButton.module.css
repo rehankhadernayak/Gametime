@@ -84,6 +84,10 @@
   font-size: 0.9375rem;
 }
 
+.fullWidth {
+  width: 100%;
+}
+
 .spinner {
   width: 1em;
   height: 1em;

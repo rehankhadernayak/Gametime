@@ -4,9 +4,13 @@
         <div className={theme.parentTheme}>…</div>
    All --gt-* tokens below are scoped to .parentTheme / .childTheme so they
    can coexist on marketing pages vs dashboard shells.
+
+   Global hooks `gt-dashboard-parent` / `gt-dashboard-child` (set by ThemeSurface)
+   mirror the same tokens so CSS-module descendants can target the active surface.
    ============================================================================= */
 
 /* ── Parent: clean, high-contrast, professional ─────────────────────────── */
+/* ThemeSurface also adds .gt-dashboard-parent on the same node as .parentTheme for descendant hooks in other modules. */
 .parentTheme {
   color-scheme: light;
   --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
@@ -45,6 +49,7 @@
   --gt-focus-ring: rgba(24, 24, 27, 0.35);
 
   --gt-red: #dc2626;
+  --gt-red-hover: #b91c1c;
   --gt-amber: #d97706;
   --gt-green: #16a34a;
   --gt-blue: #2563eb;
@@ -91,6 +96,8 @@
   --gt-accent-hover: #67e8f9;
   --gt-accent-ink: #042f2e;
 
+  --gt-neon: #22d3ee;
+  --gt-neon-soft: rgba(34, 211, 238, 0.2);
   --gt-neon-magenta: #e879f9;
   --gt-neon-lime: #bef264;
 
@@ -112,6 +119,7 @@
   --gt-focus-ring: rgba(34, 211, 238, 0.45);
 
   --gt-red: #f87171;
+  --gt-red-hover: #fca5a5;
   --gt-amber: #fbbf24;
   --gt-green: #4ade80;
   --gt-blue: #38bdf8;
@@ -146,8 +154,25 @@
   box-shadow: var(--gt-shadow-sm);
 }
 
+/* Phase 10 alias — same treatment as .gtGlass */
+.glass {
+  background: var(--gt-glass-bg);
+  backdrop-filter: blur(var(--gt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--gt-glass-blur));
+  border: 0.5px solid var(--gt-glass-border);
+  box-shadow: var(--gt-shadow-sm);
+}
+
 /* ── Premium hairline border (0.5px feel via layered shadows) ───────────── */
 .gtPremiumBorder {
+  box-shadow:
+    inset 0 0 0 0.5px var(--gt-border-hairline),
+    0 0 0 0.5px var(--gt-border-premium),
+    var(--gt-shadow-sm);
+}
+
+/* Phase 10 alias — same layered stroke as .gtPremiumBorder */
+.premiumBorder {
   box-shadow:
     inset 0 0 0 0.5px var(--gt-border-hairline),
     0 0 0 0.5px var(--gt-border-premium),
