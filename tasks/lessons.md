@@ -102,3 +102,21 @@
 ### 2026-04-11 — headerShown: true on tabs with gradient-header screens causes double headers
 **What happened:** Adding `headerShown: true` to the tab navigator screenOptions produces a double header for screens that draw their own LinearGradient header (e.g. ParentTasksScreen, ChildTasksScreen, ChildRewardsScreen). The internal gradient header was designed for `headerShown: false`.
 **Rule:** If any tab screen has an internal gradient/branded header, keep `headerShown: false` on the tab navigator and add notification/account nav within the screens' own header rows instead. Only use the tab navigator header for screens that use the generic `Screen` component (no visual header).
+
+---
+
+### 2026-04-25 — `/auth/me` must surface `is_admin` for parents
+**What happened:** Login responses included `isAdmin` and the JWT payload had `isAdmin` but `GET /auth/me` did not. After a hard refresh / token-only restore, the web App.jsx hydrated `auth.user` without `isAdmin`, hiding the Admin nav item and locking admins out of `/admin` until they logged in again. Same for mobile AccountScreen.
+**Rule:** Any session-restore/me endpoint must return every user attribute the client uses for routing, role-gated UI, or feature flags. Mirror the login response shape exactly. Coerce SQLite ints to booleans (`Boolean(row.is_admin)`) so JSON consumers don't see `0`/`1` for boolean fields.
+
+---
+
+### 2026-04-25 — Vercel `vercel.json` env keys must match what `client.js` actually reads
+**What happened:** `vercel.json` set `VITE_API_URL` for production / preview / development, but `frontend/src/api/client.js` only read `VITE_API_BASE_URL`. Production deploys would silently fall back to `http://localhost:4000`, breaking every API call from the deployed web app.
+**Rule:** Whenever `vercel.json` (or any env-injection config) defines a variable, grep the source for the exact key. The web client now accepts both `VITE_API_BASE_URL` and `VITE_API_URL` so either name keeps working. Also: prefer `rewrites` to deprecated `routes` and stop hard-coding plaintext env defaults in `vercel.json` (set them in the Vercel dashboard per-environment).
+
+---
+
+### 2026-04-25 — Mobile API client cannot ship a hard-coded LAN IP
+**What happened:** `mobile/src/api/client.js` defaulted `DEFAULT_DEVICE_API_URL` to `http://192.168.1.140:4000` — a developer's local LAN address baked into the source. That value would have been the production fallback for any device that loaded the app without an `EXPO_PUBLIC_API_URL` build env or a saved override.
+**Rule:** Never commit private IPs as defaults. Resolve the API URL in this order: (1) `process.env.EXPO_PUBLIC_API_URL` (set per `eas.json` build profile), (2) Expo dev `hostUri` for `expo start` flows, (3) `localhost:4000` as the safe last-resort. The in-app ApiSettings override always wins.
