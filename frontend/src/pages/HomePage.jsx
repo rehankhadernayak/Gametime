@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import StringTune, { StringParallax } from '@fiddle-digital/string-tune';
+import StringTune, { StringMagnetic, StringParallax } from '@fiddle-digital/string-tune';
 import styles from '../styles/landing.module.css';
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
@@ -83,12 +83,16 @@ export default function HomePage({ auth }) {
      toggles `.snapped` once the user has crossed 60% of the first
      viewport, which is what releases the headline from its
      blur(40px)/scale(1.5) pre-snap state defined in landing.module.css.
+
+     Footer CTA uses `data-string="magnetic"` with `StringMagnetic` registered
+     here so the button eases toward the cursor.
      ──────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const stringTune = StringTune.getInstance();
     stringTune.use(StringParallax);
+    stringTune.use(StringMagnetic);
     stringTune.start(60);
 
     let cancelled = false;
@@ -156,19 +160,85 @@ export default function HomePage({ auth }) {
               string="parallax"
               string-parallax="0.55"
             >
-              GAMETIME
+              Gametime
             </h2>
 
             <div
-              className={styles.controllerWrapper}
+              ref={kineticRef}
+              className={styles.heroSnap}
               string="parallax"
               string-parallax="0.18"
             >
-              <img src="/controller.svg" alt="Game controller" />
-            </div>
+              <div className={styles.controllerWrapper}>
+                <div className={styles.controllerPieces} aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 480 300"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeOpacity="0.85"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`${styles.controllerPiece} ${styles.controllerPieceBody}`}
+                  >
+                    <path
+                      d="M120 80 C 70 80, 30 130, 30 190 C 30 240, 60 270, 100 270 C 120 270, 135 258, 150 240 L 330 240 C 345 258, 360 270, 380 270 C 420 270, 450 240, 450 190 C 450 130, 410 80, 360 80 Z"
+                      strokeWidth="6"
+                    />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 480 300"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeOpacity="0.85"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`${styles.controllerPiece} ${styles.controllerPieceDpad}`}
+                  >
+                    <rect x="92" y="148" width="56" height="18" rx="4" strokeWidth="5" />
+                    <rect x="111" y="129" width="18" height="56" rx="4" strokeWidth="5" />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 480 300"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeOpacity="0.85"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`${styles.controllerPiece} ${styles.controllerPieceFace}`}
+                  >
+                    <circle cx="358" cy="138" r="9" strokeWidth="5" />
+                    <circle cx="388" cy="158" r="9" strokeWidth="5" />
+                    <circle cx="358" cy="178" r="9" strokeWidth="5" />
+                    <circle cx="328" cy="158" r="9" strokeWidth="5" />
+                    <circle cx="240" cy="158" r="6" strokeWidth="4" />
+                    <line x1="210" y1="158" x2="222" y2="158" strokeWidth="4" />
+                    <line x1="258" y1="158" x2="270" y2="158" strokeWidth="4" />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 480 300"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeOpacity="0.85"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`${styles.controllerPiece} ${styles.controllerPieceSticks}`}
+                  >
+                    <path d="M150 78 Q 240 50 330 78" strokeWidth="5" opacity="0.55" />
+                    <circle cx="180" cy="208" r="20" strokeWidth="5" />
+                    <circle cx="180" cy="208" r="6" strokeWidth="4" />
+                    <circle cx="300" cy="208" r="20" strokeWidth="5" />
+                    <circle cx="300" cy="208" r="6" strokeWidth="4" />
+                  </svg>
+                </div>
+              </div>
 
-            <div ref={kineticRef} className={styles.kineticText}>
-              <h1>Screen time, earned.</h1>
+              <div className={styles.kineticText}>
+                <h1>Screen time, earned.</h1>
+              </div>
             </div>
           </div>
         </div>
@@ -181,7 +251,7 @@ export default function HomePage({ auth }) {
         >
           {/* Horizontal parallax giant text behind cards */}
           <div className={styles.parallaxWord} aria-hidden="true">
-            GAMETIME
+            Gametime
           </div>
 
           <div className={styles.bentoInner}>
@@ -195,8 +265,10 @@ export default function HomePage({ auth }) {
                   <IconAI />
                 </div>
                 <div className={styles.bentoLabel}>Card 1</div>
-                <h3 className={styles.bentoTitle}>AI Evidence</h3>
-                <p className={styles.bentoDesc}>Simple photo proof.</p>
+                <h3 className={styles.bentoTitle}>AI Evidence Validation</h3>
+                <p className={styles.bentoDesc}>
+                  Kids snap a photo of their finished chore. Our AI instantly verifies the evidence and approves it.
+                </p>
                 <div className={styles.bentoProgress}>
                   <div className={styles.bentoProgressFill} style={{ width: '78%' }} />
                 </div>
@@ -207,8 +279,10 @@ export default function HomePage({ auth }) {
                   <IconCoin />
                 </div>
                 <div className={styles.bentoLabel}>Card 2</div>
-                <h3 className={styles.bentoTitle}>Points</h3>
-                <p className={styles.bentoDesc}>Earn Gold &amp; RP.</p>
+                <h3 className={styles.bentoTitle}>The Dual Economy</h3>
+                <p className={styles.bentoDesc}>
+                  Earn Gold for real-life rewards (gift cards) and RP for automated, system-level screen time.
+                </p>
                 <div className={styles.bentoProgress}>
                   <div className={styles.bentoProgressFill} style={{ width: '54%' }} />
                 </div>
@@ -219,8 +293,10 @@ export default function HomePage({ auth }) {
                   <IconShield />
                 </div>
                 <div className={styles.bentoLabel}>Card 3</div>
-                <h3 className={styles.bentoTitle}>Controls</h3>
-                <p className={styles.bentoDesc}>Stop gaming instantly.</p>
+                <h3 className={styles.bentoTitle}>Parental Override</h3>
+                <p className={styles.bentoDesc}>
+                  Total control in your pocket. Instantly pause their gaming sessions from your phone if chores aren&apos;t done.
+                </p>
                 <div className={styles.bentoProgress}>
                   <div className={styles.bentoProgressFill} style={{ width: '92%' }} />
                 </div>
@@ -229,25 +305,25 @@ export default function HomePage({ auth }) {
           </div>
         </section>
 
-        {/* ── Closing CTA ─────────────────────────────────────────── */}
-        {!auth.token && (
-          <section className={styles.closing} aria-labelledby="hp-closing-heading">
-            <div className={styles.closingInner}>
-              <h2 id="hp-closing-heading" className={styles.closingH2}>
-                Ready to start?
-              </h2>
-              <Link to="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
-                Get Started <IconArrow />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* ── Footer ──────────────────────────────────────────────── */}
+        {/* ── Footer (grand finale) ───────────────────────────────── */}
         <footer className={styles.footer} role="contentinfo">
           <div className={styles.footerInner}>
-            <span className={styles.footerLogo}>Gametime</span>
-            <span className={styles.footerMeta}>© 2026 · Singapore</span>
+            <div className={styles.footerFinale}>
+              <h2 className={styles.footerFinaleHeadline}>Ready to make gaming fair?</h2>
+              {!auth.token && (
+                <Link
+                  to="/signup"
+                  className={`${styles.btnPrimary} ${styles.btnLg} ${styles.footerMagneticCta}`}
+                  data-string="magnetic"
+                >
+                  Create Free Account <IconArrow />
+                </Link>
+              )}
+            </div>
+            <div className={styles.footerBar}>
+              <span className={styles.footerLogo}>Gametime</span>
+              <span className={styles.footerMeta}>© 2026 · Singapore</span>
+            </div>
           </div>
         </footer>
       </main>

@@ -1,21 +1,21 @@
 /* =============================================================================
    landing.module.css — Cinematic Hero (StringTune snap aesthetic)
    -----------------------------------------------------------------------------
-   Phase 2 of the Hero refactor. Pairs with Agent 1's JSX, which renders:
-       <div class={styles.heroTrack}>            // 500vh scroll track
-         <div class={styles.heroSection}>        // sticky 100vh stage
-           <h2  class={styles.monolith}>…</h2>
-           <div class={styles.controllerWrapper}>…StringTune controller…</div>
-           <div class={styles.kineticText} data-string="blur">
-             <h1>…</h1>
+   Phase 2–3 Hero / landing. JSX renders:
+       <div class={styles.heroTrack}>
+         <div class={styles.heroSection}>
+           <h2 class={styles.monolith}>…</h2>
+           <div class={styles.heroSnap} string="parallax">  // parallax + .snapped
+             <div class={styles.controllerWrapper}>…4 SVG pieces…</div>
+             <div class={styles.kineticText}><h1>…</h1></div>
            </div>
          </div>
        </div>
 
    The "physics" model:
      • kineticText h1 defaults to blur(40px) + scale(1.5) (pre-snap state).
-     • A scroll-driven bridge in HomePage.jsx toggles `.snapped` on the
-       wrapper once the user crosses 60% of the first viewport. (We tried
+     • A scroll-driven bridge in HomePage.jsx toggles `.snapped` on
+       `.heroSnap` once the user crosses 60% of the first viewport. (We tried
        StringTune's `addScrollMark({ toggleClass })` first, but in v1.1.55
        the toggle never fired on the live DOM, so the bridge owns the
        class toggle and StringTune still owns the parallax on the
@@ -69,7 +69,7 @@
   margin: auto;
   width: max-content;
   height: max-content;
-  font-family: 'Geist', sans-serif;
+  font-family: 'Inter Tight', 'Geist', sans-serif;
   font-size: 18vw;
   font-weight: 900;
   opacity: 0.06;
@@ -86,7 +86,21 @@
      controllerWrapper and kineticText below. */
 }
 
-/* ── 2. The Controller Wrapper ────────────────────────────────────────────
+/* ── 2. Hero snap (parallax + scroll-driven .snapped) ───────────────────────
+   Wraps the controller assembly and kinetic headline so one element receives
+   StringTune parallax and the scroll bridge toggles .snapped for the headline.
+   ────────────────────────────────────────────────────────────────────────── */
+.heroSnap {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── 3. The Controller Wrapper + 4-piece assembly ───────────────────────────
    Hosts the StringTune controller (knob / slider / instrument). Centred
    horizontally; vertical placement is left to the JSX so Agent 1 can pin
    it above or below the kinetic text.
@@ -103,14 +117,40 @@
   align-items: center;
 }
 
-.controllerWrapper img {
+.controllerPieces {
+  position: relative;
   width: 100%;
-  height: auto;
-  display: block;
+  aspect-ratio: 480 / 300;
+  max-height: 100%;
   filter: drop-shadow(0 8px 24px rgba(255, 255, 255, 0.05));
 }
 
-/* ── 3. Kinetic Text ──────────────────────────────────────────────────────
+.controllerPiece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.controllerPieceBody {
+  z-index: 1;
+}
+
+.controllerPieceDpad {
+  z-index: 2;
+}
+
+.controllerPieceFace {
+  z-index: 3;
+}
+
+.controllerPieceSticks {
+  z-index: 4;
+}
+
+/* ── 4. Kinetic Text ──────────────────────────────────────────────────────
    The headline that the StringTune engine snaps into focus.
    ────────────────────────────────────────────────────────────────────────── */
 .kineticText {
@@ -121,12 +161,12 @@
   justify-content: center;
   z-index: 20;
   text-align: center;
-  pointer-events: none; /* hand pointer events to the controller below */
+  pointer-events: none;
 }
 
 .kineticText h1 {
   margin: 0;
-  font-family: 'Geist', sans-serif;
+  font-family: 'Inter Tight', 'Geist', sans-serif;
   font-size: 8vw;
   font-weight: 900;
   letter-spacing: -0.02em;
@@ -151,10 +191,8 @@
     transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The "snapped" resolved state — set by the StringTune engine when its
-   scroll-bound timeline reaches the resolved frame. Acts as a fallback
-   for non-JS / pre-hydration so the headline still settles correctly. */
-.snapped h1 {
+/* Resolved headline state — toggled by the scroll bridge on `.heroSnap`. */
+.heroSnap.snapped .kineticText h1 {
   filter: blur(0);
   transform: scale(1);
 }
@@ -195,7 +233,7 @@
   background: var(--gt-bg);
   color: var(--gt-ink);
   min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   /* Do NOT set overflow-x:hidden here — that creates a scroll context
      and breaks `position: sticky` on .heroSection inside .heroTrack.
      Horizontal overflow from the parallax monolith is clipped by
@@ -282,6 +320,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  font-family: 'Inter Tight', 'Geist', sans-serif;
   font-size: clamp(10rem, 28vw, 28rem);
   font-weight: 900;
   letter-spacing: -0.05em;
@@ -393,32 +432,6 @@
   transition: width 0.6s ease;
 }
 
-/* ── Closing CTA ────────────────────────────────────────────────────────── */
-.closing {
-  padding: 6rem 1.5rem;
-  background: var(--gt-bg-soft);
-  border-top: 1px solid var(--gt-line);
-}
-
-.closingInner {
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-.closingH2 {
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin: 0;
-  color: var(--gt-ink);
-}
-
 .btnPrimary {
   display: inline-flex;
   align-items: center;
@@ -449,19 +462,54 @@
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
 .footer {
-  background: var(--gt-bg);
+  background: var(--gt-bg-soft);
   border-top: 1px solid var(--gt-line);
-  padding: 2rem 1.5rem;
+  padding: clamp(4rem, 10vw, 7rem) 1.5rem clamp(3rem, 6vw, 4rem);
 }
 
 .footerInner {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(3rem, 6vw, 4.5rem);
+}
+
+.footerFinale {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+.footerFinaleHeadline {
+  margin: 0;
+  font-family: 'Inter Tight', 'Geist', sans-serif;
+  font-size: clamp(2.75rem, 9vw, 5.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--gt-ink);
+  max-width: 20ch;
+}
+
+.footerMagneticCta {
+  pointer-events: auto;
+  will-change: transform;
+}
+
+.footerBar {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gt-line);
 }
 
 .footerLogo {
@@ -505,6 +553,10 @@
   }
   .controllerWrapper {
     width: 90vw;
+  }
+
+  .footerFinaleHeadline {
+    max-width: none;
   }
   .navLink {
     display: none;
