@@ -1,0 +1,512 @@
+/* =============================================================================
+   landing.module.css — Cinematic Hero (StringTune snap aesthetic)
+   -----------------------------------------------------------------------------
+   Phase 2 of the Hero refactor. Pairs with Agent 1's JSX, which renders:
+       <div class={styles.heroTrack}>            // 500vh scroll track
+         <div class={styles.heroSection}>        // sticky 100vh stage
+           <h2  class={styles.monolith}>…</h2>
+           <div class={styles.controllerWrapper}>…StringTune controller…</div>
+           <div class={styles.kineticText} data-string="blur">
+             <h1>…</h1>
+           </div>
+         </div>
+       </div>
+
+   The "physics" model:
+     • kineticText h1 defaults to blur(40px) + scale(1.5) (pre-snap state).
+     • A scroll-driven bridge in HomePage.jsx toggles `.snapped` on the
+       wrapper once the user crosses 60% of the first viewport. (We tried
+       StringTune's `addScrollMark({ toggleClass })` first, but in v1.1.55
+       the toggle never fired on the live DOM, so the bridge owns the
+       class toggle and StringTune still owns the parallax on the
+       Monolith / Controller via its `string="parallax"` attribute API.)
+     • .snapped h1 is the resolved state (blur 0, scale 1). A single CSS
+       transition on filter/transform animates the snap because there is
+       no competing inline animation from StringTune on the h1.
+   ============================================================================= */
+
+/* Geist must be loaded once, globally. We also self-host through @import here
+   so the module is self-sufficient if it's the only stylesheet on the page. */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;700;900&display=swap');
+
+/* ── Track ─────────────────────────────────────────────────────────────────
+   The 500vh tall scroll surface that drives the StringTune timeline. Its
+   height is what gives the sticky stage room to "play" while the user
+   scrolls; do NOT shrink this without re-tuning StringTune's keyframes.
+   ────────────────────────────────────────────────────────────────────────── */
+.heroTrack {
+  position: relative;
+  width: 100%;
+  height: 500vh;
+}
+
+/* ── Stage ─────────────────────────────────────────────────────────────────
+   The viewport-locked stage that the Monolith, Controller, and kinetic text
+   all align to. Made sticky here (not via Tailwind utilities) so the module
+   is self-sufficient on a project without Tailwind. The absolute children
+   below resolve against this ancestor.
+   ────────────────────────────────────────────────────────────────────────── */
+.heroSection {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  isolation: isolate; /* keeps the z-index stack local to the hero */
+}
+
+/* ── 1. The Monolith ──────────────────────────────────────────────────────
+   Giant ghost word behind everything. Drives the "weight" of the composition.
+   ────────────────────────────────────────────────────────────────────────── */
+.monolith {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: max-content;
+  height: max-content;
+  font-family: 'Geist', sans-serif;
+  font-size: 18vw;
+  font-weight: 900;
+  opacity: 0.06;
+  white-space: nowrap;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
+  /* StringParallax overrides `transform` per-frame, so we centre with
+     `inset:0; margin:auto` on a max-content box rather than with
+     transform: translate(-50%, -50%). Same trick applies to the
+     controllerWrapper and kineticText below. */
+}
+
+/* ── 2. The Controller Wrapper ────────────────────────────────────────────
+   Hosts the StringTune controller (knob / slider / instrument). Centred
+   horizontally; vertical placement is left to the JSX so Agent 1 can pin
+   it above or below the kinetic text.
+   ────────────────────────────────────────────────────────────────────────── */
+.controllerWrapper {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(60vw, 520px);
+  height: min(37.5vw, 325px);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.controllerWrapper img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 8px 24px rgba(255, 255, 255, 0.05));
+}
+
+/* ── 3. Kinetic Text ──────────────────────────────────────────────────────
+   The headline that the StringTune engine snaps into focus.
+   ────────────────────────────────────────────────────────────────────────── */
+.kineticText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  text-align: center;
+  pointer-events: none; /* hand pointer events to the controller below */
+}
+
+.kineticText h1 {
+  margin: 0;
+  font-family: 'Geist', sans-serif;
+  font-size: 8vw;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 0.9;
+  color: #fff;
+
+  /* ── 4. The Physics State ──────────────────────────────────────────────
+     Default ("loose string") state: blurred and over-scaled. The bridge
+     in HomePage.jsx toggles `.snapped` on the wrapper once the user
+     crosses 60% of the first viewport, which is what releases the
+     headline back to its resolved geometry below. The CSS transition is
+     applied directly to filter/transform — there is no competing inline
+     animation from StringTune on the h1, so a single transition is the
+     source of truth for the snap motion.
+     ──────────────────────────────────────────────────────────────────── */
+  filter: blur(40px);
+  transform: scale(1.5);
+  transform-origin: center;
+  will-change: filter, transform;
+  transition:
+    filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The "snapped" resolved state — set by the StringTune engine when its
+   scroll-bound timeline reaches the resolved frame. Acts as a fallback
+   for non-JS / pre-hydration so the headline still settles correctly. */
+.snapped h1 {
+  filter: blur(0);
+  transform: scale(1);
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────────
+   Respect users who request reduced motion: drop the over-scale + blur so
+   they never see the violent pre-snap state. StringTune itself should
+   honour the same media query and skip its interpolation.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .kineticText h1 {
+    filter: none;
+    transform: scale(1);
+  }
+}
+
+/* =============================================================================
+   Page surface (root, nav, bento, closing CTA, footer)
+   -----------------------------------------------------------------------------
+   The hero above is intentionally cinematic / black. Everything below it is
+   the existing Gametime light-mode glassmorphic surface — ported here from
+   the legacy HomePage.css selectors so HomePage.jsx (which now references
+   only this module) renders fully styled. Kept self-contained so the module
+   is the single source of truth for the landing surface.
+   ============================================================================= */
+
+.root {
+  --gt-bg: #ffffff;
+  --gt-bg-soft: #f4f4f5;
+  --gt-ink: #0a0a0a;
+  --gt-ink-soft: #52525b;
+  --gt-line: rgba(0, 0, 0, 0.08);
+  --gt-red: #dc2626;
+  --gt-red-hover: #b91c1c;
+  --gt-glass: rgba(255, 255, 255, 0.55);
+  --gt-glass-border: rgba(0, 0, 0, 0.1);
+
+  background: var(--gt-bg);
+  color: var(--gt-ink);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Do NOT set overflow-x:hidden here — that creates a scroll context
+     and breaks `position: sticky` on .heroSection inside .heroTrack.
+     Horizontal overflow from the parallax monolith is clipped by
+     .heroSection (overflow:hidden) and .bentoSection (overflow:hidden)
+     instead. */
+}
+
+/* ── NavBar ──────────────────────────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid var(--gt-line);
+}
+
+.navInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navLogo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--gt-ink);
+  text-decoration: none;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navLink {
+  color: var(--gt-ink-soft);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+.navLink:hover {
+  color: var(--gt-ink);
+}
+
+.navCta {
+  background: var(--gt-red);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.navCta:hover {
+  background: var(--gt-red-hover);
+  transform: translateY(-1px);
+}
+
+/* ── Bento section ──────────────────────────────────────────────────────── */
+.bentoSection {
+  position: relative;
+  padding: 8rem 1.5rem 12rem;
+  background: var(--gt-bg);
+  overflow: hidden;
+}
+
+.parallaxWord {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(10rem, 28vw, 28rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.bentoInner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bentoHeadingWrap {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.bentoHeading {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 0;
+  color: var(--gt-ink);
+}
+
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.bentoCard {
+  grid-column: span 2;
+  background: var(--gt-glass);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid var(--gt-glass-border);
+  border-radius: 24px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 280px;
+  box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.1);
+}
+
+.bentoCardTall {
+  min-height: 360px;
+}
+
+.bentoCardWide {
+  min-height: 320px;
+}
+
+.bentoIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--gt-glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gt-ink);
+}
+
+.bentoLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gt-ink-soft);
+}
+
+.bentoTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--gt-ink);
+}
+
+.bentoDesc {
+  font-size: 1rem;
+  color: var(--gt-ink-soft);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.bentoProgress {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.bentoProgressFill {
+  height: 100%;
+  background: var(--gt-red);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+/* ── Closing CTA ────────────────────────────────────────────────────────── */
+.closing {
+  padding: 6rem 1.5rem;
+  background: var(--gt-bg-soft);
+  border-top: 1px solid var(--gt-line);
+}
+
+.closingInner {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.closingH2 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 0;
+  color: var(--gt-ink);
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  background: var(--gt-red);
+  color: #fff;
+  box-shadow: 0 8px 24px -8px rgba(220, 38, 38, 0.5);
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btnPrimary:hover {
+  background: var(--gt-red-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -8px rgba(220, 38, 38, 0.6);
+}
+
+.btnLg {
+  padding: 1rem 1.75rem;
+  font-size: 1rem;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.footer {
+  background: var(--gt-bg);
+  border-top: 1px solid var(--gt-line);
+  padding: 2rem 1.5rem;
+}
+
+.footerInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footerLogo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--gt-ink);
+}
+
+.footerMeta {
+  font-size: 0.85rem;
+  color: var(--gt-ink-soft);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .bentoGrid {
+    grid-template-columns: 1fr;
+  }
+  .bentoCard,
+  .bentoCardTall,
+  .bentoCardWide {
+    grid-column: span 1;
+    min-height: 240px;
+  }
+  .bentoSection {
+    padding: 6rem 1.25rem 8rem;
+  }
+}
+
+/* ── Mobile fallback ──────────────────────────────────────────────────────
+   18vw / 8vw read fine on desktop but get crushed on phones. Cap them so
+   the headline stays legible without breaking the cinematic ratio.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .monolith {
+    font-size: 28vw;
+  }
+  .kineticText h1 {
+    font-size: 14vw;
+  }
+  .controllerWrapper {
+    width: 90vw;
+  }
+  .navLink {
+    display: none;
+  }
+}
