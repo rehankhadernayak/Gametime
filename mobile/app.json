@@ -52,13 +52,17 @@
     "web": {
       "bundler": "metro"
     },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
     "extra": {
       "eas": {
         "projectId": "YOUR_EAS_PROJECT_ID"
-      }
-    },
-    "_instructions": {
-      "eas_setup": "Run `eas init` in the mobile/ directory to replace YOUR_EAS_PROJECT_ID with your real project ID. This links the app to your Expo account for EAS Build and push notifications."
+      },
+      "_instructions": "Run `eas init` in the mobile/ directory to replace YOUR_EAS_PROJECT_ID with your real project ID. This links the app to your Expo account for EAS Build and push notifications."
     }
   }
 }
