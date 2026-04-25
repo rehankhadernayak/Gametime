@@ -9,7 +9,9 @@ let db;
 export async function getDb() {
   if (db) return db;
 
-  const absolutePath = path.resolve(process.cwd(), env.databasePath);
+  const absolutePath = path.isAbsolute(env.databasePath)
+    ? env.databasePath
+    : path.resolve(env.backendRoot, env.databasePath);
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
 
   db = await open({

@@ -100,7 +100,7 @@ Once connected to Vercel, automatic deployments happen:
 1. Check Vercel Dashboard for deployment status
 2. Visit `https://gametime.vercel.app` (or your custom domain)
 3. Open browser DevTools → Network tab
-4. Verify API calls go to correct backend: `https://api.gametime.app/healthz`
+4. Verify API calls go to correct backend: `https://api.gametime.app/health`
 
 ---
 

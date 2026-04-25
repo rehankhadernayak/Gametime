@@ -101,7 +101,10 @@ export function startWeeklyDigestJob() {
     nextMon.setUTCDate(now.getUTCDate() + daysUntilMon);
     nextMon.setUTCHours(0, 0, 0, 0);
     const ms = nextMon.getTime() - now.getTime();
-    return ms <= 0 ? WEEK_MS : ms;
+    if (ms > 0) return ms;
+
+    nextMon.setUTCDate(nextMon.getUTCDate() + 7);
+    return nextMon.getTime() - now.getTime();
   }
 
   const initialDelay = msUntilNextMonday8amSGT();
