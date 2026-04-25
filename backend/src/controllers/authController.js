@@ -71,11 +71,16 @@ function parseDurationMs(value) {
 const SESSION_DURATION_MS = parseDurationMs(env.jwtExpiresIn);
 
 function cookieOptions() {
+  const isProd = process.env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    sameSite: 'lax',
-    // Only mark Secure in production so that HTTP-only dev setups still work.
-    secure: process.env.NODE_ENV === 'production',
+    // In production the web frontend (vercel.app / custom domain) is served
+    // from a different origin than the API, so the cookie has to be marked
+    // SameSite=None and Secure to be sent on cross-site requests.
+    // Locally (http://localhost) Chrome won't accept SameSite=None+Secure
+    // over plain HTTP, so we keep Lax for dev.
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd,
     maxAge: SESSION_DURATION_MS
   };
 }
