@@ -63,7 +63,7 @@ function questBadgeLabel(state: string): string {
 
 export default function ChildDashboardPage() {
   const { replace } = useAppRouter();
-  const { auth } = useGametimeAuth();
+  const { auth, authHydrated } = useGametimeAuth();
   const token = auth.token;
 
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -105,10 +105,11 @@ export default function ChildDashboardPage() {
   );
 
   useEffect(() => {
+    if (!authHydrated) return;
     if (!auth.token || auth.role !== "child") {
       replace("/login");
     }
-  }, [auth.role, auth.token, replace]);
+  }, [auth.role, auth.token, authHydrated, replace]);
 
   useEffect(() => {
     if (auth.role !== "child" || !token) return;

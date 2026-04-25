@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "node:path";
 
 const navShim = path.resolve(__dirname, "../frontend/src/shims/nav.next.jsx");
+const frontendSrc = path.resolve(__dirname, "../frontend/src");
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -11,6 +12,7 @@ const nextConfig: NextConfig = {
     root: __dirname,
     resolveAlias: {
       "gametime-web-nav": navShim,
+      "@gametime/frontend": frontendSrc,
     },
   },
   async rewrites() {
@@ -21,6 +23,7 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       "gametime-web-nav": navShim,
+      "@gametime/frontend": frontendSrc,
     };
     return config;
   },
