@@ -2,9 +2,9 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { LegacyAuthShell } from "@/components/LegacyAuthShell";
 import { ParentLoginForm } from "@/components/auth/ParentLoginForm";
 import { ChildLoginForm } from "@/components/auth/ChildLoginForm";
+import styles from "@/styles/auth.module.css";
 
 function LoginTabs() {
   const searchParams = useSearchParams();
@@ -15,13 +15,13 @@ function LoginTabs() {
   }, [searchParams]);
 
   return (
-    <div className="login-page-wrap">
-      <div className="login-role-tabs al-tabs" role="tablist">
+    <div className={styles.loginInner}>
+      <div className={styles.loginRoleTabs} role="tablist">
         <button
           type="button"
           role="tab"
           aria-selected={tab === "parent"}
-          className={`al-tab${tab === "parent" ? " al-tab--active" : ""}`}
+          className={`${styles.loginRoleTab}${tab === "parent" ? ` ${styles.loginRoleTabActive}` : ""}`}
           onClick={() => setTab("parent")}
         >
           Parent
@@ -30,25 +30,23 @@ function LoginTabs() {
           type="button"
           role="tab"
           aria-selected={tab === "child"}
-          className={`al-tab${tab === "child" ? " al-tab--active" : ""}`}
+          className={`${styles.loginRoleTab}${tab === "child" ? ` ${styles.loginRoleTabActive}` : ""}`}
           onClick={() => setTab("child")}
         >
           Child
         </button>
       </div>
-      <div className="login-page-form-slot">
-        {tab === "parent" ? <ParentLoginForm /> : <ChildLoginForm />}
-      </div>
+      <div className={styles.loginFormSlot}>{tab === "parent" ? <ParentLoginForm /> : <ChildLoginForm />}</div>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <LegacyAuthShell>
-      <Suspense fallback={<div className="al-root" style={{ minHeight: "60vh" }} />}>
+    <div className={styles.authPage}>
+      <Suspense fallback={<div className={styles.suspenseFallback} />}>
         <LoginTabs />
       </Suspense>
-    </LegacyAuthShell>
+    </div>
   );
 }

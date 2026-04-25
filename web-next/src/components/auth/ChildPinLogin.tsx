@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
+import styles from "@/styles/auth.module.css";
 
 const NUMPAD: (number | "del" | null)[][] = [
   [1, 2, 3],
@@ -157,20 +158,28 @@ export function ChildPinLogin({ child, onSuccess, onSwitchUser, token }: ChildPi
 
   const disabled = phase === "verifying" || phase === "locked" || phase === "success";
 
+  const dotsClassName = [
+    styles.pinDots,
+    phase === "shaking" && !reduceMotion ? styles.pinDotsShake : "",
+    phase === "shaking" && reduceMotion ? styles.pinDotError : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="cpl-wrap">
-      <button type="button" className="cpl-back-btn" onClick={onSwitchUser} aria-label="Switch to a different user">
+    <div className={styles.pinWrap}>
+      <button type="button" className={styles.pinBack} onClick={onSwitchUser} aria-label="Switch to a different user">
         ← Switch user
       </button>
 
-      <div className="cpl-avatar-wrap">
+      <div className={styles.pinAvatarWrap}>
         {child.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- runtime avatar URL from API
-          <img src={child.avatarUrl} alt={`${child.name}'s avatar`} className="cpl-avatar-img" />
+          <img src={child.avatarUrl} alt={`${child.name}'s avatar`} className={styles.pinAvatarImg} />
         ) : (
           <div
-            className="cpl-avatar-fallback"
-            style={{ background: child.avatarColor || "var(--bg-muted-action)" }}
+            className={styles.pinAvatarFallback}
+            style={{ background: child.avatarColor || "var(--gt-bg-soft)" }}
             aria-hidden="true"
           >
             {child.name[0]}
@@ -178,51 +187,55 @@ export function ChildPinLogin({ child, onSuccess, onSwitchUser, token }: ChildPi
         )}
       </div>
 
-      <h1 className="cpl-name">{child.name}</h1>
+      <h1 className={styles.pinName}>{child.name}</h1>
 
       <div
-        className={`cpl-dots ${
-          phase === "shaking" ? (reduceMotion ? "cpl-dots-error" : "cpl-dots-shake") : ""
-        } ${phase === "verifying" ? "cpl-dots-verifying" : ""} ${phase === "success" ? "cpl-dots-success" : ""}`}
+        className={dotsClassName}
         aria-label={`PIN entry: ${digits.length} of 4 digits entered`}
         aria-live="polite"
       >
-        {[0, 1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className={`cpl-dot ${i < digits.length ? "cpl-dot-filled" : ""} ${
-              phase === "shaking" || (phase === "idle" && errorMessage) ? "cpl-dot-error" : ""
-            } ${phase === "success" ? "cpl-dot-success" : ""} ${phase === "verifying" ? "cpl-dot-pulse" : ""}`}
-          />
-        ))}
+        {[0, 1, 2, 3].map((i) => {
+          const filled = i < digits.length;
+          const errDot = phase === "shaking" || (phase === "idle" && Boolean(errorMessage));
+          const dotClasses = [
+            styles.pinDot,
+            filled ? styles.pinDotFilled : "",
+            errDot ? styles.pinDotError : "",
+            phase === "success" ? styles.pinDotSuccess : "",
+            phase === "verifying" ? styles.pinDotPulse : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+          return <div key={i} className={dotClasses} />;
+        })}
       </div>
 
       {(phase === "shaking" || errorMessage) && phase !== "locked" && errorMessage && (
-        <p className="cpl-error" role="alert">
+        <p className={styles.pinError} role="alert">
           {errorMessage}
         </p>
       )}
 
       {phase === "locked" && (
-        <p className="cpl-lockout" role="alert">
+        <p className={styles.pinLockout} role="alert">
           Too many tries. Wait{" "}
           <span aria-live={lockoutSecondsLeft % 5 === 0 ? "polite" : "off"}>{lockoutSecondsLeft}s</span> and try again.
         </p>
       )}
 
-      <div className="cpl-numpad" role="group" aria-label="PIN keypad">
+      <div className={styles.pinNumpad} role="group" aria-label="PIN keypad">
         {NUMPAD.map((row, ri) => (
-          <div key={ri} className="cpl-numpad-row">
+          <div key={ri} className={styles.pinNumpadRow}>
             {row.map((key, ci) => {
               if (key === null) {
-                return <div key={ci} className="cpl-numpad-spacer" />;
+                return <div key={ci} className={styles.pinSpacer} />;
               }
               if (key === "del") {
                 return (
                   <button
                     key="del"
                     type="button"
-                    className="cpl-key cpl-key-del"
+                    className={`${styles.pinKey} ${styles.pinKeyDel}`}
                     onClick={deleteDigit}
                     disabled={disabled || digits.length === 0}
                     aria-label="Delete last digit"
@@ -235,7 +248,7 @@ export function ChildPinLogin({ child, onSuccess, onSwitchUser, token }: ChildPi
                 <button
                   key={key}
                   type="button"
-                  className="cpl-key cpl-key-digit"
+                  className={styles.pinKey}
                   onClick={() => appendDigit(key)}
                   disabled={disabled}
                   aria-label={String(key)}
