@@ -76,12 +76,13 @@ export default function HomePage({ auth }) {
      the `string="parallax"` nodes added by this page and the 500vh
      scroll progress would never map onto the Monolith / Controller.
 
-     We also register a scroll mark on the 500vh track so the engine
-     toggles the `.snapped` modifier (defined in landing.module.css) on
-     the kinetic text once the user has scrolled ~10% of the track. This
-     is what releases the headline from its blur(40px) / scale(1.5)
-     pre-snap state. The mark is removed on cleanup so a remount under
-     React Strict Mode doesn't stack duplicate listeners.
+     We additionally drive the kineticText `.snapped` toggle with a plain
+     scroll listener instead of `addScrollMark`. In the manual diagnostic
+     for v1.1.55, the toggleClass form of addScrollMark never flipped the
+     class on the live DOM, so we sidestep it entirely: the listener
+     toggles `.snapped` once the user has crossed 60% of the first
+     viewport, which is what releases the headline from its
+     blur(40px)/scale(1.5) pre-snap state defined in landing.module.css.
      ──────────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -90,42 +91,39 @@ export default function HomePage({ auth }) {
     stringTune.use(StringParallax);
     stringTune.start(60);
 
-    const markId = 'gametime-hero-snap';
     let cancelled = false;
+    let snapped = false;
+
+    const evaluateSnap = () => {
+      const trackEl = heroTrackRef.current;
+      const kineticEl = kineticRef.current;
+      if (!trackEl || !kineticEl) return;
+
+      const trackTop = trackEl.getBoundingClientRect().top + window.scrollY;
+      const threshold = trackTop + window.innerHeight * 0.6;
+      const shouldSnap = window.scrollY >= threshold;
+
+      if (shouldSnap !== snapped) {
+        snapped = shouldSnap;
+        kineticEl.classList.toggle(styles.snapped, shouldSnap);
+      }
+    };
 
     const wire = () => {
       if (cancelled) return;
       stringTune.onResize(true);
-
-      const kineticEl = kineticRef.current;
-      const trackEl = heroTrackRef.current;
-      if (!kineticEl || !trackEl) return;
-
-      const trackTop = trackEl.getBoundingClientRect().top + window.scrollY;
-      const snapOffset = trackTop + window.innerHeight * 0.6;
-
-      stringTune.addScrollMark({
-        id: markId,
-        offset: snapOffset,
-        direction: 'any',
-        toggleClass: {
-          target: kineticEl,
-          className: styles.snapped,
-        },
-      });
+      evaluateSnap();
     };
 
     const raf = window.requestAnimationFrame(wire);
+    window.addEventListener('scroll', evaluateSnap, { passive: true });
+    window.addEventListener('resize', evaluateSnap);
 
     return () => {
       cancelled = true;
       window.cancelAnimationFrame(raf);
-      try {
-        stringTune.removeScrollMark(markId);
-      } catch {
-        /* noop — mark may never have been added if the page unmounted
-           before the rAF callback ran. */
-      }
+      window.removeEventListener('scroll', evaluateSnap);
+      window.removeEventListener('resize', evaluateSnap);
     };
   }, []);
 
@@ -144,9 +142,9 @@ export default function HomePage({ auth }) {
             The Monolith and Controller use StringTune's real attribute API
             (`string="parallax"` + `string-factor`) so the engine actually
             picks them up after `onResize(true)` runs in the bridge effect
-            above. The kinetic text keeps `data-string="blur"` as a hook
-            for the StringTune controller layer that drives its inline
-            filter interpolation.
+            above. The kinetic text uses the `.snapped` modifier toggled
+            by the bridge's scroll listener instead — see the comment on
+            the useEffect above for why.
             ──────────────────────────────────────────────────────────── */}
         <div ref={heroTrackRef} className={styles.heroTrack}>
           <div className={styles.heroSection}>
@@ -166,11 +164,7 @@ export default function HomePage({ auth }) {
               <img src="/controller.svg" alt="Game controller" />
             </div>
 
-            <div
-              ref={kineticRef}
-              className={styles.kineticText}
-              data-string="blur"
-            >
+            <div ref={kineticRef} className={styles.kineticText}>
               <h1>Screen time, earned.</h1>
             </div>
           </div>
