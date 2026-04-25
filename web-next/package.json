@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fiddle-digital/string-tune": "^1.1.55",
+    "jose": "^5.10.0",
     "next": "15.5.15",
     "react": "19.1.0",
     "react-dom": "19.1.0"
