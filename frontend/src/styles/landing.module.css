@@ -1,28 +1,25 @@
 /* =============================================================================
    landing.module.css — Cinematic Hero (StringTune snap aesthetic)
    -----------------------------------------------------------------------------
-   Phase 2 of the Hero refactor. Pairs with Agent 1's JSX, which renders:
-       <div class={styles.heroTrack}>            // 500vh scroll track
-         <div class={styles.heroSection}>        // sticky 100vh stage
-           <h2  class={styles.monolith}>…</h2>
-           <div class={styles.controllerWrapper}>…StringTune controller…</div>
-           <div class={styles.kineticText} data-string="blur">
-             <h1>…</h1>
+   Phase 2 of the Hero refactor. Pairs with HomePage.jsx, which renders:
+       <div class={styles.heroTrack}>
+         <div class={styles.heroSection}>
+           <h2 class={styles.monolith}>…</h2>
+           <div class={styles.heroSnap}>           // scroll bridge toggles .snapped
+             <div class={styles.controllerWrapper}>…parallax…</div>
+             <div class={styles.kineticText} data-string="blur">…</div>
            </div>
          </div>
        </div>
 
    The "physics" model:
-     • kineticText h1 defaults to blur(40px) + scale(1.5) (pre-snap state).
-     • A scroll-driven bridge in HomePage.jsx toggles `.snapped` on the
-       wrapper once the user crosses 60% of the first viewport. (We tried
-       StringTune's `addScrollMark({ toggleClass })` first, but in v1.1.55
-       the toggle never fired on the live DOM, so the bridge owns the
-       class toggle and StringTune still owns the parallax on the
-       Monolith / Controller via its `string="parallax"` attribute API.)
-     • .snapped h1 is the resolved state (blur 0, scale 1). A single CSS
-       transition on filter/transform animates the snap because there is
-       no competing inline animation from StringTune on the h1.
+     • kineticText h1 defaults to blur(40px) + scale(1.5) (pre-snap).
+     • Controller assembly pieces use scattered translate/rotate/scale;
+       the same `.snapped` on heroSnap resolves them to identity over 1s.
+     • A scroll-driven bridge in HomePage.jsx toggles `.snapped` on
+       heroSnap once the user crosses 60% of the first viewport.
+     • StringTune still owns parallax on the Monolith / controllerWrapper
+       via `string="parallax"`.
    ============================================================================= */
 
 /* Geist must be loaded once, globally. We also self-host through @import here
@@ -72,24 +69,40 @@
   font-family: 'Geist', sans-serif;
   font-size: 18vw;
   font-weight: 900;
-  opacity: 0.06;
+  opacity: 0.03;
   white-space: nowrap;
   z-index: 0;
   pointer-events: none;
   user-select: none;
   letter-spacing: -0.04em;
   line-height: 1;
-  color: #fff;
+  color: #000000;
   /* StringParallax overrides `transform` per-frame, so we centre with
      `inset:0; margin:auto` on a max-content box rather than with
      transform: translate(-50%, -50%). Same trick applies to the
      controllerWrapper and kineticText below. */
 }
 
-/* ── 2. The Controller Wrapper ────────────────────────────────────────────
-   Hosts the StringTune controller (knob / slider / instrument). Centred
-   horizontally; vertical placement is left to the JSX so Agent 1 can pin
-   it above or below the kinetic text.
+/* ── 2. Hero snap shell ────────────────────────────────────────────────────
+   Wraps controller + kinetic text so one `.snapped` toggles both the
+   headline blur release and the four-piece assembly snap.
+   ────────────────────────────────────────────────────────────────────────── */
+.heroSnap {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.heroSnap .controllerWrapper {
+  pointer-events: auto;
+}
+
+/* ── 3. The Controller Wrapper ────────────────────────────────────────────
+   Centred stage for the parallax-driven four-SVG assembly.
    ────────────────────────────────────────────────────────────────────────── */
 .controllerWrapper {
   position: absolute;
@@ -103,15 +116,72 @@
   align-items: center;
 }
 
-.controllerWrapper img {
+.controllerAssembly {
+  position: relative;
   width: 100%;
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 8px 24px rgba(255, 255, 255, 0.05));
+  height: 100%;
 }
 
-/* ── 3. Kinetic Text ──────────────────────────────────────────────────────
-   The headline that the StringTune engine snaps into focus.
+.controllerAssembly img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 8px 24px rgba(255, 255, 255, 0.05));
+  transform-origin: center;
+  will-change: transform;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Pre-snap assembly scatter (resolved: .heroSnap.snapped … translate(0) …) */
+.assemblyLeftGrip {
+  transform: translate(-40vw, 20vh) rotate(-45deg);
+  transition-delay: 0ms;
+}
+
+.assemblyRightGrip {
+  transform: translate(40vw, 20vh) rotate(45deg);
+  transition-delay: 80ms;
+}
+
+.assemblyDpad {
+  transform: translate(-20vw, -40vh) scale(0.5);
+  transition-delay: 160ms;
+}
+
+.assemblyButtons {
+  transform: translate(20vw, -40vh) scale(1.5);
+  transition-delay: 240ms;
+}
+
+.heroSnap.snapped .assemblyLeftGrip,
+.heroSnap.snapped .assemblyRightGrip,
+.heroSnap.snapped .assemblyDpad,
+.heroSnap.snapped .assemblyButtons {
+  transform: translate(0, 0) rotate(0deg) scale(1);
+}
+
+.heroSnap.snapped .assemblyLeftGrip {
+  transition-delay: 0ms;
+}
+
+.heroSnap.snapped .assemblyRightGrip {
+  transition-delay: 80ms;
+}
+
+.heroSnap.snapped .assemblyDpad {
+  transition-delay: 160ms;
+}
+
+.heroSnap.snapped .assemblyButtons {
+  transition-delay: 240ms;
+}
+
+/* ── 4. Kinetic Text ──────────────────────────────────────────────────────
+
+   The headline that snaps into focus with the assembly.
    ────────────────────────────────────────────────────────────────────────── */
 .kineticText {
   position: absolute;
@@ -147,14 +217,12 @@
   transform-origin: center;
   will-change: filter, transform;
   transition:
-    filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+    filter 1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The "snapped" resolved state — set by the StringTune engine when its
-   scroll-bound timeline reaches the resolved frame. Acts as a fallback
-   for non-JS / pre-hydration so the headline still settles correctly. */
-.snapped h1 {
+/* Resolved state when heroSnap has .snapped (scroll bridge). */
+.heroSnap.snapped .kineticText h1 {
   filter: blur(0);
   transform: scale(1);
 }
@@ -168,6 +236,12 @@
   .kineticText h1 {
     filter: none;
     transform: scale(1);
+    transition: none;
+  }
+
+  .controllerAssembly img {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    transition: none;
   }
 }
 
@@ -285,7 +359,7 @@
   font-size: clamp(10rem, 28vw, 28rem);
   font-weight: 900;
   letter-spacing: -0.05em;
-  color: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.03);
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
