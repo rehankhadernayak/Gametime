@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
+import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import { ChildPinLogin, type PinChildProfile } from "./ChildPinLogin";
-import { saveAuth } from "./persistAuth";
 import styles from "@/styles/auth.module.css";
 
 function isValidEmail(value: string) {
@@ -15,6 +15,7 @@ function isValidEmail(value: string) {
 type ChildDirectResponse = { token: string; child: unknown };
 
 export function ChildLoginForm() {
+  const { setAuth } = useGametimeAuth();
   const { push } = useAppRouter();
   const [mode, setMode] = useState<"email" | "pin">("email");
   const [emailForm, setEmailForm] = useState({ email: "", password: "" });
@@ -41,7 +42,7 @@ export function ChildLoginForm() {
           method: "POST",
           body: { email, password: emailForm.password },
         });
-        saveAuth({ token: data.token, role: "child", user: data.child });
+        setAuth({ token: data.token, role: "child", user: data.child as { name?: string; isAdmin?: boolean } | null });
         push("/child/dashboard");
       } else {
         const parentEmail = pinForm.parentEmail.trim();
@@ -67,7 +68,14 @@ export function ChildLoginForm() {
 
   function handlePinSuccess(token: string) {
     if (!pinChildProfile) return;
-    saveAuth({ token, role: "child", user: pinChildProfile });
+    setAuth({
+      token,
+      role: "child",
+      user: {
+        name: pinChildProfile.name,
+        isAdmin: false,
+      },
+    });
     push("/child/dashboard");
   }
 

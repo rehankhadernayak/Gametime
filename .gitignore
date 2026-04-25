@@ -3,6 +3,9 @@
 .env.production
 *.db
 *.sqlite
+.e2e/
+test-results/
+playwright-report/
 node_modules/
 dist/
 build/

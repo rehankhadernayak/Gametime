@@ -82,6 +82,7 @@ function readStoredTheme(): GametimeTheme {
 
 export const GametimeAuthContext = createContext<{
   auth: GametimeAuthState;
+  authHydrated: boolean;
   setAuth: (next: GametimeAuthState) => void;
   logout: () => Promise<void>;
   switchToChild: (childId: string) => Promise<void>;
@@ -200,8 +201,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const toggleTheme = useCallback(() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')), []);
 
   const authValue = useMemo(
-    () => ({ auth, setAuth, logout: handleLogout, switchToChild }),
-    [auth, handleLogout, switchToChild]
+    () => ({ auth, authHydrated: hydrated, setAuth, logout: handleLogout, switchToChild }),
+    [auth, hydrated, handleLogout, switchToChild]
   );
 
   const themeValue = useMemo(

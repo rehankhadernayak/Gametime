@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
-import { saveAuth } from "./persistAuth";
+import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import styles from "@/styles/auth.module.css";
 
 const AGES = ["Under 1", ...Array.from({ length: 18 }, (_, i) => `${i + 1}`), "18+"];
@@ -305,6 +305,7 @@ function resolveValue(selected: string, otherText: string) {
 }
 
 export function ParentSignUpForm() {
+  const { setAuth } = useGametimeAuth();
   const { push } = useAppRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -377,7 +378,7 @@ export function ParentSignUpForm() {
   }
 
   function handleAuth(data: { token: string; parent: unknown }) {
-    saveAuth({ token: data.token, role: "parent", user: data.parent });
+    setAuth({ token: data.token, role: "parent", user: data.parent as { name?: string; isAdmin?: boolean } | null });
     push("/parent/dashboard");
   }
 

@@ -132,3 +132,15 @@
 ### 2026-04-25 — Mobile API client cannot ship a hard-coded LAN IP
 **What happened:** `mobile/src/api/client.js` defaulted `DEFAULT_DEVICE_API_URL` to `http://192.168.1.140:4000` — a developer's local LAN address baked into the source. That value would have been the production fallback for any device that loaded the app without an `EXPO_PUBLIC_API_URL` build env or a saved override.
 **Rule:** Never commit private IPs as defaults. Resolve the API URL in this order: (1) `process.env.EXPO_PUBLIC_API_URL` (set per `eas.json` build profile), (2) Expo dev `hostUri` for `expo start` flows, (3) `localhost:4000` as the safe last-resort. The in-app ApiSettings override always wins.
+
+---
+
+### 2026-04-25 — dotenv must not override existing process.env
+**What happened:** `backend/src/config/env.js` used `dotenv.config({ override: true })`, so `backend/.env` replaced `FRONTEND_ORIGIN` set in the Playwright shell (`http://127.0.0.1:3000`) with the file’s `localhost` list. The browser origin was blocked by CORS and login failed.
+**Rule:** Load `.env` without `override: true` so explicit environment variables (CI, agents, containers) always win over file defaults.
+
+---
+
+### 2026-04-25 — web-next: JWT_SECRET for middleware + auth context after login
+**What happened:** E2E failed because (1) `middleware.ts` verified `gametime_token` with `process.env.JWT_SECRET`, which was unset in the Next dev process, redirecting every `/parent/*` request to `/login`; (2) login forms called `saveAuth()` (localStorage only) without `setAuth()`, so the first client render still had an empty token and `replace("/login")` fired before hydration.
+**Rule:** For local/E2E, run Next with the same `JWT_SECRET` as the API. After successful login/signup, call `setAuth` from `GametimeAuthContext` (not only localStorage). Gate `replace("/login")` on protected pages until `authHydrated` is true so the first paint does not redirect away from a valid session.

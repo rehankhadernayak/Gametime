@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
-import { saveAuth } from "./persistAuth";
+import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import styles from "@/styles/auth.module.css";
 
 type LoginResponse = { token: string; parent: unknown };
 
 export function ParentLoginForm() {
+  const { setAuth } = useGametimeAuth();
   const { push } = useAppRouter();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -33,7 +34,7 @@ export function ParentLoginForm() {
         method: "POST",
         body: normalized,
       });
-      saveAuth({ token: data.token, role: "parent", user: data.parent });
+      setAuth({ token: data.token, role: "parent", user: data.parent as { name?: string; isAdmin?: boolean } | null });
       push("/parent/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign in failed.");
