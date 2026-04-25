@@ -91,6 +91,9 @@
   --gt-accent-hover: #67e8f9;
   --gt-accent-ink: #042f2e;
 
+  /* Primary neon accent alias (hero glows, highlights) */
+  --gt-neon: var(--gt-accent);
+
   --gt-neon-magenta: #e879f9;
   --gt-neon-lime: #bef264;
 
