@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ParentLoginForm } from "@/components/auth/ParentLoginForm";
 import { ChildLoginForm } from "@/components/auth/ChildLoginForm";
 import styles from "@/styles/auth.module.css";
+import meshStyles from "./page.module.css";
 
 function LoginTabs() {
   const searchParams = useSearchParams();
@@ -43,10 +44,12 @@ function LoginTabs() {
 
 export default function LoginPage() {
   return (
-    <div className={styles.authPage}>
-      <Suspense fallback={<div className={styles.suspenseFallback} />}>
-        <LoginTabs />
-      </Suspense>
+    <div className={meshStyles.meshRoot}>
+      <div className={styles.authPage}>
+        <Suspense fallback={<div className={styles.suspenseFallback} />}>
+          <LoginTabs />
+        </Suspense>
+      </div>
     </div>
   );
 }

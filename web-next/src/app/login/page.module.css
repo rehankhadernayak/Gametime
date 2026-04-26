@@ -1,0 +1,126 @@
+/* Mesh hero — scoped via .meshRoot on login page only (see page.tsx) */
+
+.meshRoot :global([class*="splitPromo"]) {
+  position: relative;
+  overflow: hidden;
+  background-color: #09090b;
+  /* Third soft “orb” layer + mesh depth (two blurred ::before/::after act as orbs 1–2) */
+  background-image:
+    radial-gradient(circle 280px at 25% 40%, rgba(225, 29, 72, 0.22), transparent 62%),
+    radial-gradient(circle 320px at 78% 72%, rgba(39, 39, 42, 0.55), transparent 58%),
+    radial-gradient(
+      ellipse 120% 100% at 50% 50%,
+      rgba(88, 28, 135, 0.32) 0%,
+      transparent 65%
+    );
+  background-size: 100% 100%, 100% 100%, 140% 140%;
+  background-position: 20% 35%, 82% 68%, 40% 50%;
+  animation: meshBgDrift 15s ease-in-out infinite;
+}
+
+.meshRoot :global([class*="splitPromo"]::before),
+.meshRoot :global([class*="splitPromo"]::after) {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(100px);
+  z-index: 0;
+  inset: unset;
+}
+
+/* Parent tab — replace auth module static ::before / no ::after */
+.meshRoot :global([class*="splitPromo"]:not([class*="splitPromoChild"])::before) {
+  width: 400px;
+  height: 400px;
+  background: #e11d48;
+  opacity: 0.4;
+  top: -8%;
+  left: -12%;
+  animation: float 15s ease-in-out infinite;
+}
+
+.meshRoot :global([class*="splitPromo"]:not([class*="splitPromoChild"])::after) {
+  width: 500px;
+  height: 500px;
+  background: #3f3f46;
+  opacity: 0.5;
+  bottom: -18%;
+  right: -15%;
+  animation: float 15s ease-in-out infinite reverse;
+  animation-delay: -7.5s;
+}
+
+/* Child tab — dark mesh + orbs (overrides cyan/teal split) */
+.meshRoot :global([class*="splitPromo"][class*="splitPromoChild"]) {
+  background-color: #09090b;
+  background-image:
+    radial-gradient(circle 280px at 25% 40%, rgba(225, 29, 72, 0.2), transparent 62%),
+    radial-gradient(circle 320px at 78% 72%, rgba(30, 58, 138, 0.45), transparent 58%),
+    radial-gradient(
+      ellipse 120% 100% at 50% 50%,
+      rgba(30, 58, 138, 0.26) 0%,
+      transparent 65%
+    );
+  background-size: 100% 100%, 100% 100%, 140% 140%;
+  background-position: 20% 35%, 82% 68%, 40% 50%;
+}
+
+.meshRoot :global([class*="splitPromo"][class*="splitPromoChild"]::before) {
+  width: 400px;
+  height: 400px;
+  background: #e11d48;
+  opacity: 0.4;
+  top: -8%;
+  left: -12%;
+  animation: float 15s ease-in-out infinite;
+}
+
+.meshRoot :global([class*="splitPromo"][class*="splitPromoChild"]::after) {
+  width: 500px;
+  height: 500px;
+  background: #1e3a5f;
+  opacity: 0.5;
+  bottom: -18%;
+  right: -15%;
+  animation: float 15s ease-in-out infinite reverse;
+  animation-delay: -7.5s;
+}
+
+.meshRoot :global([class*="splitTrust"]) {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10%, -10%);
+  }
+}
+
+@keyframes meshBgDrift {
+  0%,
+  100% {
+    background-position: 20% 35%, 82% 68%, 40% 50%;
+  }
+  50% {
+    background-position: 32% 22%, 68% 78%, 58% 42%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meshRoot :global([class*="splitPromo"]) {
+    animation: none;
+    background-position: 26% 36%, 74% 70%, 50% 50%;
+  }
+
+  .meshRoot :global([class*="splitPromo"]::before),
+  .meshRoot :global([class*="splitPromo"]::after) {
+    animation: none;
+    transform: translate(5%, -5%);
+  }
+}
