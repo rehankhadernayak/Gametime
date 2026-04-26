@@ -7,12 +7,9 @@ import {
   maxAgeSecondsFromJwtExp,
   sessionCookieBaseOptions,
 } from "@/lib/auth/sessionCookies";
+import { apiProxyTarget } from "@/lib/apiProxyTarget";
 
 const CHILD_LOGIN_PATH = "/auth/child-login";
-
-function apiOrigin(): string {
-  return (process.env.API_PROXY_TARGET || "http://127.0.0.1:4000").replace(/\/$/, "");
-}
 
 function bearerFromRequest(request: Request): string | null {
   const raw = request.headers.get("authorization")?.trim();
@@ -57,7 +54,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "childId is required" }, { status: 400 });
   }
 
-  const upstream = await fetch(`${apiOrigin()}${CHILD_LOGIN_PATH}`, {
+  const upstream = await fetch(`${apiProxyTarget()}${CHILD_LOGIN_PATH}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

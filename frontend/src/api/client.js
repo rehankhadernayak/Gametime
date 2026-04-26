@@ -1,11 +1,35 @@
 import { trackEvent } from '../utils/analytics.js';
 
+function backendLooksLoopback(url) {
+  return (
+    /(^|\/)localhost(:\d+)?(\/|$)/i.test(url) ||
+    /127\.0\.0\.1/.test(url) ||
+    /\[:?:1\]/.test(url)
+  );
+}
+
 function resolveApiBase() {
   const nextPublic =
     typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL
       ? String(process.env.NEXT_PUBLIC_API_URL).trim()
       : '';
-  if (nextPublic) return nextPublic.replace(/\/$/, '');
+  const explicit = nextPublic.replace(/\/$/, '');
+
+  // Mirror web-next `getApiBase`: browser uses same-origin `/api` unless a reachable explicit API URL is set.
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    const pageIsLoopback =
+      host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '';
+    if (explicit) {
+      if (backendLooksLoopback(explicit) && !pageIsLoopback) {
+        return '/api';
+      }
+      return explicit;
+    }
+    return '/api';
+  }
+
+  if (explicit) return explicit;
 
   const viteEnv = typeof import.meta !== 'undefined' ? import.meta.env : undefined;
   if (viteEnv) {
