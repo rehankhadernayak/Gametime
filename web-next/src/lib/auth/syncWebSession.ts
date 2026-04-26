@@ -15,6 +15,9 @@ export async function syncDashboardSessionCookies(token: string): Promise<void> 
     const data = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(data.error || "Failed to sync session cookies");
   }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("gametime:cookie-role-refresh"));
+  }
 }
 
 export type SwitchToChildResponse = { token: string; child: unknown };
