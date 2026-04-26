@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { toast } from "sonner";
 import { apiRequest } from "@/lib/api/client";
@@ -30,6 +31,8 @@ const POLL_MS = 30_000;
 const EVIDENCE_SUBMIT_MIN_UI_MS = 5000;
 /** Block another uplink submit until this many ms after the previous attempt started. */
 const EVIDENCE_SUBMIT_COOLDOWN_MS = 5000;
+/** After predictive confetti on evidence submit, Realtime Approved for the same task skips duplicate confetti. */
+const MANUAL_PREDICTIVE_CONFETTI_COOLDOWN_MS = 10_000;
 
 function lightTapVibrate() {
   try {
@@ -133,6 +136,8 @@ export default function ChildDashboardPage() {
   const skipNextPollingBalanceConfettiRef = useRef(false);
   const lastConfettiAtRef = useRef(0);
   const lastEvidenceSubmitAtRef = useRef<number>(0);
+  /** taskId → timestamp when predictive confetti fired for evidence submit (dedupe vs Realtime). */
+  const manualPredictiveConfettiByTaskIdRef = useRef<Map<string, number>>(new Map());
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -204,11 +209,25 @@ export default function ChildDashboardPage() {
     fireGoldConfettiBurst();
   }, [reduceMotion]);
 
+  const shouldSuppressApprovedConfettiForTask = useCallback((tid: string) => {
+    const firedAt = manualPredictiveConfettiByTaskIdRef.current.get(tid);
+    if (firedAt == null) return false;
+    if (Date.now() - firedAt > MANUAL_PREDICTIVE_CONFETTI_COOLDOWN_MS) {
+      manualPredictiveConfettiByTaskIdRef.current.delete(tid);
+      return false;
+    }
+    return true;
+  }, []);
+
   const realtimeHandlers = useMemo(
     () => ({
-      onTaskParentDecision: (_taskId: string, nextState: typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED) => {
+      onTaskParentDecision: (
+        _taskId: string,
+        nextState: typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED,
+        opts?: { skipConfetti?: boolean },
+      ) => {
         dispatchQuestStatusToast();
-        if (nextState === TASK_STATES.APPROVED) {
+        if (nextState === TASK_STATES.APPROVED && !opts?.skipConfetti) {
           burstConfettiThrottled();
         }
         void loadDashboard({ showSpinner: false });
@@ -218,8 +237,9 @@ export default function ChildDashboardPage() {
         burstConfettiThrottled();
         void loadDashboard({ showSpinner: false });
       },
+      shouldSuppressApprovedConfetti: shouldSuppressApprovedConfettiForTask,
     }),
-    [burstConfettiThrottled, dispatchQuestStatusToast, loadDashboard],
+    [burstConfettiThrottled, dispatchQuestStatusToast, loadDashboard, shouldSuppressApprovedConfettiForTask],
   );
 
   useChildGamerHubRealtime(me?.id, auth.role === "child" && Boolean(token), realtimeHandlers);
@@ -377,7 +397,15 @@ export default function ChildDashboardPage() {
       toast.success("Submitted for parent review", {
         description: result.message ?? undefined,
       });
-      setSubmitSuccess(true);
+      const submittedTaskId = taskId;
+      manualPredictiveConfettiByTaskIdRef.current.set(submittedTaskId, Date.now());
+      flushSync(() => {
+        setSubmitSuccess(true);
+      });
+      if (!reduceMotion) {
+        lastConfettiAtRef.current = Date.now();
+        fireGoldConfettiBurst();
+      }
       await loadDashboard({ showSpinner: false });
       await waitMinUi();
       window.setTimeout(() => {
