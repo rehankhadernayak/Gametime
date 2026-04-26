@@ -22,6 +22,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
 import { env } from './config/env.js';
+import { httpsVercelAppWildcardConfigured, isHttpsVercelAppOrigin } from './utils/corsOrigins.js';
 
 function isDevTunnelOrigin(origin) {
   if (process.env.NODE_ENV === 'production') return false;
@@ -41,8 +42,10 @@ function isDevTunnelOrigin(origin) {
 
 export function createApp() {
   const app = express();
+  const allowAllHttpsVercelApp =
+    httpsVercelAppWildcardConfigured(env.frontendOrigins);
   const allowedOrigins = new Set([
-    ...env.frontendOrigins,
+    ...env.frontendOrigins.filter((o) => !/^https:\/\/\*\.vercel\.app\/?$/i.test(String(o).trim())),
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:8081',
@@ -57,6 +60,7 @@ export function createApp() {
       origin(origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedOrigins.has(origin)) return callback(null, true);
+        if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
         if (isDevTunnelOrigin(origin)) return callback(null, true);
         return callback(new Error(`CORS blocked for origin: ${origin}`));
       },
