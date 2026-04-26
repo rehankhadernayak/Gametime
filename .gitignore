@@ -19,6 +19,9 @@ Gametime-Product-Build-Web.zip
 demo_build/
 .aider*
 .env*
+# Explicit: local secret handover (never commit)
+.env.secrets
+web-next/.env.deployment
 !web-next/.env.deployment.example
 
 # Supabase CLI (may contain project ref / local overrides)
