@@ -1,13 +1,34 @@
 "use client";
 
-import StringTune, { StringParallax } from "@fiddle-digital/string-tune";
-import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { GametimeLink } from "@/components/GametimeLink";
-import styles from "@/styles/landing.module.css";
+import landingStyles from "@/styles/landing.module.css";
+import gtBtn from "@/components/ui/GTButton.module.css";
+import heroStyles from "./page.module.css";
 
 type AuthState = { token: string | null };
 
-/* ── Inline SVG Icons ───────────────────────────────────────────────────── */
+const HEADLINE = "Screen time, earned.";
+const WORDS = HEADLINE.split(" ");
+const HEADLINE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const HEADLINE_DURATION = 0.8;
+const WORD_STAGGER = 0.12;
+
+function IconArrow() {
+  return (
+    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+      <path
+        d="M4 10h12M11 5l5 5-5 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function IconAI() {
   return (
     <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
@@ -62,34 +83,19 @@ function IconShield() {
   );
 }
 
-function IconArrow() {
-  return (
-    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
-      <path
-        d="M4 10h12M11 5l5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-/* ── NavBar ─────────────────────────────────────────────────────────────── */
 function NavBar({ auth }: { auth: AuthState }) {
   if (auth.token) return null;
   return (
-    <nav className={styles.nav} aria-label="Site navigation">
-      <div className={styles.navInner}>
-        <GametimeLink to="/" className={styles.navLogo} aria-label="Gametime home">
+    <nav className={landingStyles.nav} aria-label="Site navigation">
+      <div className={landingStyles.navInner}>
+        <GametimeLink to="/" className={landingStyles.navLogo} aria-label="Gametime home">
           Gametime
         </GametimeLink>
-        <div className={styles.navActions}>
-          <GametimeLink to="/login" className={styles.navLink}>
+        <div className={landingStyles.navActions}>
+          <GametimeLink to="/login" className={landingStyles.navLink}>
             Parent Login
           </GametimeLink>
-          <GametimeLink to="/signup" className={styles.navCta}>
+          <GametimeLink to="/signup" className={landingStyles.navCta}>
             Get Started
           </GametimeLink>
         </div>
@@ -98,10 +104,73 @@ function NavBar({ auth }: { auth: AuthState }) {
   );
 }
 
-/* ── HomePage (ported from legacy frontend/src/pages/HomePage.jsx) ──────── */
+function PremiumHero() {
+  const reduceMotion = useReducedMotion();
+  const headlineEnd = (WORDS.length - 1) * WORD_STAGGER + HEADLINE_DURATION;
+  const ctaDelay = reduceMotion ? 0 : headlineEnd + 0.2;
+
+  const wordTransition = reduceMotion
+    ? { duration: 0.25, ease: HEADLINE_EASE }
+    : { duration: HEADLINE_DURATION, ease: HEADLINE_EASE };
+
+  const wordInitial = reduceMotion
+    ? { opacity: 0 }
+    : { opacity: 0, y: 30, filter: "blur(10px)" };
+
+  const wordAnimate = reduceMotion
+    ? { opacity: 1 }
+    : { opacity: 1, y: 0, filter: "blur(0px)" };
+
+  const ctaTransition = reduceMotion
+    ? { duration: 0.2, ease: HEADLINE_EASE }
+    : { duration: 0.55, ease: HEADLINE_EASE, delay: ctaDelay };
+
+  const ctaClass = `${gtBtn.button} ${gtBtn.secondary} ${gtBtn.lg} ${heroStyles.ctaGlass}`;
+
+  return (
+    <section className={heroStyles.hero} aria-label="Welcome">
+      <div className={heroStyles.meshLayer} aria-hidden="true" />
+      <div className={`${heroStyles.meshOrb} ${heroStyles.meshOrbA}`} aria-hidden="true" />
+      <div className={`${heroStyles.meshOrb} ${heroStyles.meshOrbB}`} aria-hidden="true" />
+      <div className={`${heroStyles.meshOrb} ${heroStyles.meshOrbC}`} aria-hidden="true" />
+
+      <div className={heroStyles.heroInner}>
+        <h1 className={heroStyles.heroTitle}>
+          {WORDS.map((word, i) => (
+            <motion.span
+              key={`${word}-${i}`}
+              className={heroStyles.word}
+              initial={wordInitial}
+              animate={wordAnimate}
+              transition={{
+                ...wordTransition,
+                delay: reduceMotion ? 0 : i * WORD_STAGGER,
+              }}
+            >
+              {word}
+            </motion.span>
+          ))}
+        </h1>
+
+        <motion.div
+          className={heroStyles.ctaRow}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={ctaTransition}
+        >
+          <GametimeLink to="/login" className={ctaClass}>
+            Parent Sign In
+          </GametimeLink>
+          <GametimeLink to="/child-login" className={ctaClass}>
+            Child Login
+          </GametimeLink>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
-  const kineticRef = useRef<HTMLDivElement>(null);
-  const heroTrackRef = useRef<HTMLDivElement>(null);
   const [auth, setAuth] = useState<AuthState>({ token: null });
 
   useEffect(() => {
@@ -119,180 +188,80 @@ export default function HomePage() {
     };
   }, []);
 
-  /* ── StringTune bridge ─────────────────────────────────────────────────
-     The library is a singleton (`getInstance()`), so it's safe under React
-     Strict Mode's double-mount: `use()` no-ops on a class that's already
-     registered, and `start()` is idempotent because the loop guards on
-     `hasStarted` internally. After the JSX paints we call `onResize(true)`
-     — that's the documented "rebuild layout + re-scan attribute-tagged
-     DOM" entry point in this version of StringTune (there is no public
-     `refresh()` / `update()`; `onResize(force)` is what its own JSDoc
-     describes as "Rebuilds layout and triggers module resize"). Without
-     this, the engine — which boots before React mounts — would never see
-     the `string="parallax"` nodes added by this page and the 500vh
-     scroll progress would never map onto the Monolith / Controller.
-
-     We additionally drive the kineticText `.snapped` toggle with a plain
-     scroll listener instead of `addScrollMark`. In the manual diagnostic
-     for v1.1.55, the toggleClass form of addScrollMark never flipped the
-     class on the live DOM, so we sidestep it entirely: the listener
-     toggles `.snapped` once the user has crossed 60% of the first
-     viewport, which is what releases the headline from its
-     blur(40px)/scale(1.5) pre-snap state defined in landing.module.css.
-     ──────────────────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (typeof window === "undefined") return undefined;
-
-    const stringTune = StringTune.getInstance();
-    stringTune.use(StringParallax);
-    stringTune.start(60);
-
-    let cancelled = false;
-    let snapped = false;
-
-    const evaluateSnap = () => {
-      const trackEl = heroTrackRef.current;
-      const kineticEl = kineticRef.current;
-      if (!trackEl || !kineticEl) return;
-
-      const trackTop = trackEl.getBoundingClientRect().top + window.scrollY;
-      const threshold = trackTop + window.innerHeight * 0.6;
-      const shouldSnap = window.scrollY >= threshold;
-
-      if (shouldSnap !== snapped) {
-        snapped = shouldSnap;
-        kineticEl.classList.toggle(styles.snapped, shouldSnap);
-      }
-    };
-
-    const wire = () => {
-      if (cancelled) return;
-      stringTune.onResize(true);
-      evaluateSnap();
-    };
-
-    const raf = window.requestAnimationFrame(wire);
-    window.addEventListener("scroll", evaluateSnap, { passive: true });
-    window.addEventListener("resize", evaluateSnap);
-
-    return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", evaluateSnap);
-      window.removeEventListener("resize", evaluateSnap);
-    };
-  }, []);
-
   return (
-    <div className={styles.root}>
+    <div className={landingStyles.root}>
       <NavBar auth={auth} />
 
       <main role="main">
-        {/* ── StringTune Hero Stage ──────────────────────────────────
-            500vh tracking div drives the scroll-bound StringTune timeline.
-            The inner sticky stage uses `styles.heroSection`, which Agent 2
-            defines as the positioned anchor for the monolith / controller /
-            kinetic text. Sticky pinning is owned by the CSS module so we
-            don't need Tailwind utilities to reproduce it.
+        <PremiumHero />
 
-            The Monolith and Controller use StringTune's real attribute API
-            for parallax: `string="parallax"` registers the element with
-            the parallax module, and `string-parallax="<intensity>"` sets
-            the depth factor (the engine reads `string-${key}` for each
-            entry in StringParallax.attributesToMap, so the modifier
-            attribute MUST be `string-parallax`, not `string-factor`).
-            The kinetic text uses the `.snapped` modifier toggled by the
-            bridge's scroll listener instead — see the useEffect above
-            for why.
-            ──────────────────────────────────────────────────────────── */}
-        <div ref={heroTrackRef} className={styles.heroTrack}>
-          <div className={styles.heroSection}>
-            <h2 className={styles.monolith} string="parallax" string-parallax="0.55">
-              GAMETIME
-            </h2>
-
-            <div className={styles.controllerWrapper} string="parallax" string-parallax="0.18">
-              {/* eslint-disable-next-line @next/next/no-img-element -- SVG hero asset; legacy parity */}
-              <img src="/controller.svg" alt="Game controller" />
-            </div>
-
-            <div ref={kineticRef} className={styles.kineticText}>
-              <h1>Screen time, earned.</h1>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Bento Grid with floating cards + parallax word ─────── */}
-        <section id="bento" className={styles.bentoSection} aria-label="Features">
-          {/* Horizontal parallax giant text behind cards */}
-          <div className={styles.parallaxWord} aria-hidden="true">
+        <section id="bento" className={landingStyles.bentoSection} aria-label="Features">
+          <div className={landingStyles.parallaxWord} aria-hidden="true">
             GAMETIME
           </div>
 
-          <div className={styles.bentoInner}>
-            <div className={styles.bentoHeadingWrap}>
-              <h2 className={styles.bentoHeading}>How it works.</h2>
+          <div className={landingStyles.bentoInner}>
+            <div className={landingStyles.bentoHeadingWrap}>
+              <h2 className={landingStyles.bentoHeading}>How it works.</h2>
             </div>
 
-            <div className={styles.bentoGrid}>
-              <article className={`${styles.bentoCard} ${styles.bentoCardTall}`}>
-                <div className={styles.bentoIcon}>
+            <div className={landingStyles.bentoGrid}>
+              <article className={`${landingStyles.bentoCard} ${landingStyles.bentoCardTall}`}>
+                <div className={landingStyles.bentoIcon}>
                   <IconAI />
                 </div>
-                <div className={styles.bentoLabel}>Card 1</div>
-                <h3 className={styles.bentoTitle}>AI Evidence</h3>
-                <p className={styles.bentoDesc}>Simple photo proof.</p>
-                <div className={styles.bentoProgress}>
-                  <div className={styles.bentoProgressFill} style={{ width: "78%" }} />
+                <div className={landingStyles.bentoLabel}>Card 1</div>
+                <h3 className={landingStyles.bentoTitle}>AI Evidence</h3>
+                <p className={landingStyles.bentoDesc}>Simple photo proof.</p>
+                <div className={landingStyles.bentoProgress}>
+                  <div className={landingStyles.bentoProgressFill} style={{ width: "78%" }} />
                 </div>
               </article>
 
-              <article className={styles.bentoCard}>
-                <div className={styles.bentoIcon}>
+              <article className={landingStyles.bentoCard}>
+                <div className={landingStyles.bentoIcon}>
                   <IconCoin />
                 </div>
-                <div className={styles.bentoLabel}>Card 2</div>
-                <h3 className={styles.bentoTitle}>Points</h3>
-                <p className={styles.bentoDesc}>Earn Gold &amp; RP.</p>
-                <div className={styles.bentoProgress}>
-                  <div className={styles.bentoProgressFill} style={{ width: "54%" }} />
+                <div className={landingStyles.bentoLabel}>Card 2</div>
+                <h3 className={landingStyles.bentoTitle}>Points</h3>
+                <p className={landingStyles.bentoDesc}>Earn Gold &amp; RP.</p>
+                <div className={landingStyles.bentoProgress}>
+                  <div className={landingStyles.bentoProgressFill} style={{ width: "54%" }} />
                 </div>
               </article>
 
-              <article className={`${styles.bentoCard} ${styles.bentoCardWide}`}>
-                <div className={styles.bentoIcon}>
+              <article className={`${landingStyles.bentoCard} ${landingStyles.bentoCardWide}`}>
+                <div className={landingStyles.bentoIcon}>
                   <IconShield />
                 </div>
-                <div className={styles.bentoLabel}>Card 3</div>
-                <h3 className={styles.bentoTitle}>Controls</h3>
-                <p className={styles.bentoDesc}>Stop gaming instantly.</p>
-                <div className={styles.bentoProgress}>
-                  <div className={styles.bentoProgressFill} style={{ width: "92%" }} />
+                <div className={landingStyles.bentoLabel}>Card 3</div>
+                <h3 className={landingStyles.bentoTitle}>Controls</h3>
+                <p className={landingStyles.bentoDesc}>Stop gaming instantly.</p>
+                <div className={landingStyles.bentoProgress}>
+                  <div className={landingStyles.bentoProgressFill} style={{ width: "92%" }} />
                 </div>
               </article>
             </div>
           </div>
         </section>
 
-        {/* ── Closing CTA ─────────────────────────────────────────── */}
         {!auth.token && (
-          <section className={styles.closing} aria-labelledby="hp-closing-heading">
-            <div className={styles.closingInner}>
-              <h2 id="hp-closing-heading" className={styles.closingH2}>
+          <section className={landingStyles.closing} aria-labelledby="hp-closing-heading">
+            <div className={landingStyles.closingInner}>
+              <h2 id="hp-closing-heading" className={landingStyles.closingH2}>
                 Ready to start?
               </h2>
-              <GametimeLink to="/signup" className={`${styles.btnPrimary} ${styles.btnLg}`}>
+              <GametimeLink to="/signup" className={`${landingStyles.btnPrimary} ${landingStyles.btnLg}`}>
                 Get Started <IconArrow />
               </GametimeLink>
             </div>
           </section>
         )}
 
-        {/* ── Footer ──────────────────────────────────────────────── */}
-        <footer className={styles.footer} role="contentinfo">
-          <div className={styles.footerInner}>
-            <span className={styles.footerLogo}>Gametime</span>
-            <span className={styles.footerMeta}>© 2026 · Singapore</span>
+        <footer className={landingStyles.footer} role="contentinfo">
+          <div className={landingStyles.footerInner}>
+            <span className={landingStyles.footerLogo}>Gametime</span>
+            <span className={landingStyles.footerMeta}>© 2026 · Singapore</span>
           </div>
         </footer>
       </main>
