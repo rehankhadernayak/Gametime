@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { apiRequest } from "@/lib/api/client";
 import { fireGoldConfettiBurst } from "@/lib/confettiBurst";
+import { TASK_STATES } from "@/lib/gametimeTaskStates";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
+import { useChildGamerHubRealtime } from "@/hooks/useChildGamerHubRealtime";
 import { trackEvent } from "@/lib/analytics";
 import { GTCard } from "@/components/ui/GTCard";
 import { GTGlassModal } from "@/components/ui/GTGlassModal";
@@ -31,7 +33,7 @@ function lightTapVibrate() {
 }
 
 type MeUser = {
-  id: string;
+  id?: string;
   name?: string;
   pointsBalance?: number;
   giftcardPointsBalance?: number;
@@ -102,6 +104,8 @@ export default function ChildDashboardPage() {
   const prevTaskStateByIdRef = useRef<Map<string, string>>(new Map());
   const prevRpRef = useRef<number | null>(null);
   const prevGpRef = useRef<number | null>(null);
+  const skipNextPollingBalanceConfettiRef = useRef(false);
+  const lastConfettiAtRef = useRef(0);
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -160,6 +164,40 @@ export default function ChildDashboardPage() {
     return () => window.clearInterval(id);
   }, [auth.role, token, loadDashboard]);
 
+  const dispatchQuestStatusToast = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent("gametime:toast", { detail: { message: "Quest Status Updated!" } }),
+    );
+  }, []);
+
+  const burstConfettiThrottled = useCallback(() => {
+    if (reduceMotion) return;
+    const now = Date.now();
+    if (now - lastConfettiAtRef.current < 700) return;
+    lastConfettiAtRef.current = now;
+    fireGoldConfettiBurst();
+  }, [reduceMotion]);
+
+  const realtimeHandlers = useMemo(
+    () => ({
+      onTaskParentDecision: (_taskId: string, nextState: typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED) => {
+        dispatchQuestStatusToast();
+        if (nextState === TASK_STATES.APPROVED) {
+          burstConfettiThrottled();
+        }
+        void loadDashboard({ showSpinner: false });
+      },
+      onPointsBalanceIncrease: () => {
+        skipNextPollingBalanceConfettiRef.current = true;
+        burstConfettiThrottled();
+        void loadDashboard({ showSpinner: false });
+      },
+    }),
+    [burstConfettiThrottled, dispatchQuestStatusToast, loadDashboard],
+  );
+
+  useChildGamerHubRealtime(me?.id, auth.role === "child" && Boolean(token), realtimeHandlers);
+
   /** Gold confetti when a quest flips to Approved or balances increase (claim / payout). */
   useEffect(() => {
     if (loading || error) return;
@@ -184,10 +222,16 @@ export default function ChildDashboardPage() {
     prevRpRef.current = rpNow;
     prevGpRef.current = gpNow;
 
-    if (!reduceMotion && (questJustApproved || balanceUp)) {
-      fireGoldConfettiBurst();
+    if (skipNextPollingBalanceConfettiRef.current && balanceUp) {
+      skipNextPollingBalanceConfettiRef.current = false;
+      return;
     }
-  }, [tasks, me, loading, error, reduceMotion]);
+    skipNextPollingBalanceConfettiRef.current = false;
+
+    if (!reduceMotion && (questJustApproved || balanceUp)) {
+      burstConfettiThrottled();
+    }
+  }, [tasks, me, loading, error, reduceMotion, burstConfettiThrottled]);
 
   useEffect(() => {
     if (!evidenceModalOpen) return;
@@ -405,6 +449,7 @@ export default function ChildDashboardPage() {
                       },
                     }}
                   >
+                    <AnimatePresence initial={false} mode="popLayout">
                     {tasks.map((t) => {
                       const rewardBits: string[] = [];
                       if (t.points != null) rewardBits.push(`${t.points} RP`);
@@ -417,11 +462,18 @@ export default function ChildDashboardPage() {
                       const isSelected = taskId === t.id;
                       const badgeTone = isActive ? "accent" : "success";
 
+                      const questMotionKey = `${t.id}-${t.state}`;
+                      const questExit =
+                        reduceMotion || t.state !== TASK_STATES.PENDING_APPROVAL
+                          ? undefined
+                          : { opacity: 0, scale: 0.88, y: -16, transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] as const } };
+
                       return (
                         <GTCard
-                          key={t.id}
+                          key={questMotionKey}
                           glass
                           padding="md"
+                          layout
                           className={`${styles.questCard} ${isActive ? styles.questCardInteractive : ""} ${isActive ? hubStyles.questReadyPulse : ""}`}
                           role={isActive ? "button" : undefined}
                           tabIndex={isActive ? 0 : undefined}
@@ -429,6 +481,7 @@ export default function ChildDashboardPage() {
                           aria-label={isActive ? `Select quest: ${t.title}` : undefined}
                           onClick={() => selectQuest(t)}
                           onKeyDown={(e) => onQuestKeyDown(e, t)}
+                          exit={questExit}
                           variants={{
                             hidden: { opacity: 0, y: 18, scale: 0.92 },
                             show: {
@@ -461,6 +514,7 @@ export default function ChildDashboardPage() {
                         </GTCard>
                       );
                     })}
+                    </AnimatePresence>
                   </motion.div>
                 )}
               </section>
