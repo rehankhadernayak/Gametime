@@ -68,6 +68,7 @@ import TaskTable from '../components/TaskTable.jsx';
 import WeeklyPlanTable from '../components/WeeklyPlanTable.jsx';
 import HoldToConfirmButton from '../components/HoldToConfirmButton.jsx';
 import { trackEvent } from '../utils/analytics.js';
+import { normalizeTasksListResponse } from '../utils/tasksList.js';
 import amazonCardImage from '../assets/giftcards/amazon.svg';
 import steamCardImage from '../assets/giftcards/steam.svg';
 import valorantCardImage from '../assets/giftcards/valorant.svg';
@@ -275,7 +276,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     if (!silent) setLoading(true);
     try {
       const childList = await apiRequest('/children/list', { token });
-      const [taskList, taskRequestList, rewardList, notificationList, inventoryList, gpSummaryRes] = await Promise.all([
+      const [taskListRaw, taskRequestList, rewardList, notificationList, inventoryList, gpSummaryRes] = await Promise.all([
         apiRequest('/tasks/list', { token }),
         apiRequest('/tasks/requests', { token }),
         apiRequest('/rewards/list', { token }),
@@ -316,7 +317,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       const leaderboardRes = await apiRequest('/children/leaderboard', { token }).catch(() => []);
       setChildren(childList);
       setLeaderboard(Array.isArray(leaderboardRes) ? leaderboardRes : []);
-      setTasks(taskList);
+      setTasks(normalizeTasksListResponse(taskListRaw).tasks);
       setTaskRequests(taskRequestList);
       setRewards(rewardList);
       setGiftcardInventory(inventoryList);

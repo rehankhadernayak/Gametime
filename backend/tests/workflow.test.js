@@ -215,7 +215,7 @@ describe('Parent-child workflow', () => {
     expect(dispute.statusCode).toBe(200);
 
     const taskList = await request(app).get('/tasks/list').set('Authorization', `Bearer ${parentToken}`);
-    const disputed = taskList.body.find((t) => t.id === createTaskRes.body.id);
+    const disputed = taskList.body.tasks.find((t) => t.id === createTaskRes.body.id);
     expect(disputed.disputed).toBe(1);
     expect(disputed.parentNote).toContain('Need clearer photo');
   });
@@ -246,7 +246,7 @@ describe('Parent-child workflow', () => {
     expect(reject.statusCode).toBe(200);
 
     const childTasks = await request(app).get('/tasks/list').set('Authorization', `Bearer ${childToken}`);
-    const taskAfterReject = childTasks.body.find((t) => t.id === createTaskRes.body.id);
+    const taskAfterReject = childTasks.body.tasks.find((t) => t.id === createTaskRes.body.id);
     expect(taskAfterReject.state).toBe('Active');
     expect(taskAfterReject.parentNote).toContain('Please retake');
 

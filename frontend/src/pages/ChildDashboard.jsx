@@ -7,6 +7,7 @@ import MetricIcon from '../components/MetricIcon.jsx';
 import GamingSessionController from '../components/GamingSessionController.jsx';
 import RewardStore from '../components/RewardStore.jsx';
 import { trackEvent } from '../utils/analytics.js';
+import { normalizeTasksListResponse } from '../utils/tasksList.js';
 import ChildAvatar from '../components/ChildAvatar.jsx';
 
 const GAMING_PLATFORMS = ['iOS', 'Windows', 'macOS', 'Web', 'Console', 'Other'];
@@ -134,7 +135,7 @@ export default function ChildDashboard({ token }) {
     try {
       const [meRes, taskRes, taskRequestRes, rewardRes, overviewRes, sessionsRes, gamesRes, codesRes, achRes, streakRes] = await Promise.all([
         apiRequest('/auth/me', { token }),
-        apiRequest('/tasks/list', { token }),
+        apiRequest('/tasks/list', { token }).then((r) => normalizeTasksListResponse(r).tasks),
         apiRequest('/tasks/requests', { token }),
         apiRequest('/rewards/list', { token }),
         apiRequest('/gaming/overview', { token }),
