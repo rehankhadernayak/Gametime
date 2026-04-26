@@ -14,6 +14,8 @@ import {
   GTBadge,
   GTButton,
   GTInput,
+  GTSkeleton,
+  EmptyState,
 } from "@/components/ui";
 import styles from "./dashboard.module.css";
 
@@ -73,6 +75,79 @@ function taskStatusBadge(state: string): { label: string; tone: "warning" | "neu
   if (state === "Approved") return { label: "Approved", tone: "success" };
   if (state === "Active") return { label: "Active", tone: "info" };
   return { label: state.replace(/([A-Z])/g, " $1").trim() || "Unknown", tone: "neutral" };
+}
+
+function ParentDashboardSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading dashboard">
+      <div className={styles.skeletonStatsRow}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} className={styles.skeletonCard}>
+            <GTSkeleton className={styles.skeletonLineShort} />
+            <GTSkeleton className={`${styles.skeletonLineTitle} ${styles.skeletonPointsTitle}`} />
+            <GTSkeleton className={styles.skeletonLineMeta} />
+          </div>
+        ))}
+      </div>
+      <div className={styles.skeletonMainRow}>
+        <div className={styles.skeletonMainFeed}>
+          <div className={styles.skeletonFeedStack}>
+            <div className={styles.skeletonCard}>
+              <GTSkeleton className={styles.skeletonLineTitle} />
+              <GTSkeleton className={`${styles.skeletonLineMeta} ${styles.skeletonDescWide}`} />
+              <GTSkeleton className={`${styles.skeletonLineMeta} ${styles.skeletonDescMid}`} />
+              <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonNoteBlock}`} />
+              <div className={styles.rowActions}>
+                <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonBtnStub}`} />
+                <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonBtnStub}`} />
+              </div>
+            </div>
+            <div className={styles.skeletonCard}>
+              <GTSkeleton className={styles.skeletonLineTitle} />
+              <GTSkeleton className={`${styles.skeletonLineMeta} ${styles.skeletonDesc75}`} />
+              {[0, 1, 2, 3].map((j) => (
+                <div key={j} className={styles.skeletonQuestRow}>
+                  <div className={styles.skeletonQuestCol}>
+                    <GTSkeleton className={`${styles.skeletonLineTitle} ${styles.skeletonQuestTitleWide}`} />
+                    <GTSkeleton className={styles.skeletonLineMeta} />
+                  </div>
+                  <GTSkeleton className={styles.skeletonBadge} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <aside className={styles.skeletonSideRail}>
+          <div className={styles.skeletonSideStack}>
+            <div className={styles.skeletonCard}>
+              <GTSkeleton className={styles.skeletonLineTitle} />
+              <GTSkeleton className={`${styles.skeletonLineMeta} ${styles.skeletonDescWide}`} />
+              {[0, 1, 2].map((k) => (
+                <div key={k} className={styles.skeletonRosterRow}>
+                  <GTSkeleton className={`${styles.skeletonLineTitle} ${styles.skeletonRosterName}`} />
+                  <GTSkeleton className={`${styles.skeletonLineMeta} ${styles.skeletonRosterBal}`} />
+                </div>
+              ))}
+            </div>
+            <div className={styles.skeletonCard}>
+              <GTSkeleton className={`${styles.skeletonLineTitle} ${styles.skeletonQuickTitle}`} />
+              <div className={styles.rowActions}>
+                <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonQuickBtn}`} />
+                <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonQuickBtn}`} />
+              </div>
+            </div>
+            <div className={styles.skeletonCard}>
+              <GTSkeleton className={`${styles.skeletonLineTitle} ${styles.skeletonPointsTitle}`} />
+              <GTSkeleton className={styles.skeletonLineShort} />
+              <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonFieldTall}`} />
+              <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonFieldTall}`} />
+              <GTSkeleton className={`${styles.skeletonLine} ${styles.skeletonSubmitWide}`} />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
 }
 
 function ParentDashboardInner() {
@@ -356,12 +431,7 @@ function ParentDashboardInner() {
           </p>
         ) : null}
 
-        {loading ? (
-          <div className={styles.loadingRow} aria-busy="true">
-            <span className={styles.spinner} aria-hidden />
-            <span>Syncing mission data…</span>
-          </div>
-        ) : null}
+        {loading ? <ParentDashboardSkeleton /> : null}
 
         {error ? (
           <div className={styles.errorBox} role="alert">
@@ -456,7 +526,15 @@ function ParentDashboardInner() {
                     description="In-flight and awaiting-review chores across the household."
                   >
                     {activeQuests.length === 0 ? (
-                      <p className={styles.emptyHint}>No active or pending-review quests.</p>
+                      <EmptyState
+                        title="No quests assigned yet."
+                        description="Start rewarding effort by creating your first mission."
+                        action={
+                          <GTButton variant="primary" type="button" onClick={() => push("/parent/tasks")}>
+                            Create mission
+                          </GTButton>
+                        }
+                      />
                     ) : (
                       <div>
                         {activeQuests.map((task) => {
@@ -481,7 +559,19 @@ function ParentDashboardInner() {
                 <div className={styles.sideStack}>
                   <GTCard title="Family roster" description="Children and balances at a glance.">
                     {children.length === 0 ? (
-                      <p className={styles.emptyHint}>No children yet. Add profiles in settings.</p>
+                      <EmptyState
+                        title="No family members yet."
+                        description="Add a child profile so you can assign quests and track balances."
+                        action={
+                          <GTButton
+                            variant="primary"
+                            type="button"
+                            onClick={() => push("/parent/settings?tab=children")}
+                          >
+                            Add child
+                          </GTButton>
+                        }
+                      />
                     ) : (
                       <div>
                         {children.map((c) => (
@@ -599,10 +689,12 @@ export default function ParentDashboardPage() {
       fallback={
         <div className={theme.parentTheme}>
           <div className={styles.shell}>
-            <div className={styles.loadingRow} aria-busy="true">
-              <span className={styles.spinner} aria-hidden />
-              <span>Loading…</span>
-            </div>
+            <header className={styles.hero}>
+              <p className={styles.heroEyebrow}>Mission control</p>
+              <h1 className={styles.heroTitle}>Parent dashboard</h1>
+              <p className={styles.heroSub}>Loading your console…</p>
+            </header>
+            <ParentDashboardSkeleton />
           </div>
         </div>
       }
