@@ -47,8 +47,15 @@ export const GTButton = forwardRef<HTMLButtonElement, GTButtonProps>(function GT
       transition={{ type: "spring", stiffness: 520, damping: 28 }}
       {...rest}
     >
-      {loading ? <span className={styles.spinner} aria-hidden /> : null}
-      <span style={{ opacity: loading ? 0.85 : 1 }}>{children}</span>
+      <span
+        className={styles.magneticInner}
+        string="magnetic"
+        string-strength="0.38"
+        string-radius="140"
+      >
+        {loading ? <span className={styles.spinner} aria-hidden /> : null}
+        <span style={{ opacity: loading ? 0.85 : 1 }}>{children}</span>
+      </span>
     </motion.button>
   );
 });

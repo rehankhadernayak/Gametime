@@ -16,6 +16,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+  flex: 1;
+  min-width: 0;
 }
 
 @media (min-width: 640px) {
@@ -37,9 +39,11 @@
   font-weight: 600;
 }
 
-/* ── Hero: glowing glass RP balance ───────────────────────────────────── */
+/* ── Hero: glowing glass RP balance (full width of container) ─────────── */
 .hero {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
   border-radius: 1.25rem;
   padding: 1.5rem 1.25rem;
   text-align: center;
@@ -70,6 +74,45 @@
 .heroInner {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    text-align: left;
+    padding: 1.75rem 2rem;
+  }
+
+  .heroInner {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem 2rem;
+    width: 100%;
+  }
+
+  .heroLabel {
+    margin: 0;
+    align-self: flex-start;
+  }
+
+  .heroBalances {
+    flex-shrink: 0;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .heroBalanceCol {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .heroValue {
+    font-size: clamp(3.25rem, 6vw, 5rem);
+  }
 }
 
 .heroBalances {
@@ -113,7 +156,7 @@
 
 .heroValue {
   margin: 0;
-  font-size: clamp(2.75rem, 10vw, 3.75rem);
+  font-size: clamp(2.75rem, 12vw, 4.25rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.05;
@@ -159,21 +202,8 @@
 
 .questGrid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.875rem;
-}
-
-@media (min-width: 480px) {
-  .questGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-}
-
-@media (min-width: 900px) {
-  .questGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
 .questCard {
@@ -237,11 +267,122 @@
   text-align: center;
 }
 
-/* ── Evidence card ─────────────────────────────────────────────────────── */
+/* ── Evidence: floating trigger + glass modal (does not consume grid space) ─ */
+.evidenceFabWrap {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.evidenceFabWrap > * {
+  pointer-events: auto;
+}
+
+.evidenceFab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.125rem;
+  border-radius: 999px;
+  font-family: var(--gt-font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--gt-ink);
+  cursor: pointer;
+  border: 0.5px solid var(--gt-glass-border);
+  background: var(--gt-glass-bg);
+  backdrop-filter: blur(var(--gt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--gt-glass-blur));
+  box-shadow:
+    inset 0 0 0 0.5px var(--gt-border-hairline),
+    0 0 0 1px color-mix(in srgb, var(--gt-neon) 18%, transparent),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+  transition:
+    transform var(--gt-motion-duration) var(--gt-motion-ease),
+    box-shadow var(--gt-motion-duration) var(--gt-motion-ease);
+}
+
+.evidenceFab:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 0.5px var(--gt-border-hairline),
+    0 0 0 1px color-mix(in srgb, var(--gt-neon) 28%, transparent),
+    0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.evidenceFab:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--gt-focus-ring),
+    inset 0 0 0 0.5px var(--gt-border-hairline),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.evidenceFabBadge {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--gt-ink);
+  background: color-mix(in srgb, var(--gt-neon) 35%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--gt-neon) 50%, transparent);
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  background: rgba(4, 6, 14, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modalDialog {
+  width: 100%;
+  max-width: min(720px, 100%);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  margin: auto;
+  border-radius: 1.25rem;
+  outline: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gt-neon) 15%, transparent),
+    0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
 .evidenceCard {
   display: flex;
   flex-direction: column;
   gap: 1.125rem;
+}
+
+.evidenceModalHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.evidenceModalHeader h2 {
+  margin-bottom: 0;
 }
 
 .formStack {

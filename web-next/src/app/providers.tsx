@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import shell from './app-shell.module.css';
 import { usePathname, useRouter } from 'next/navigation';
+import { StringTuneRoot } from '@/components/StringTuneRoot';
+import shell from './app-shell.module.css';
 import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
 import ThemeToggleButton from '@gametime/frontend/components/ThemeToggleButton.jsx';
@@ -221,6 +222,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <GametimeAuthContext.Provider value={authValue}>
       <GametimeThemeContext.Provider value={themeValue}>
+        <StringTuneRoot />
         <ToastStack
           toasts={toasts}
           onDismiss={(id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))}
