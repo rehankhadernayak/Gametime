@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "demo:walkthrough": "node scripts/demo-walkthrough.mjs"
+    "demo:walkthrough": "node scripts/demo-walkthrough.mjs",
+    "vercel:production": "node scripts/push-vercel-production.mjs"
   },
   "dependencies": {
     "@fiddle-digital/string-tune": "^1.1.55",
