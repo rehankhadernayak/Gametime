@@ -3,9 +3,11 @@
   "private": true,
   "scripts": {
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "secrets:handover": "node scripts/push-secrets-from-env-secrets.mjs"
   },
   "devDependencies": {
+    "@aws-sdk/client-ssm": "^3.787.0",
     "@playwright/test": "^1.52.0"
   }
 }
