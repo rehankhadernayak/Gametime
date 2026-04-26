@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ParentLoginForm } from "@/components/auth/ParentLoginForm";
 import { ChildLoginForm } from "@/components/auth/ChildLoginForm";
 import styles from "@/styles/auth.module.css";
-import meshStyles from "./page.module.css";
+import meshStyles from "./mesh.module.css";
 
 function LoginTabs() {
   const searchParams = useSearchParams();
