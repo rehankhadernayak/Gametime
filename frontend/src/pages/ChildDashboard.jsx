@@ -917,5 +917,12 @@ export default function ChildDashboard({ token }) {
     }
   ];
 
-  return <DashboardShell title="Child Dashboard" sections={sections} variant="child" />;
+  return (
+    <DashboardShell
+      title="Child Dashboard"
+      sections={sections}
+      variant="child"
+      dashboardSectionHome="overview"
+    />
+  );
 }
