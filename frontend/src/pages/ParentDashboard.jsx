@@ -4,6 +4,7 @@ import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
 import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
+import FundGiftCardVaultButton from '../components/FundGiftCardVaultButton.jsx';
 import ChildAvatar from '../components/ChildAvatar.jsx';
 import AssignQuestModal from '../components/AssignQuestModal.jsx';
 
@@ -383,10 +384,17 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const topup = params.get('topup');
+    const payment = params.get('payment');
     if (topup === 'success') {
       window.history.replaceState({}, '', '/parent/dashboard');
       notify('Payment successful! Your GP wallet has been topped up.', 'success');
     } else if (topup === 'cancelled') {
+      window.history.replaceState({}, '', '/parent/dashboard');
+      notify('Payment cancelled - no charge was made.', 'error');
+    } else if (payment === 'success') {
+      window.history.replaceState({}, '', '/parent/dashboard');
+      notify('Payment received. We will add your Amazon gift cards to the vault soon.', 'success');
+    } else if (payment === 'cancelled') {
       window.history.replaceState({}, '', '/parent/dashboard');
       notify('Payment cancelled - no charge was made.', 'error');
     }
@@ -1722,6 +1730,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 <p>Set GP bonuses on tasks. Children earn GP and spend it to claim codes.</p>
               </div>
             </div>
+          </section>
+
+          <section className="panel">
+            <h2>Amazon gift card vault</h2>
+            <p className="helper-text">
+              Fund the vault so we can stock Amazon codes for your family. This checkout is separate from GP wallet top-ups.
+            </p>
+            <FundGiftCardVaultButton token={token} onError={(msg) => notify(msg, 'error')} />
           </section>
 
           {/* ── Section 1: Add gift card codes ────────────────────────────── */}

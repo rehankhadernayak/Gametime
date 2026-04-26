@@ -17,6 +17,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import { athenaWebhookRawController } from './controllers/giftcardsController.js';
 import { stripeWebhookController } from './controllers/stripeController.js';
 import stripeRouter from './routes/stripeRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
@@ -99,6 +100,8 @@ export function createApp() {
   app.use('/achievements', achievementsRoutes);
   app.use('/admin', adminRoutes);
   app.use('/stripe', stripeRouter);
+  app.use('/billing', billingRoutes);
+  app.use('/api/billing', billingRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
