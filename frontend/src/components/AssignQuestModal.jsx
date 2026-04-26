@@ -3,6 +3,7 @@ import { apiRequest } from '../api/client.js';
 import ParentTheme from './ParentTheme.jsx';
 import GTCard from './GTCard.jsx';
 import GTInput from './GTInput.jsx';
+import GTGlassModal from './GTGlassModal.jsx';
 
 const STEPS = ['Quest', 'Rewards', 'Launch'];
 
@@ -107,9 +108,13 @@ export default function AssignQuestModal({ token, children, defaultChildId, onCl
   }
 
   return (
-    <div className="quest-modal-overlay" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose?.()}>
-      <div className="quest-modal" role="dialog" aria-modal="true" aria-labelledby="quest-modal-title">
-        <ParentTheme className="quest-modal-inner">
+    <GTGlassModal
+      className="quest-modal-overlay"
+      panelClassName="quest-modal"
+      onBackdropClick={() => onClose?.()}
+      ariaLabelledBy="quest-modal-title"
+    >
+      <ParentTheme className="quest-modal-inner">
           <div className="quest-modal-top">
             <div>
               <p className="quest-modal-kicker">New assignment</p>
@@ -275,8 +280,7 @@ export default function AssignQuestModal({ token, children, defaultChildId, onCl
               </button>
             )}
           </div>
-        </ParentTheme>
-      </div>
-    </div>
+      </ParentTheme>
+    </GTGlassModal>
   );
 }

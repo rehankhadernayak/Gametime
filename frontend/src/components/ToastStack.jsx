@@ -3,9 +3,21 @@ export default function ToastStack({ toasts, onDismiss }) {
     <div className="toast-stack" role="status" aria-live="polite">
       {toasts.map((toast) => (
         <div key={toast.id} className={`toast toast-${toast.type || 'info'}`}>
-          <div className="toast-content">
-            <strong>{toast.title || 'Notice'}</strong>
-            <p>{toast.message}</p>
+          <div className={`toast-content${toast.icon ? ' toast-row' : ''}`}>
+            {toast.icon ? (
+              <>
+                <span className="toast-icon" aria-hidden="true">{toast.icon}</span>
+                <div className="toast-content-wrap">
+                  <strong>{toast.title || 'Notice'}</strong>
+                  <p>{toast.message}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <strong>{toast.title || 'Notice'}</strong>
+                <p>{toast.message}</p>
+              </>
+            )}
           </div>
           <button
             type="button"
