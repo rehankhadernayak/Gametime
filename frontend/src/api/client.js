@@ -30,7 +30,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-export async function apiRequest(path, { method = 'GET', body, token } = {}) {
+export async function apiRequest(path, { method = 'GET', body, token, suppressErrorToast = false } = {}) {
   const startTs = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -60,7 +60,7 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
       durationMs: Date.now() - startTs,
       error: apiError.message
     });
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !suppressErrorToast) {
       window.dispatchEvent(
         new CustomEvent('gametime:toast', {
           detail: {
@@ -97,15 +97,17 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
         window.dispatchEvent(new CustomEvent('gametime:session-expired', { detail: { path, method } }));
       }
 
-      window.dispatchEvent(
-        new CustomEvent('gametime:toast', {
-          detail: {
-            type: 'error',
-            title: 'Request failed',
-            message: error.message
-          }
-        })
-      );
+      if (!suppressErrorToast) {
+        window.dispatchEvent(
+          new CustomEvent('gametime:toast', {
+            detail: {
+              type: 'error',
+              title: 'Request failed',
+              message: error.message
+            }
+          })
+        );
+      }
     }
     throw error;
   }

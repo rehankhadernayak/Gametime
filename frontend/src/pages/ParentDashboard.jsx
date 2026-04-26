@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { LayoutGroup, motion } from 'framer-motion';
 import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
@@ -78,6 +79,7 @@ import googleplayCardImage from '../assets/giftcards/googleplay.svg';
 import appleCardImage from '../assets/giftcards/apple.svg';
 import fortniteCardImage from '../assets/giftcards/fortnite.svg';
 import minecraftCardImage from '../assets/giftcards/minecraft.svg';
+import './ParentDashboard.css';
 
 const SETTINGS_KEY = 'gametime_parent_settings';
 const PARENT_GAME_RULE_SUGGESTIONS = [
@@ -95,6 +97,11 @@ const PARENT_REWARD_SUGGESTIONS = [
 
 function sanitizeText(value, max = 1000) {
   return String(value || '').replace(/[<>]/g, '').trim().slice(0, max);
+}
+
+function pushGametimeToast(detail) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('gametime:toast', { detail }));
 }
 
 function parseManualGiftcardCodes(input) {
@@ -202,6 +209,8 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [briefing, setBriefing] = useState(null); // { briefing, stats, actions }
   const [briefingActionResults, setBriefingActionResults] = useState({});
   const [settings, setSettings] = useState({ defaultTaskPoints: 10, requireApprovalNotes: false });
+  const [taskDecisionBusy, setTaskDecisionBusy] = useState(() => new Set());
+  const [pointsAdjustSubmitting, setPointsAdjustSubmitting] = useState(false);
 
   async function executeBriefingAction(action, key) {
     try {
@@ -260,8 +269,8 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     }
   }
 
-  async function loadAll() {
-    setLoading(true);
+  async function fetchDashboardData({ silent = false } = {}) {
+    if (!silent) setLoading(true);
     try {
       const childList = await apiRequest('/children/list', { token });
       const [taskList, taskRequestList, rewardList, notificationList, inventoryList, gpSummaryRes] = await Promise.all([
@@ -327,8 +336,16 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     } catch (error) {
       notify(error.message, 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
+  }
+
+  async function loadAll() {
+    return fetchDashboardData({ silent: false });
+  }
+
+  async function refreshDashboardSilently() {
+    return fetchDashboardData({ silent: true });
   }
 
   useEffect(() => {
@@ -344,7 +361,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   }, []);
 
   useEffect(() => {
-    loadAll();
+    fetchDashboardData({ silent: false });
   }, []);
 
   // Proactive AI briefing - load on mount, fail silently after 3s
@@ -505,14 +522,24 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       return;
     }
 
-    const optimisticState = decision === 'approve' ? 'Approved' : 'Active';
-    setTasks((prev) => prev.map((item) => (item.id === task.id ? { ...item, state: optimisticState, parentNote: note || null } : item)));
+    if (decision === 'approve') {
+      setTasks((prev) => prev.filter((item) => item.id !== task.id));
+    } else {
+      setTasks((prev) =>
+        prev.map((item) =>
+          item.id === task.id ? { ...item, state: 'Active', parentNote: note || null } : item
+        )
+      );
+    }
+
+    setTaskDecisionBusy((prev) => new Set(prev).add(task.id));
 
     try {
       await apiRequest(`/tasks/${decision}`, {
         method: 'POST',
         token,
-        body: { taskId: task.id, note: note || null }
+        body: { taskId: task.id, note: note || null },
+        suppressErrorToast: true
       });
       notify(
         decision === 'approve'
@@ -520,11 +547,23 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           : `Task sent back for retry: ${task.title}`
       );
       trackEvent('task_decision', { decision, taskId: task.id, childId: task.childId });
-      await loadAll();
+      void refreshDashboardSilently();
     } catch (error) {
-      notify(error.message, 'error');
+      if (decision === 'approve') {
+        setTasks((prev) => [...prev, { ...task, state: 'PendingApproval' }]);
+      } else {
+        setTasks((prev) =>
+          prev.map((item) => (item.id === task.id ? { ...task, state: 'PendingApproval', parentNote: task.parentNote } : item))
+        );
+      }
+      pushGametimeToast({ type: 'error', title: 'Request failed', message: error.message });
       trackEvent('task_decision_failed', { decision, taskId: task.id, error: error.message });
-      await loadAll();
+    } finally {
+      setTaskDecisionBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
     }
   }
 
@@ -721,84 +760,128 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
             {Object.keys(pendingByChild).length === 0 ? (
               <p>No tasks are waiting for approval.</p>
             ) : (
-              Object.entries(pendingByChild).map(([childName, childTasks]) => (
-                <article key={childName} className="panel subtle-panel">
-                  <h3>{childName}</h3>
-                  <div className="table-wrap">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Task</th>
-                          <th>AI Advisory</th>
-                          <th>Evidence</th>
-                          <th>Dispute</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {childTasks.map((task) => (
-                          <tr key={task.id}>
-                            <td>
-                              <strong>{task.title}</strong>
-                              <div><StatusChip state={task.state} /></div>
-                            </td>
-                            <td>
-                              <div className="ai-review-box" aria-live="polite">
-                                {!task.aiStatus ? (
-                                  <p className="ai-pending">Analysis pending…</p>
-                                ) : (
-                                  <>
-                                    <p>
-                                      <strong>{task.aiStatus === 'Unavailable' ? 'Local advisory' : 'AI'}:</strong>{' '}
-                                      {task.aiRecommendation || 'NeedsParentReview'}
-                                      {task.aiStatus === 'Unavailable' ? <span className="ai-badge"> (no AI key)</span> : null}
-                                    </p>
-                                    <p><strong>Confidence:</strong> {Number.isFinite(Number(task.aiConfidence)) ? `${Math.round(Number(task.aiConfidence) * 100)}%` : 'N/A'}</p>
-                                    {task.aiReason ? <p className="ai-reason"><strong>Reason:</strong> {task.aiReason}</p> : null}
-                                  </>
-                                )}
+              <LayoutGroup id="parent-pending-approvals">
+                <div className="approvals-by-child-stack">
+                  {Object.entries(pendingByChild).map(([childName, childTasks]) => (
+                    <motion.article
+                      key={childName}
+                      layout
+                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                      className="panel subtle-panel approval-child-panel"
+                    >
+                      <h3>{childName}</h3>
+                      <div className="approval-task-list">
+                        {childTasks.map((task) => {
+                          const busy = taskDecisionBusy.has(task.id);
+                          return (
+                            <motion.div
+                              key={task.id}
+                              layout
+                              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                              className="approval-task-card"
+                            >
+                              <div className="approval-task-card__title-row">
+                                <strong>{task.title}</strong>
+                                <StatusChip state={task.state} />
                               </div>
-                            </td>
-                            <td>
-                              {task.hasEvidence && task.completionId ? (
-                                <div className="evidence-box">
-                                  <p><strong>Evidence:</strong> {task.evidenceType || 'File'}</p>
-                                  <button
-                                    type="button"
-                                    className="task-review-btn"
-                                    style={{ marginTop: '0.4rem' }}
-                                    onClick={() => setReviewPanel({ taskId: task.id, submissionId: task.completionId })}
-                                  >
-                                    Review Evidence
-                                  </button>
-                                  {task.evidenceNote ? <p><strong>Child note:</strong> {task.evidenceNote}</p> : null}
+                              <div className="approval-task-card__grid">
+                                <div className="approval-task-card__block">
+                                  <h4>AI advisory</h4>
+                                  <div className="ai-review-box" aria-live="polite">
+                                    {!task.aiStatus ? (
+                                      <p className="ai-pending">Analysis pending…</p>
+                                    ) : (
+                                      <>
+                                        <p>
+                                          <strong>{task.aiStatus === 'Unavailable' ? 'Local advisory' : 'AI'}:</strong>{' '}
+                                          {task.aiRecommendation || 'NeedsParentReview'}
+                                          {task.aiStatus === 'Unavailable' ? <span className="ai-badge"> (no AI key)</span> : null}
+                                        </p>
+                                        <p>
+                                          <strong>Confidence:</strong>{' '}
+                                          {Number.isFinite(Number(task.aiConfidence))
+                                            ? `${Math.round(Number(task.aiConfidence) * 100)}%`
+                                            : 'N/A'}
+                                        </p>
+                                        {task.aiReason ? (
+                                          <p className="ai-reason">
+                                            <strong>Reason:</strong> {task.aiReason}
+                                          </p>
+                                        ) : null}
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                              ) : 'No evidence'}
-                            </td>
-                            <td>
-                              {task.disputed ? <p className="dispute-note"><strong>Dispute:</strong> {task.disputeNote}</p> : 'None'}
-                            </td>
-                            <td>
-                              <div className="inline-form">
+                                <div className="approval-task-card__block">
+                                  <h4>Evidence & dispute</h4>
+                                  {task.hasEvidence && task.completionId ? (
+                                    <div className="evidence-box">
+                                      <p>
+                                        <strong>Evidence:</strong> {task.evidenceType || 'File'}
+                                      </p>
+                                      <button
+                                        type="button"
+                                        className="task-review-btn"
+                                        onClick={() => setReviewPanel({ taskId: task.id, submissionId: task.completionId })}
+                                      >
+                                        Review Evidence
+                                      </button>
+                                      {task.evidenceNote ? (
+                                        <p>
+                                          <strong>Child note:</strong> {task.evidenceNote}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  ) : (
+                                    <p>No evidence</p>
+                                  )}
+                                  {task.disputed ? (
+                                    <p className="dispute-note approval-dispute-gap">
+                                      <strong>Dispute:</strong> {task.disputeNote}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="approval-task-card__actions">
                                 <label>
                                   Approval note
                                   <input
                                     maxLength={200}
                                     value={decisionNotes[task.id] || ''}
-                                    onChange={(e) => setDecisionNotes((prev) => ({ ...prev, [task.id]: e.target.value }))}
+                                    onChange={(e) =>
+                                      setDecisionNotes((prev) => ({ ...prev, [task.id]: e.target.value }))
+                                    }
                                   />
                                 </label>
-                                <button type="button" onClick={() => applyTaskDecision(task, 'approve')}>Approve</button>
-                                <button type="button" onClick={() => applyTaskDecision(task, 'reject')}>Reject</button>
+                                <button
+                                  type="button"
+                                  className={`approval-action-btn${busy ? ' approval-action-btn--busy' : ''}`}
+                                  onClick={() => applyTaskDecision(task, 'approve')}
+                                  disabled={busy}
+                                  aria-busy={busy}
+                                >
+                                  {busy ? <span className="approval-btn-spinner" aria-hidden="true" /> : null}
+                                  Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`approval-action-btn${busy ? ' approval-action-btn--busy' : ''}`}
+                                  onClick={() => applyTaskDecision(task, 'reject')}
+                                  disabled={busy}
+                                  aria-busy={busy}
+                                >
+                                  {busy ? <span className="approval-btn-spinner" aria-hidden="true" /> : null}
+                                  Reject
+                                </button>
                               </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </article>
-              ))
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </motion.article>
+                  ))}
+                </div>
+              </LayoutGroup>
             )}
           </section>
 
@@ -1405,19 +1488,58 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                   return;
                 }
 
+                const childBefore = children.find((c) => c.id === payload.childId);
+                const childName = childBefore?.name || 'Child';
+                const prevBalance = Number(childBefore?.pointsBalance ?? 0);
+                const optimisticBalance = prevBalance + payload.points;
+
+                setChildren((prev) =>
+                  prev.map((c) =>
+                    c.id === payload.childId ? { ...c, pointsBalance: optimisticBalance } : c
+                  )
+                );
+
+                pushGametimeToast({
+                  type: 'success',
+                  title: payload.points > 0 ? 'Points sent' : 'Points adjusted',
+                  message:
+                    payload.points > 0
+                      ? `Sent +${payload.points} RP to ${childName}`
+                      : `${payload.points} RP for ${childName}`
+                });
+
+                setUndoAdjustment({
+                  childId: payload.childId,
+                  points: payload.points * -1,
+                  note: `Undo: ${payload.note}`
+                });
+                setPointsAdjustSubmitting(true);
+
                 try {
-                  await apiRequest('/points/adjust', { method: 'POST', token, body: payload });
-                  notify(`Points updated: ${payload.points > 0 ? '+' : ''}${payload.points}`);
-                  setUndoAdjustment({
-                    childId: payload.childId,
-                    points: payload.points * -1,
-                    note: `Undo: ${payload.note}`
+                  const res = await apiRequest('/points/adjust', {
+                    method: 'POST',
+                    token,
+                    body: payload,
+                    suppressErrorToast: true
                   });
+                  const serverBalance =
+                    res && typeof res.newBalance === 'number' ? res.newBalance : optimisticBalance;
+                  setChildren((prev) =>
+                    prev.map((c) => (c.id === payload.childId ? { ...c, pointsBalance: serverBalance } : c))
+                  );
                   trackEvent('points_adjusted', payload);
-                  await loadAll();
+                  void refreshDashboardSilently();
                 } catch (error) {
-                  notify(error.message, 'error');
+                  setChildren((prev) =>
+                    prev.map((c) =>
+                      c.id === payload.childId ? { ...c, pointsBalance: prevBalance } : c
+                    )
+                  );
+                  setUndoAdjustment(null);
+                  pushGametimeToast({ type: 'error', title: 'Request failed', message: error.message });
                   trackEvent('points_adjust_failed', { childId: payload.childId, error: error.message });
+                } finally {
+                  setPointsAdjustSubmitting(false);
                 }
               }}
             >
@@ -1440,7 +1562,15 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 Reason
                 <input value={pointsForm.note} onChange={(e) => setPointsForm({ ...pointsForm, note: e.target.value })} />
               </label>
-              <button type="submit">Adjust</button>
+              <button
+                type="submit"
+                className={pointsAdjustSubmitting ? 'points-adjust-submit points-adjust-submit--busy' : 'points-adjust-submit'}
+                disabled={pointsAdjustSubmitting}
+                aria-busy={pointsAdjustSubmitting}
+              >
+                {pointsAdjustSubmitting ? <span className="approval-btn-spinner" aria-hidden="true" /> : null}
+                Adjust
+              </button>
             </form>
             {undoAdjustment ? (
               <div className="undo-bar">
@@ -1457,7 +1587,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                       notify('Points adjustment was undone.');
                       setUndoAdjustment(null);
                       trackEvent('points_adjust_undone', { childId: undoAdjustment.childId });
-                      await loadAll();
+                      await refreshDashboardSilently();
                     } catch (error) {
                       notify(error.message, 'error');
                       trackEvent('points_adjust_undo_failed', { error: error.message });
@@ -2042,7 +2172,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           onClose={() => setReviewPanel(null)}
           onReviewed={(_decision, _taskId) => {
             setReviewPanel(null);
-            loadAll();
+            void refreshDashboardSilently();
           }}
         />
       )}
