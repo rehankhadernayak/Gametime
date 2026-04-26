@@ -1,0 +1,47 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 2.25rem) 1rem;
+  max-width: 28rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.iconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--gt-ink-muted) 35%, transparent);
+}
+
+.iconSvg {
+  width: 3rem;
+  height: 3rem;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--gt-font-sans);
+  font-size: clamp(1rem, 2.5vw, 1.125rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  color: var(--gt-ink);
+}
+
+.description {
+  margin: 0;
+  font-family: var(--gt-font-sans);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--gt-ink-soft);
+  max-width: 32ch;
+}
+
+.action {
+  margin-top: 0.25rem;
+}

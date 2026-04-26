@@ -13,6 +13,7 @@ import { GTBadge } from "@/components/ui/GTBadge";
 import { GTButton } from "@/components/ui/GTButton";
 import { GTInput } from "@/components/ui/GTInput";
 import { GTSelect } from "@/components/ui/GTSelect";
+import { EmptyState, GTSkeleton } from "@/components/ui";
 import hubStyles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
 import themeModule from "@/styles/theme.module.css";
 import styles from "./child-dashboard.module.css";
@@ -45,6 +46,23 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(new Error("Failed to read evidence file"));
     reader.readAsDataURL(file);
   });
+}
+
+function ChildQuestGridSkeleton() {
+  return (
+    <div className={styles.skeletonQuestGrid} aria-busy="true" aria-label="Loading quests">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className={styles.skeletonQuestCard}>
+          <div className={styles.skeletonQuestHeader}>
+            <GTSkeleton className={styles.skeletonTitleLine} />
+            <GTSkeleton className={styles.skeletonBadgePill} />
+          </div>
+          <GTSkeleton className={styles.skeletonMetaLine} />
+          <GTSkeleton className={styles.skeletonMetaLine2} />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function questBadgeLabel(state: string): string {
@@ -251,27 +269,36 @@ export default function ChildDashboardPage() {
                 Balances
               </p>
               <div className={styles.heroBalances}>
-                <div className={styles.heroBalanceCol}>
-                  <p className={styles.heroValue} aria-live="polite">
-                    {loading ? "…" : rp.toLocaleString()}
-                  </p>
-                  <span className={styles.heroUnit}>RP</span>
-                </div>
-                <div className={`${styles.heroBalanceCol} ${styles.heroBalanceColGp}`}>
-                  <p className={`${styles.heroValue} ${styles.heroValueGp}`} aria-live="polite">
-                    {loading ? "…" : gp.toLocaleString()}
-                  </p>
-                  <span className={`${styles.heroUnit} ${styles.heroUnitGp}`}>GP</span>
-                </div>
+                {loading ? (
+                  <div className={styles.heroSkeletonWrap} aria-hidden>
+                    <div className={styles.heroSkeletonCol}>
+                      <GTSkeleton className={styles.skeletonHeroValue} />
+                      <GTSkeleton className={styles.skeletonMetaLine} />
+                    </div>
+                    <div className={styles.heroSkeletonCol}>
+                      <GTSkeleton className={styles.skeletonHeroValue} />
+                      <GTSkeleton className={styles.skeletonMetaLine2} />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.heroBalanceCol}>
+                      <p className={styles.heroValue} aria-live="polite">
+                        {rp.toLocaleString()}
+                      </p>
+                      <span className={styles.heroUnit}>RP</span>
+                    </div>
+                    <div className={`${styles.heroBalanceCol} ${styles.heroBalanceColGp}`}>
+                      <p className={`${styles.heroValue} ${styles.heroValueGp}`} aria-live="polite">
+                        {gp.toLocaleString()}
+                      </p>
+                      <span className={`${styles.heroUnit} ${styles.heroUnitGp}`}>GP</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </header>
-
-          {loading ? (
-            <p className={styles.loadingRow} aria-busy="true">
-              <span>Syncing your hub…</span>
-            </p>
-          ) : null}
 
           {error ? (
             <p className={styles.statusErr} role="alert">
@@ -282,7 +309,7 @@ export default function ChildDashboardPage() {
             </p>
           ) : null}
 
-          {!loading && !error ? (
+          {!error ? (
             <>
               <section aria-labelledby="quests-heading">
                 <h2 id="quests-heading" className={hubStyles.sectionTitle}>
@@ -291,8 +318,13 @@ export default function ChildDashboardPage() {
                 <p className={styles.sectionSubtitle}>
                   Tap an active quest to open the evidence uplink and submit photo or video proof. Complete chores to earn RP.
                 </p>
-                {tasks.length === 0 ? (
-                  <p className={styles.emptyState}>No quests assigned yet. Check back soon.</p>
+                {loading ? (
+                  <ChildQuestGridSkeleton />
+                ) : tasks.length === 0 ? (
+                  <EmptyState
+                    title="No quests assigned yet."
+                    description="When a parent assigns you a mission, it will appear here. Check back soon."
+                  />
                 ) : (
                   <motion.div
                     className={styles.questGrid}
@@ -365,7 +397,7 @@ export default function ChildDashboardPage() {
                 )}
               </section>
 
-              <div className={styles.evidenceFabWrap} aria-hidden={!tasks.length}>
+              <div className={styles.evidenceFabWrap} aria-hidden={loading || !tasks.length}>
                 <button
                   type="button"
                   className={styles.evidenceFab}

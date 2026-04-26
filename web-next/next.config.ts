@@ -5,6 +5,15 @@ const navShim = path.resolve(__dirname, "../frontend/src/shims/nav.next.jsx");
 const frontendSrc = path.resolve(__dirname, "../frontend/src");
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
+  },
   experimental: {
     externalDir: true,
   },

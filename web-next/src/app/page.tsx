@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { GametimeLink } from "@/components/GametimeLink";
 import landingStyles from "@/styles/landing.module.css";
@@ -15,6 +16,14 @@ const HEADLINE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 const HEADLINE_DURATION = 0.8;
 const WORD_STAGGER = 0.12;
 
+const UNSPLASH = {
+  mission:
+    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
+  scan: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80",
+  rewards:
+    "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&q=80",
+} as const;
+
 function IconArrow() {
   return (
     <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
@@ -22,60 +31,6 @@ function IconArrow() {
         d="M4 10h12M11 5l5 5-5 5"
         stroke="currentColor"
         strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconAI() {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
-      <path
-        d="M12 2a5 5 0 0 1 5 5c0 1.5-.66 2.85-1.7 3.77L17 17H7l1.7-6.23A5 5 0 0 1 12 2Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9 17v1a3 3 0 0 0 6 0v-1"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <circle cx="12" cy="8" r="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function IconCoin() {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
-      <path
-        d="M12 7v10M9.5 9.5C9.5 8.4 10.6 7 12 7s2.5 1.4 2.5 2.5c0 2.5-5 2.5-5 5 0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function IconShield() {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
-      <path
-        d="M12 3l7 3v5c0 5-3.2 8.5-7 10-3.8-1.5-7-5-7-10V6l7-3Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9 12.5l2 2 4-4"
-        stroke="currentColor"
-        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -170,6 +125,174 @@ function PremiumHero() {
   );
 }
 
+function FeaturesBentoSection() {
+  const reduceMotion = useReducedMotion();
+
+  const reveal = (delay = 0) =>
+    ({
+      initial: reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 },
+      whileInView: { opacity: 1, y: 0 },
+      viewport: { once: true, margin: "-100px" } as const,
+      transition: reduceMotion
+        ? { duration: 0 }
+        : { duration: 0.55, ease: HEADLINE_EASE, delay },
+    }) as const;
+
+  return (
+    <section className="hp-features" aria-labelledby="hp-features-heading">
+      <style>{`
+        .hp-features {
+          background: var(--gt-bg-soft, #f4f4f5);
+          color: var(--gt-ink, #0a0a0a);
+          border-top: 1px solid var(--gt-line, rgba(0,0,0,0.08));
+        }
+        @media (prefers-color-scheme: dark) {
+          .hp-features {
+            background: #141416;
+            color: var(--foreground, #ededed);
+            border-top-color: rgba(255,255,255,0.08);
+          }
+        }
+        .hp-features__inner {
+          max-width: 80rem;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 6rem 1.5rem;
+        }
+        .hp-features__title {
+          font-size: clamp(1.75rem, 4vw, 2.5rem);
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          line-height: 1.15;
+          text-align: center;
+          max-width: 42rem;
+          margin: 0 auto 3rem;
+        }
+        .hp-features__grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        @media (min-width: 768px) {
+          .hp-features__grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .hp-features__card--wide {
+            grid-column: span 2;
+          }
+          .hp-features__card--full {
+            grid-column: span 3;
+          }
+        }
+        .hp-features__card {
+          display: flex;
+          flex-direction: column;
+          border-radius: 1rem;
+          padding: 1.25rem;
+          background: var(--gt-bg, #fff);
+          border: 1px solid var(--gt-line, rgba(0,0,0,0.08));
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+          overflow: hidden;
+        }
+        @media (prefers-color-scheme: dark) {
+          .hp-features__card {
+            background: #18181b;
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: none;
+          }
+        }
+        .hp-features__media {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 16 / 10;
+          margin-bottom: 1.25rem;
+          border-radius: 0.5rem;
+          overflow: hidden;
+          background: var(--gt-bg-soft, #f4f4f5);
+        }
+        .hp-features__media img {
+          object-fit: cover;
+        }
+        .hp-features__card h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          letter-spacing: -0.02em;
+        }
+        .hp-features__card p {
+          font-size: 0.9375rem;
+          line-height: 1.55;
+          color: var(--gt-ink-soft, #52525b);
+          margin: 0;
+        }
+        @media (prefers-color-scheme: dark) {
+          .hp-features__card p {
+            color: #a1a1aa;
+          }
+        }
+      `}</style>
+
+      <div className="hp-features__inner">
+        <h2 id="hp-features-heading" className="hp-features__title">
+          Manage the chaos. Reward the effort.
+        </h2>
+
+        <div className="hp-features__grid">
+          <motion.article
+            className="hp-features__card hp-features__card--wide"
+            {...reveal(0)}
+          >
+            <div className="hp-features__media">
+              <Image
+                src={UNSPLASH.mission}
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 66vw"
+                className="rounded-lg object-cover"
+                priority={false}
+              />
+            </div>
+            <h3>Mission Control</h3>
+            <p>
+              One dashboard for chores, homework, and screen time—so nothing slips through the cracks.
+            </p>
+          </motion.article>
+
+          <motion.article className="hp-features__card" {...reveal(0.08)}>
+            <div className="hp-features__media">
+              <Image
+                src={UNSPLASH.scan}
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="rounded-lg object-cover"
+              />
+            </div>
+            <h3>Scan Evidence</h3>
+            <p>Kids submit a quick photo or clip; you review proof in seconds, not nagging sessions.</p>
+          </motion.article>
+
+          <motion.article className="hp-features__card hp-features__card--full" {...reveal(0.16)}>
+            <div className="hp-features__media">
+              <Image
+                src={UNSPLASH.rewards}
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 100vw"
+                className="rounded-lg object-cover"
+              />
+            </div>
+            <h3>Instant Rewards</h3>
+            <p>
+              Turn completed tasks into credits they care about—fair, visible, and ready the moment you approve.
+            </p>
+          </motion.article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   const [auth, setAuth] = useState<AuthState>({ token: null });
 
@@ -195,55 +318,7 @@ export default function HomePage() {
       <main role="main">
         <PremiumHero />
 
-        <section id="bento" className={landingStyles.bentoSection} aria-label="Features">
-          <div className={landingStyles.parallaxWord} aria-hidden="true">
-            GAMETIME
-          </div>
-
-          <div className={landingStyles.bentoInner}>
-            <div className={landingStyles.bentoHeadingWrap}>
-              <h2 className={landingStyles.bentoHeading}>How it works.</h2>
-            </div>
-
-            <div className={landingStyles.bentoGrid}>
-              <article className={`${landingStyles.bentoCard} ${landingStyles.bentoCardTall}`}>
-                <div className={landingStyles.bentoIcon}>
-                  <IconAI />
-                </div>
-                <div className={landingStyles.bentoLabel}>Card 1</div>
-                <h3 className={landingStyles.bentoTitle}>AI Evidence</h3>
-                <p className={landingStyles.bentoDesc}>Simple photo proof.</p>
-                <div className={landingStyles.bentoProgress}>
-                  <div className={landingStyles.bentoProgressFill} style={{ width: "78%" }} />
-                </div>
-              </article>
-
-              <article className={landingStyles.bentoCard}>
-                <div className={landingStyles.bentoIcon}>
-                  <IconCoin />
-                </div>
-                <div className={landingStyles.bentoLabel}>Card 2</div>
-                <h3 className={landingStyles.bentoTitle}>Points</h3>
-                <p className={landingStyles.bentoDesc}>Earn Gold &amp; RP.</p>
-                <div className={landingStyles.bentoProgress}>
-                  <div className={landingStyles.bentoProgressFill} style={{ width: "54%" }} />
-                </div>
-              </article>
-
-              <article className={`${landingStyles.bentoCard} ${landingStyles.bentoCardWide}`}>
-                <div className={landingStyles.bentoIcon}>
-                  <IconShield />
-                </div>
-                <div className={landingStyles.bentoLabel}>Card 3</div>
-                <h3 className={landingStyles.bentoTitle}>Controls</h3>
-                <p className={landingStyles.bentoDesc}>Stop gaming instantly.</p>
-                <div className={landingStyles.bentoProgress}>
-                  <div className={landingStyles.bentoProgressFill} style={{ width: "92%" }} />
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
+        <FeaturesBentoSection />
 
         {!auth.token && (
           <section className={landingStyles.closing} aria-labelledby="hp-closing-heading">

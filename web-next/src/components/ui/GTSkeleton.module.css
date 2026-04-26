@@ -1,0 +1,26 @@
+.block {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--gt-ink) 7%, var(--gt-bg-soft));
+  border: 0.5px solid var(--gt-border-hairline);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    animation: none;
+    opacity: 0.72;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

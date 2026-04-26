@@ -132,6 +132,188 @@
   gap: clamp(1rem, 2.5vw, 1.25rem);
 }
 
+/* Skeleton layout mirrors stats + bento while data loads */
+.skeletonStatsRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: clamp(1.5rem, 3vw, 2rem);
+}
+
+@media (min-width: 768px) {
+  .skeletonStatsRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.skeletonMainRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .skeletonMainRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .skeletonMainFeed {
+    grid-column: span 2;
+  }
+
+  .skeletonSideRail {
+    grid-column: span 1;
+  }
+}
+
+.skeletonFeedStack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.skeletonSideStack {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vw, 1.25rem);
+}
+
+.skeletonCard {
+  border-radius: 0.75rem;
+  border: 0.5px solid var(--gt-border-hairline);
+  background: var(--gt-surface);
+  box-shadow: var(--gt-shadow-sm);
+  padding: 1.125rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeletonLine {
+  height: 0.65rem;
+  max-width: 100%;
+}
+
+.skeletonLineShort {
+  height: 0.65rem;
+  max-width: 38%;
+}
+
+.skeletonLineTitle {
+  height: 0.85rem;
+  max-width: 52%;
+}
+
+.skeletonLineMeta {
+  height: 0.55rem;
+  max-width: 72%;
+}
+
+.skeletonBadge {
+  width: 4.5rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  margin-left: auto;
+  flex-shrink: 0;
+  max-width: none;
+}
+
+.skeletonQuestRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 0.5px solid var(--gt-border-hairline);
+}
+
+.skeletonQuestRow:last-child {
+  border-bottom: none;
+}
+
+.skeletonQuestCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.skeletonRosterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 0.5px solid var(--gt-border-hairline);
+}
+
+.skeletonRosterRow:last-child {
+  border-bottom: none;
+}
+
+.skeletonNoteBlock {
+  margin-top: 0.5rem;
+  height: 4.5rem;
+  border-radius: 0.625rem;
+}
+
+.skeletonBtnStub {
+  width: 5.5rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  max-width: none;
+}
+
+.skeletonDescWide {
+  max-width: 90%;
+}
+
+.skeletonDescMid {
+  max-width: 65%;
+}
+
+.skeletonDesc75 {
+  max-width: 75%;
+}
+
+.skeletonQuestTitleWide {
+  max-width: 85%;
+}
+
+.skeletonRosterName {
+  max-width: 45%;
+}
+
+.skeletonRosterBal {
+  max-width: 35%;
+  margin-left: auto;
+}
+
+.skeletonQuickTitle {
+  max-width: 55%;
+}
+
+.skeletonQuickBtn {
+  width: 8rem;
+  height: 2.25rem;
+}
+
+.skeletonPointsTitle {
+  max-width: 50%;
+}
+
+.skeletonFieldTall {
+  height: 2.5rem;
+}
+
+.skeletonSubmitWide {
+  width: 100%;
+  height: 2.5rem;
+  max-width: none;
+}
+
 .loadingRow {
   display: flex;
   align-items: center;
