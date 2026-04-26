@@ -85,7 +85,7 @@ const LEARNING_INTERESTS = [
 ];
 
 /* ── Main component ─────────────────────────────────────────────────── */
-export default function SettingsPage({ token, theme, onToggleTheme, parentName }) {
+export default function SettingsPage({ token, parentName }) {
   const router = useAppRouter();
   const searchParams = useAppSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'children');
@@ -431,25 +431,13 @@ export default function SettingsPage({ token, theme, onToggleTheme, parentName }
 
         <div className="settings-option-group">
           <h3 className="settings-option-title">Theme</h3>
+          <p className="settings-note">Gametime uses a light interface for parents. The child dashboard keeps its own look.</p>
           <div className="settings-theme-row">
-            <button
-              type="button"
-              className={`settings-theme-card${theme === 'light' ? ' active' : ''}`}
-              onClick={() => { if (theme === 'dark') onToggleTheme(); }}
-            >
+            <div className="settings-theme-card active" role="status">
               <span className="settings-theme-preview light-preview" aria-hidden="true" />
               <span>Light</span>
-              {theme === 'light' && <span className="settings-active-badge">Active</span>}
-            </button>
-            <button
-              type="button"
-              className={`settings-theme-card${theme === 'dark' ? ' active' : ''}`}
-              onClick={() => { if (theme === 'light') onToggleTheme(); }}
-            >
-              <span className="settings-theme-preview dark-preview" aria-hidden="true" />
-              <span>Dark</span>
-              {theme === 'dark' && <span className="settings-active-badge">Active</span>}
-            </button>
+              <span className="settings-active-badge">Active</span>
+            </div>
           </div>
         </div>
 

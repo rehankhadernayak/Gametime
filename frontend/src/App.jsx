@@ -15,7 +15,6 @@ import ParentOnboarding from './pages/ParentOnboarding.jsx';
 import AdminPage from './pages/AdminPage.jsx';
 import { apiRequest } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
-import ThemeToggleButton from './components/ThemeToggleButton.jsx';
 import ToastStack from './components/ToastStack.jsx';
 import { trackEvent } from './utils/analytics.js';
 
@@ -43,23 +42,11 @@ export default function App() {
     const raw = localStorage.getItem('gametime_auth');
     return raw ? JSON.parse(raw) : { token: '', role: '', user: null };
   });
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('gametime_theme');
-    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-    // Fall back to OS preference if no saved preference exists
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-    return 'light';
-  });
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
     localStorage.setItem('gametime_auth', JSON.stringify(auth));
   }, [auth]);
-
-  useEffect(() => {
-    localStorage.setItem('gametime_theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
 
   function handleAuth(nextAuth) {
     setAuth(nextAuth);
@@ -121,8 +108,6 @@ export default function App() {
   }
 
   const showUtility = !auth.token;
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-
   return (
     <div>
       <ToastStack toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
@@ -139,12 +124,11 @@ export default function App() {
           <button type="button" className="icon-button" aria-label="Go home" onClick={() => navigate('/')}>
             <HomeIcon />
           </button>
-          <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
           <span className="utility-path">{location.pathname}</span>
         </div>
       )}
 
-      {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} isAdmin={Boolean(auth.user?.isAdmin)} />}
+      {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} isAdmin={Boolean(auth.user?.isAdmin)} />}
       <Routes>
         <Route path="/" element={<HomePage auth={auth} />} />
         <Route path="/signup" element={<ParentSignUp onAuth={handleAuth} />} />
@@ -183,12 +167,7 @@ export default function App() {
           path="/parent/settings"
           element={
             auth.role === 'parent' ? (
-              <SettingsPage
-                token={auth.token}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-                parentName={auth.user?.name}
-              />
+              <SettingsPage token={auth.token} parentName={auth.user?.name} />
             ) : (
               <Navigate to="/login" replace />
             )

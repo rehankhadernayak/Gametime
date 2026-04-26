@@ -4,12 +4,10 @@ import { Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SettingsPage from '@gametime/frontend/pages/SettingsPage.jsx';
 import { useGametimeAuth } from '@/hooks/useGametimeAuth';
-import { useGametimeTheme } from '@/hooks/useGametimeTheme';
 
 function ParentSettingsInner() {
   const router = useRouter();
   const { auth, authHydrated } = useGametimeAuth();
-  const { theme, toggleTheme } = useGametimeTheme();
 
   useEffect(() => {
     if (!authHydrated) return;
@@ -21,8 +19,6 @@ function ParentSettingsInner() {
   return (
     <SettingsPage
       token={auth.token}
-      theme={theme}
-      onToggleTheme={toggleTheme}
       parentName={auth.user?.name}
     />
   );

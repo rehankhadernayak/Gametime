@@ -12,23 +12,6 @@ function SettingsIcon() {
   );
 }
 
-function SunIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17 4.9 19.1" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M15.5 3.5A8.5 8.5 0 1 0 20 18 7.3 7.3 0 0 1 15.5 3.5Z" />
-    </svg>
-  );
-}
-
 function LogoutIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -40,7 +23,7 @@ function LogoutIcon() {
 }
 
 /* ── NavBar ─────────────────────────────────────────────────────────── */
-export default function NavBar({ role, token, onLogout, theme, onToggleTheme, isAdmin }) {
+export default function NavBar({ role, token, onLogout, isAdmin }) {
   const router = useAppRouter();
 
   return (
@@ -59,17 +42,6 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
       {/* Right: Actions */}
       <div className="nav-actions">
         <NotificationBell token={token} role={role} />
-
-        {/* Theme toggle */}
-        <button
-          type="button"
-          className="nav-icon-btn"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          onClick={onToggleTheme}
-        >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
 
         {/* Settings (parent only) */}
         {role === 'parent' && (
