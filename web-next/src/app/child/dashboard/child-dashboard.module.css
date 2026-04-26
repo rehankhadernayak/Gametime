@@ -340,34 +340,7 @@
   border: 0.5px solid color-mix(in srgb, var(--gt-neon) 50%, transparent);
 }
 
-.modalBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.25rem;
-  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
-  background: rgba(4, 6, 14, 0.62);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.modalDialog {
-  width: 100%;
-  max-width: min(720px, 100%);
-  max-height: min(90vh, 900px);
-  overflow: auto;
-  margin: auto;
-  border-radius: 1.25rem;
-  outline: none;
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--gt-neon) 15%, transparent),
-    0 24px 64px rgba(0, 0, 0, 0.55);
-}
-
-.evidenceCard {
+.evidenceModalBody {
   display: flex;
   flex-direction: column;
   gap: 1.125rem;

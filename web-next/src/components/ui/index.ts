@@ -1,6 +1,7 @@
 export { theme, ParentTheme } from "./theme";
 export { GTButton, type GTButtonProps, type GTButtonSize, type GTButtonVariant } from "./GTButton";
 export { GTCard, type GTCardProps } from "./GTCard";
+export { GTGlassModal, type GTGlassModalProps } from "./GTGlassModal";
 export { GTInput, type GTInputProps, type GTInputSize } from "./GTInput";
 export { GTSelect, type GTSelectProps } from "./GTSelect";
 export {
