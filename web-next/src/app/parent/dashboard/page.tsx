@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
@@ -14,6 +15,7 @@ import {
   GTBadge,
   GTButton,
   GTInput,
+  GTSelect,
 } from "@/components/ui";
 import styles from "./dashboard.module.css";
 
@@ -96,8 +98,6 @@ function ParentDashboardInner() {
     points: "10",
     note: "Manual adjustment",
   });
-  const [banner, setBanner] = useState<{ text: string; kind: "success" | "error" } | null>(null);
-
   const token = auth.token;
 
   const loadDashboard = useCallback(
@@ -174,10 +174,12 @@ function ParentDashboardInner() {
     const topup = searchParams.get("topup");
     if (topup === "success") {
       replace("/parent/dashboard");
-      setBanner({ text: "Payment successful! Your GP wallet has been topped up.", kind: "success" });
+      toast.success("Payment successful", {
+        description: "Your GP wallet has been topped up.",
+      });
     } else if (topup === "cancelled") {
       replace("/parent/dashboard");
-      setBanner({ text: "Payment cancelled — no charge was made.", kind: "error" });
+      toast.error("Payment cancelled", { description: "No charge was made." });
     }
   }, [searchParams, replace]);
 
@@ -222,7 +224,7 @@ function ParentDashboardInner() {
   async function handleApproveChore(task: TaskRow) {
     const note = sanitizeText(decisionNotes[task.id] || "", 200);
     if (settings.requireApprovalNotes && !note) {
-      setBanner({ text: "Approval notes are required by settings.", kind: "error" });
+      toast.error("Approval notes are required by settings.");
       return;
     }
     setActionBusy(true);
@@ -233,12 +235,12 @@ function ParentDashboardInner() {
         token,
         body: { taskId: task.id, note: note || null },
       });
-      setBanner({ text: `Task approved: ${task.title}`, kind: "success" });
+      toast.success("Task approved", { description: task.title });
       trackEvent("task_decision", { decision: "approve", taskId: task.id, childId: task.childId });
       await loadDashboard({ showSpinner: false });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Approval failed.";
-      setBanner({ text: msg, kind: "error" });
+      toast.error(msg);
       trackEvent("task_decision_failed", { decision: "approve", taskId: task.id, error: msg });
       await loadDashboard({ showSpinner: false });
     } finally {
@@ -249,7 +251,7 @@ function ParentDashboardInner() {
   async function handleRejectChore(task: TaskRow) {
     const note = sanitizeText(decisionNotes[task.id] || "", 200);
     if (settings.requireApprovalNotes && !note) {
-      setBanner({ text: "Notes are required by settings before rejecting.", kind: "error" });
+      toast.error("Notes are required by settings before rejecting.");
       return;
     }
     setActionBusy(true);
@@ -260,12 +262,12 @@ function ParentDashboardInner() {
         token,
         body: { taskId: task.id, note: note || null },
       });
-      setBanner({ text: `Task returned for retry: ${task.title}`, kind: "success" });
+      toast.success("Task returned for retry", { description: task.title });
       trackEvent("task_decision", { decision: "reject", taskId: task.id, childId: task.childId });
       await loadDashboard({ showSpinner: false });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Reject failed.";
-      setBanner({ text: msg, kind: "error" });
+      toast.error(msg);
       trackEvent("task_decision_failed", { decision: "reject", taskId: task.id, error: msg });
       await loadDashboard({ showSpinner: false });
     } finally {
@@ -281,7 +283,7 @@ function ParentDashboardInner() {
       note: sanitizeText(pointsForm.note),
     };
     if (!payload.childId) {
-      setBanner({ text: "Select a child for points adjustment.", kind: "error" });
+      toast.error("Select a child for points adjustment.");
       return;
     }
     if (
@@ -290,28 +292,24 @@ function ParentDashboardInner() {
       payload.points > 1000 ||
       payload.points === 0
     ) {
-      setBanner({
-        text: "Points must be an integer between -1000 and 1000 (excluding 0).",
-        kind: "error",
-      });
+      toast.error("Points must be an integer between -1000 and 1000 (excluding 0).");
       return;
     }
     if (!payload.note) {
-      setBanner({ text: "A reason is required for points adjustment.", kind: "error" });
+      toast.error("A reason is required for points adjustment.");
       return;
     }
     setActionBusy(true);
     try {
       await apiRequest("/points/adjust", { method: "POST", token, body: payload });
-      setBanner({
-        text: `Points updated: ${payload.points > 0 ? "+" : ""}${payload.points}`,
-        kind: "success",
+      toast.success("Points updated", {
+        description: `${payload.points > 0 ? "+" : ""}${payload.points} RP`,
       });
       trackEvent("points_adjusted", { ...payload });
       await loadDashboard({ showSpinner: false });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Points adjustment failed.";
-      setBanner({ text: msg, kind: "error" });
+      toast.error(msg);
       trackEvent("points_adjust_failed", { childId: payload.childId, error: msg });
     } finally {
       setActionBusy(false);
@@ -343,18 +341,6 @@ function ParentDashboardInner() {
             <span>Require approval notes before approving or rejecting a chore</span>
           </label>
         </div>
-
-        {banner ? (
-          <p
-            role={banner.kind === "error" ? "alert" : "status"}
-            className={[
-              styles.bannerWrap,
-              banner.kind === "error" ? styles.bannerError : styles.bannerSuccess,
-            ].join(" ")}
-          >
-            {banner.text}
-          </p>
-        ) : null}
 
         {loading ? (
           <div className={styles.loadingRow} aria-busy="true">
@@ -544,25 +530,20 @@ function ParentDashboardInner() {
 
                   <GTCard title="Add points (RP)" description="Manual balance adjustment with an audit trail.">
                     <form onSubmit={(e) => void handleAddPoints(e)} className={styles.stack}>
-                      <div className={styles.field}>
-                        <label className={styles.label} htmlFor="points-child">
-                          Child
-                        </label>
-                        <select
-                          id="points-child"
-                          className={styles.select}
-                          value={pointsForm.childId}
-                          onChange={(e) => setPointsForm((p) => ({ ...p, childId: e.target.value }))}
-                          required
-                        >
-                          <option value="">Select child</option>
-                          {children.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <GTSelect
+                        id="points-child"
+                        label="Child"
+                        value={pointsForm.childId}
+                        onChange={(e) => setPointsForm((p) => ({ ...p, childId: e.target.value }))}
+                        required
+                      >
+                        <option value="">Select child</option>
+                        {children.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </GTSelect>
                       <GTInput
                         id="points-rp"
                         label="RP amount"

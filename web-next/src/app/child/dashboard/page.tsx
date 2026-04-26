@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { apiRequest } from "@/lib/api/client";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
@@ -11,6 +12,7 @@ import { GTCard } from "@/components/ui/GTCard";
 import { GTBadge } from "@/components/ui/GTBadge";
 import { GTButton } from "@/components/ui/GTButton";
 import { GTInput } from "@/components/ui/GTInput";
+import { GTSelect } from "@/components/ui/GTSelect";
 import hubStyles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
 import themeModule from "@/styles/theme.module.css";
 import styles from "./child-dashboard.module.css";
@@ -75,8 +77,6 @@ export default function ChildDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [taskId, setTaskId] = useState("");
   const [evidenceNote, setEvidenceNote] = useState("");
@@ -148,24 +148,22 @@ export default function ChildDashboardPage() {
 
   async function handleSubmitChore(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitMessage(null);
-    setSubmitError(null);
     if (!taskId) {
-      setSubmitError("Select a quest first.");
+      toast.error("Select a quest first.");
       return;
     }
     if (!evidenceFile) {
-      setSubmitError("Scan or upload evidence to continue.");
+      toast.error("Scan or upload evidence to continue.");
       return;
     }
     const isAllowed =
       evidenceFile.type.startsWith("image/") || evidenceFile.type.startsWith("video/");
     if (!isAllowed) {
-      setSubmitError("Only image or video evidence is allowed.");
+      toast.error("Only image or video evidence is allowed.");
       return;
     }
     if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
-      setSubmitError("Evidence must be 10MB or less.");
+      toast.error("Evidence must be 10MB or less.");
       return;
     }
 
@@ -187,14 +185,16 @@ export default function ChildDashboardPage() {
         },
       });
       trackEvent("task_complete_submitted", { taskId });
-      setSubmitMessage(result.message ?? "Submitted for parent review.");
+      toast.success("Submitted for parent review", {
+        description: result.message ?? undefined,
+      });
       setTaskId("");
       setEvidenceFile(null);
       setEvidenceNote("");
       setEvidenceModalOpen(false);
       await loadDashboard({ showSpinner: false });
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Failed to submit task completion.");
+      toast.error(err instanceof Error ? err.message : "Failed to submit task completion.");
     } finally {
       setSubmitBusy(false);
     }
@@ -203,21 +203,18 @@ export default function ChildDashboardPage() {
   function onEvidenceFromCamera(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setEvidenceFile(file);
-    setSubmitError(null);
     e.target.value = "";
   }
 
   function onEvidenceFromFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setEvidenceFile(file);
-    setSubmitError(null);
     e.target.value = "";
   }
 
   function selectQuest(t: TaskRow) {
     if (t.state !== "Active") return;
     setTaskId(t.id);
-    setSubmitError(null);
     setEvidenceModalOpen(true);
   }
 
@@ -374,7 +371,6 @@ export default function ChildDashboardPage() {
                   className={styles.evidenceFab}
                   onClick={() => {
                     setEvidenceModalOpen(true);
-                    setSubmitError(null);
                   }}
                   aria-haspopup="dialog"
                   aria-expanded={evidenceModalOpen}
@@ -419,39 +415,23 @@ export default function ChildDashboardPage() {
                           <p className={styles.evidenceIntro}>
                             Photo or video, max 10MB. Your parent reviews before you earn points.
                           </p>
-                          {submitMessage ? (
-                            <p className={styles.statusOk} role="status">
-                              {submitMessage}
-                            </p>
-                          ) : null}
-                          {submitError ? (
-                            <p className={styles.statusErr} role="alert">
-                              {submitError}
-                            </p>
-                          ) : null}
                           <form className={styles.formStack} onSubmit={(e) => void handleSubmitChore(e)}>
-                            <div>
-                              <label className={styles.fieldLabel} htmlFor="child-task-select">
-                                Quest
-                              </label>
-                              <select
-                                id="child-task-select"
-                                className={styles.select}
-                                value={taskId}
-                                onChange={(e) => {
-                                  setTaskId(e.target.value);
-                                  setSubmitError(null);
-                                }}
-                                required
-                              >
-                                <option value="">Choose an active quest</option>
-                                {activeTasks.map((t) => (
-                                  <option key={t.id} value={t.id}>
-                                    {t.title}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                            <GTSelect
+                              id="child-task-select"
+                              label="Quest"
+                              value={taskId}
+                              onChange={(e) => {
+                                setTaskId(e.target.value);
+                              }}
+                              required
+                            >
+                              <option value="">Choose an active quest</option>
+                              {activeTasks.map((t) => (
+                                <option key={t.id} value={t.id}>
+                                  {t.title}
+                                </option>
+                              ))}
+                            </GTSelect>
 
                             <div className={styles.scanRow}>
                               <input

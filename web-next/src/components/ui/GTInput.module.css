@@ -25,10 +25,10 @@
   font-family: var(--gt-font-sans);
   font-size: 0.875rem;
   font-weight: 450;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   color: var(--gt-ink);
-  background: var(--gt-bg-soft);
-  border: 0.5px solid var(--gt-border-hairline);
+  background: rgba(255, 255, 255, 0.5);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
   border-radius: 0.625rem;
   outline: none;
   transition:
@@ -47,9 +47,9 @@
 }
 
 .input:focus {
-  border-color: var(--gt-accent);
-  box-shadow: 0 0 0 3px var(--gt-focus-ring);
-  background: var(--gt-bg);
+  border-color: #000000;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .input:disabled {
@@ -62,7 +62,7 @@
 }
 
 .inputError:focus {
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  box-shadow: none;
 }
 
 .file {
