@@ -81,6 +81,15 @@ function IconAi() {
   );
 }
 
+function IconSettings() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
 /* ── Icon map ───────────────────────────────────────────────── */
 const SECTION_ICON_BY_ID = {
   home:      IconHome,
@@ -114,7 +123,15 @@ function MenuButton({ section, isActive, onClick }) {
 }
 
 /* ── DashboardShell ─────────────────────────────────────────── */
-export default function DashboardShell({ title, sections, variant = 'parent', controlRef }) {
+export default function DashboardShell({
+  title,
+  sections,
+  variant = 'parent',
+  controlRef,
+  settingsHref = null,
+  dashboardSectionHome = 'home',
+  dashboardSectionTasks = 'tasks'
+}) {
   const router = useAppRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState(sections[0]?.id || '');
@@ -186,6 +203,26 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
     typeof activeSection?.content === 'function'
       ? activeSection.content({ goToSection })
       : activeSection?.content;
+
+  const homeSection = sections.find((s) => s.id === dashboardSectionHome) || sections[0];
+  const tasksSection = sections.find((s) => s.id === dashboardSectionTasks);
+
+  function handleMobileNav(to) {
+    if (to === 'settings' && settingsHref) {
+      router.push(settingsHref);
+      return;
+    }
+    if (to === 'home' && homeSection) {
+      goToSection(homeSection.id);
+      return;
+    }
+    if (to === 'tasks' && tasksSection) {
+      goToSection(tasksSection.id);
+    }
+  }
+
+  const mobileHomeActive = homeSection && activeSection?.id === homeSection.id;
+  const mobileTasksActive = tasksSection && activeSection?.id === tasksSection.id;
 
   return (
     <div className="dashboard-shell" data-variant={variant}>
@@ -283,6 +320,36 @@ export default function DashboardShell({ title, sections, variant = 'parent', co
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* Fixed bottom nav (narrow screens — CSS shows/hides) */}
+      <nav className="dashboard-mobile-nav" aria-label="Primary sections">
+        <button
+          type="button"
+          className={`dashboard-mobile-nav__btn${mobileHomeActive ? ' is-active' : ''}`}
+          aria-current={mobileHomeActive ? 'page' : undefined}
+          onClick={() => handleMobileNav('home')}
+        >
+          <span className="dashboard-mobile-nav__icon" aria-hidden="true"><IconHome /></span>
+          <span className="dashboard-mobile-nav__label">Dashboard</span>
+        </button>
+        {tasksSection ? (
+          <button
+            type="button"
+            className={`dashboard-mobile-nav__btn${mobileTasksActive ? ' is-active' : ''}`}
+            aria-current={mobileTasksActive ? 'page' : undefined}
+            onClick={() => handleMobileNav('tasks')}
+          >
+            <span className="dashboard-mobile-nav__icon" aria-hidden="true"><IconTasks /></span>
+            <span className="dashboard-mobile-nav__label">Tasks</span>
+          </button>
+        ) : null}
+        {settingsHref ? (
+          <button type="button" className="dashboard-mobile-nav__btn" onClick={() => handleMobileNav('settings')}>
+            <span className="dashboard-mobile-nav__icon" aria-hidden="true"><IconSettings /></span>
+            <span className="dashboard-mobile-nav__label">Settings</span>
+          </button>
+        ) : null}
+      </nav>
 
       {/* ── Main content ────────────────────────────────────── */}
       <section className="dashboard-content">

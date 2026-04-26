@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { apiRequest } from "@/lib/api/client";
@@ -9,6 +8,7 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import { trackEvent } from "@/lib/analytics";
 import { GTCard } from "@/components/ui/GTCard";
+import { GTGlassModal } from "@/components/ui/GTGlassModal";
 import { GTBadge } from "@/components/ui/GTBadge";
 import { GTButton } from "@/components/ui/GTButton";
 import { GTInput } from "@/components/ui/GTInput";
@@ -143,24 +143,6 @@ export default function ChildDashboardPage() {
     }, POLL_MS);
     return () => window.clearInterval(id);
   }, [auth.role, token, loadDashboard]);
-
-  useEffect(() => {
-    if (!evidenceModalOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [evidenceModalOpen]);
-
-  useEffect(() => {
-    if (!evidenceModalOpen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setEvidenceModalOpen(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [evidenceModalOpen]);
 
   const activeTasks = useMemo(() => tasks.filter((t) => t.state === "Active"), [tasks]);
 
@@ -401,9 +383,7 @@ export default function ChildDashboardPage() {
                 <button
                   type="button"
                   className={styles.evidenceFab}
-                  onClick={() => {
-                    setEvidenceModalOpen(true);
-                  }}
+                  onClick={() => setEvidenceModalOpen(true)}
                   aria-haspopup="dialog"
                   aria-expanded={evidenceModalOpen}
                   aria-controls="child-evidence-uplink-dialog"
@@ -413,118 +393,95 @@ export default function ChildDashboardPage() {
                 </button>
               </div>
 
-              {evidenceModalOpen && typeof document !== "undefined"
-                ? createPortal(
-                    <div
-                      className={styles.modalBackdrop}
-                      role="presentation"
-                      onMouseDown={(e) => {
-                        if (e.target === e.currentTarget) setEvidenceModalOpen(false);
-                      }}
+              <GTGlassModal
+                open={evidenceModalOpen}
+                onClose={() => setEvidenceModalOpen(false)}
+                titleId="evidence-heading"
+              >
+                <div id="child-evidence-uplink-dialog" className={styles.evidenceModalBody}>
+                  <div className={styles.evidenceModalHeader}>
+                    <h2 id="evidence-heading" className={hubStyles.sectionTitle}>
+                      Evidence uplink
+                    </h2>
+                    <GTButton type="button" variant="secondary" size="sm" onClick={() => setEvidenceModalOpen(false)}>
+                      Close
+                    </GTButton>
+                  </div>
+                  <p className={styles.evidenceIntro}>
+                    Photo or video, max 10MB. Your parent reviews before you earn points.
+                  </p>
+                  <form className={styles.formStack} onSubmit={(e) => void handleSubmitChore(e)}>
+                    <GTSelect
+                      id="child-task-select"
+                      label="Quest"
+                      value={taskId}
+                      onChange={(e) => setTaskId(e.target.value)}
+                      required
                     >
-                      <div
-                        id="child-evidence-uplink-dialog"
-                        className={styles.modalDialog}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="evidence-heading"
-                        tabIndex={-1}
+                      <option value="">Choose an active quest</option>
+                      {activeTasks.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.title}
+                        </option>
+                      ))}
+                    </GTSelect>
+
+                    <div className={styles.scanRow}>
+                      <input
+                        ref={galleryInputRef}
+                        id="evidence-gallery"
+                        type="file"
+                        accept="image/*,video/*"
+                        className={styles.visuallyHidden}
+                        onChange={onEvidenceFromFiles}
+                      />
+                      <input
+                        ref={cameraInputRef}
+                        id="evidence-camera"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className={styles.visuallyHidden}
+                        onChange={onEvidenceFromCamera}
+                      />
+                      <GTButton
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => galleryInputRef.current?.click()}
                       >
-                        <GTCard glass padding="lg" className={styles.evidenceCard}>
-                          <div className={styles.evidenceModalHeader}>
-                            <h2 id="evidence-heading" className={hubStyles.sectionTitle}>
-                              Evidence uplink
-                            </h2>
-                            <GTButton
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => setEvidenceModalOpen(false)}
-                            >
-                              Close
-                            </GTButton>
-                          </div>
-                          <p className={styles.evidenceIntro}>
-                            Photo or video, max 10MB. Your parent reviews before you earn points.
-                          </p>
-                          <form className={styles.formStack} onSubmit={(e) => void handleSubmitChore(e)}>
-                            <GTSelect
-                              id="child-task-select"
-                              label="Quest"
-                              value={taskId}
-                              onChange={(e) => {
-                                setTaskId(e.target.value);
-                              }}
-                              required
-                            >
-                              <option value="">Choose an active quest</option>
-                              {activeTasks.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                  {t.title}
-                                </option>
-                              ))}
-                            </GTSelect>
+                        Scan evidence — Files
+                      </GTButton>
+                      <GTButton
+                        type="button"
+                        variant="primary"
+                        size="lg"
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
+                        Scan evidence — Camera
+                      </GTButton>
+                    </div>
 
-                            <div className={styles.scanRow}>
-                              <input
-                                ref={galleryInputRef}
-                                id="evidence-gallery"
-                                type="file"
-                                accept="image/*,video/*"
-                                className={styles.visuallyHidden}
-                                onChange={onEvidenceFromFiles}
-                              />
-                              <input
-                                ref={cameraInputRef}
-                                id="evidence-camera"
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                className={styles.visuallyHidden}
-                                onChange={onEvidenceFromCamera}
-                              />
-                              <GTButton
-                                type="button"
-                                variant="primary"
-                                size="lg"
-                                onClick={() => galleryInputRef.current?.click()}
-                              >
-                                Scan evidence — Files
-                              </GTButton>
-                              <GTButton
-                                type="button"
-                                variant="primary"
-                                size="lg"
-                                onClick={() => cameraInputRef.current?.click()}
-                              >
-                                Scan evidence — Camera
-                              </GTButton>
-                            </div>
+                    {evidenceFile ? (
+                      <p className={styles.fileName}>
+                        Locked in: {evidenceFile.name} ({Math.round(evidenceFile.size / 1024)} KB)
+                      </p>
+                    ) : null}
 
-                            {evidenceFile ? (
-                              <p className={styles.fileName}>
-                                Locked in: {evidenceFile.name} ({Math.round(evidenceFile.size / 1024)} KB)
-                              </p>
-                            ) : null}
+                    <GTInput
+                      label="Note for parent (optional)"
+                      value={evidenceNote}
+                      onChange={(e) => setEvidenceNote(e.target.value)}
+                      maxLength={500}
+                      placeholder="Anything your parent should know…"
+                    />
 
-                            <GTInput
-                              label="Note for parent (optional)"
-                              value={evidenceNote}
-                              onChange={(e) => setEvidenceNote(e.target.value)}
-                              maxLength={500}
-                              placeholder="Anything your parent should know…"
-                            />
-
-                            <GTButton type="submit" variant="primary" size="lg" loading={submitBusy} disabled={submitBusy}>
-                              Submit for review
-                            </GTButton>
-                          </form>
-                        </GTCard>
-                      </div>
-                    </div>,
-                    document.body,
-                  )
-                : null}
+                    <GTButton type="submit" variant="primary" size="lg" loading={submitBusy} disabled={submitBusy}>
+                      Submit for review
+                    </GTButton>
+                  </form>
+                </div>
+              </GTGlassModal>
             </>
           ) : null}
         </main>
