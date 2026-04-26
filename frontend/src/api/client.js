@@ -11,11 +11,16 @@ function resolveApiBase() {
   if (viteEnv) {
     const explicitApi = viteEnv.VITE_API_BASE_URL || viteEnv.VITE_API_URL || '';
     return String(
-      viteEnv.DEV && !explicitApi ? '/api' : explicitApi || 'http://localhost:4000'
+      viteEnv.DEV && !explicitApi ? '/api' : explicitApi || 'http://127.0.0.1:4000'
     ).replace(/\/$/, '');
   }
 
-  return 'http://localhost:4000';
+  // Next.js (and other bundles without Vite env): browser hits same-origin rewrites.
+  if (typeof window !== 'undefined') {
+    return '/api';
+  }
+
+  return 'http://127.0.0.1:4000';
 }
 
 // Same-origin `/api` in Vite dev (proxy) or when NEXT_PUBLIC_API_URL is set for Next.js.
