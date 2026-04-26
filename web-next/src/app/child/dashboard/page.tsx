@@ -1,20 +1,24 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { toast } from "sonner";
 import { apiRequest } from "@/lib/api/client";
 import { fireGoldConfettiBurst } from "@/lib/confettiBurst";
+import { TASK_STATES } from "@/lib/gametimeTaskStates";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import type { GametimeAuthState } from "@/app/providers";
 import { saveAuth } from "@/components/auth/persistAuth";
 import { ParentPinGate } from "@/components/auth/ParentPinGate";
+import { useChildGamerHubRealtime } from "@/hooks/useChildGamerHubRealtime";
 import { trackEvent } from "@/lib/analytics";
 import { GTCard } from "@/components/ui/GTCard";
 import { GTGlassModal } from "@/components/ui/GTGlassModal";
 import { GTBadge } from "@/components/ui/GTBadge";
 import { GTButton } from "@/components/ui/GTButton";
 import { GTInput } from "@/components/ui/GTInput";
+import { GTSelect } from "@/components/ui/GTSelect";
 import { EmptyState, GTSkeleton } from "@/components/ui";
 import hubStyles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
 import themeModule from "@/styles/theme.module.css";
@@ -38,7 +42,7 @@ function lightTapVibrate() {
 }
 
 type MeUser = {
-  id: string;
+  id?: string;
   name?: string;
   pointsBalance?: number;
   giftcardPointsBalance?: number;
@@ -126,6 +130,8 @@ export default function ChildDashboardPage() {
   const prevTaskStateByIdRef = useRef<Map<string, string>>(new Map());
   const prevRpRef = useRef<number | null>(null);
   const prevGpRef = useRef<number | null>(null);
+  const skipNextPollingBalanceConfettiRef = useRef(false);
+  const lastConfettiAtRef = useRef(0);
   const lastEvidenceSubmitAtRef = useRef<number>(0);
 
   const [me, setMe] = useState<MeUser | null>(null);
@@ -134,8 +140,6 @@ export default function ChildDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [taskId, setTaskId] = useState("");
   const [evidenceNote, setEvidenceNote] = useState("");
@@ -186,6 +190,40 @@ export default function ChildDashboardPage() {
     return () => window.clearInterval(id);
   }, [auth.role, token, loadDashboard]);
 
+  const dispatchQuestStatusToast = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent("gametime:toast", { detail: { message: "Quest Status Updated!" } }),
+    );
+  }, []);
+
+  const burstConfettiThrottled = useCallback(() => {
+    if (reduceMotion) return;
+    const now = Date.now();
+    if (now - lastConfettiAtRef.current < 700) return;
+    lastConfettiAtRef.current = now;
+    fireGoldConfettiBurst();
+  }, [reduceMotion]);
+
+  const realtimeHandlers = useMemo(
+    () => ({
+      onTaskParentDecision: (_taskId: string, nextState: typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED) => {
+        dispatchQuestStatusToast();
+        if (nextState === TASK_STATES.APPROVED) {
+          burstConfettiThrottled();
+        }
+        void loadDashboard({ showSpinner: false });
+      },
+      onPointsBalanceIncrease: () => {
+        skipNextPollingBalanceConfettiRef.current = true;
+        burstConfettiThrottled();
+        void loadDashboard({ showSpinner: false });
+      },
+    }),
+    [burstConfettiThrottled, dispatchQuestStatusToast, loadDashboard],
+  );
+
+  useChildGamerHubRealtime(me?.id, auth.role === "child" && Boolean(token), realtimeHandlers);
+
   /** Gold confetti when a quest flips to Approved or balances increase (claim / payout). */
   useEffect(() => {
     if (loading || error) return;
@@ -210,10 +248,16 @@ export default function ChildDashboardPage() {
     prevRpRef.current = rpNow;
     prevGpRef.current = gpNow;
 
-    if (!reduceMotion && (questJustApproved || balanceUp)) {
-      fireGoldConfettiBurst();
+    if (skipNextPollingBalanceConfettiRef.current && balanceUp) {
+      skipNextPollingBalanceConfettiRef.current = false;
+      return;
     }
-  }, [tasks, me, loading, error, reduceMotion]);
+    skipNextPollingBalanceConfettiRef.current = false;
+
+    if (!reduceMotion && (questJustApproved || balanceUp)) {
+      burstConfettiThrottled();
+    }
+  }, [tasks, me, loading, error, reduceMotion, burstConfettiThrottled]);
 
   useEffect(() => {
     if (!evidenceModalOpen) return;
@@ -273,35 +317,33 @@ export default function ChildDashboardPage() {
 
   async function handleSubmitChore(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitMessage(null);
-    setSubmitError(null);
     if (!taskId) {
-      setSubmitError("Select a quest first.");
+      toast.error("Select a quest first.");
       return;
     }
     const questOk = activeTasks.some((t) => t.id === taskId);
     if (!questOk) {
-      setSubmitError("That quest is not active. Refresh and pick an active quest.");
+      toast.error("That quest is not active. Refresh and pick an active quest.");
       return;
     }
     if (!evidenceFile) {
-      setSubmitError("Scan or upload evidence to continue.");
+      toast.error("Scan or upload evidence to continue.");
       return;
     }
     const isAllowed =
       evidenceFile.type.startsWith("image/") || evidenceFile.type.startsWith("video/");
     if (!isAllowed) {
-      setSubmitError("Only image or video evidence is allowed.");
+      toast.error("Only image or video evidence is allowed.");
       return;
     }
     if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
-      setSubmitError("Evidence must be 10MB or less.");
+      toast.error("Evidence must be 10MB or less.");
       return;
     }
 
     const now = Date.now();
     if (now - lastEvidenceSubmitAtRef.current < EVIDENCE_SUBMIT_COOLDOWN_MS) {
-      setSubmitError("Please wait a few seconds before submitting again.");
+      toast.error("Please wait a few seconds before submitting again.");
       return;
     }
     lastEvidenceSubmitAtRef.current = now;
@@ -332,20 +374,21 @@ export default function ChildDashboardPage() {
         },
       });
       trackEvent("task_complete_submitted", { taskId });
-      setSubmitMessage(result.message ?? "Submitted for parent review.");
+      toast.success("Submitted for parent review", {
+        description: result.message ?? undefined,
+      });
       setSubmitSuccess(true);
       await loadDashboard({ showSpinner: false });
       await waitMinUi();
       window.setTimeout(() => {
         setEvidenceModalOpen(false);
         setSubmitSuccess(false);
-        setSubmitMessage(null);
         setTaskId("");
         setEvidenceFile(null);
         setEvidenceNote("");
       }, 450);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Failed to submit task completion.");
+      toast.error(err instanceof Error ? err.message : "Failed to submit task completion.");
       await waitMinUi();
     } finally {
       setSubmitBusy(false);
@@ -355,14 +398,12 @@ export default function ChildDashboardPage() {
   function onEvidenceFromCamera(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setEvidenceFile(file);
-    setSubmitError(null);
     e.target.value = "";
   }
 
   function onEvidenceFromFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setEvidenceFile(file);
-    setSubmitError(null);
     e.target.value = "";
   }
 
@@ -370,7 +411,6 @@ export default function ChildDashboardPage() {
     if (t.state !== "Active") return;
     if (!reduceMotion) lightTapVibrate();
     setTaskId(t.id);
-    setSubmitError(null);
     focusEvidenceFieldAfterOpenRef.current = true;
     setEvidenceModalOpen(true);
   }
@@ -498,6 +538,7 @@ export default function ChildDashboardPage() {
                       },
                     }}
                   >
+                    <AnimatePresence initial={false} mode="popLayout">
                     {tasks.map((t) => {
                       const rewardBits: string[] = [];
                       if (t.points != null) rewardBits.push(`${t.points} RP`);
@@ -510,11 +551,18 @@ export default function ChildDashboardPage() {
                       const isSelected = taskId === t.id;
                       const badgeTone = isActive ? "accent" : "success";
 
+                      const questMotionKey = `${t.id}-${t.state}`;
+                      const questExit =
+                        reduceMotion || t.state !== TASK_STATES.PENDING_APPROVAL
+                          ? undefined
+                          : { opacity: 0, scale: 0.88, y: -16, transition: { duration: 0.32, ease: [0.4, 0, 0.2, 1] as const } };
+
                       return (
                         <GTCard
-                          key={t.id}
+                          key={questMotionKey}
                           glass
                           padding="md"
+                          layout
                           className={`${styles.questCard} ${isActive ? styles.questCardInteractive : ""} ${isActive ? hubStyles.questReadyPulse : ""}`}
                           role={isActive ? "button" : undefined}
                           tabIndex={isActive ? 0 : undefined}
@@ -522,6 +570,7 @@ export default function ChildDashboardPage() {
                           aria-label={isActive ? `Select quest: ${t.title}` : undefined}
                           onClick={() => selectQuest(t)}
                           onKeyDown={(e) => onQuestKeyDown(e, t)}
+                          exit={questExit}
                           variants={{
                             hidden: { opacity: 0, y: 18, scale: 0.92 },
                             show: {
@@ -554,6 +603,7 @@ export default function ChildDashboardPage() {
                         </GTCard>
                       );
                     })}
+                    </AnimatePresence>
                   </motion.div>
                 )}
               </section>
@@ -563,7 +613,6 @@ export default function ChildDashboardPage() {
                   type="button"
                   className={`${styles.evidenceFab} ${hubStyles.shimmerFab}${fabDisabled ? ` ${styles.evidenceFabDisabled}` : ""}`}
                   onClick={() => {
-                    setSubmitError(null);
                     const keepExisting = Boolean(taskId && activeTasks.some((t) => t.id === taskId));
                     const nextId = keepExisting ? taskId : pickSmartDefaultTaskId(activeTasks);
                     setTaskId(nextId);
@@ -610,16 +659,6 @@ export default function ChildDashboardPage() {
                   <p className={styles.evidenceIntro}>
                     Photo or video, max 10MB. Your parent reviews before you earn points.
                   </p>
-                  {submitMessage ? (
-                    <p className={styles.statusOk} role="status">
-                      {submitMessage}
-                    </p>
-                  ) : null}
-                  {submitError ? (
-                    <p className={styles.statusErr} role="alert">
-                      {submitError}
-                    </p>
-                  ) : null}
                   <motion.form
                     className={styles.formStack}
                     onSubmit={(e) => void handleSubmitChore(e)}
@@ -628,17 +667,11 @@ export default function ChildDashboardPage() {
                     variants={evidenceFormVariants}
                   >
                     <motion.div variants={evidenceFieldVariants}>
-                      <label className={styles.fieldLabel} htmlFor="child-task-select">
-                        Quest
-                      </label>
-                      <select
+                      <GTSelect
                         id="child-task-select"
-                        className={styles.select}
+                        label="Quest"
                         value={taskId}
-                        onChange={(e) => {
-                          setTaskId(e.target.value);
-                          setSubmitError(null);
-                        }}
+                        onChange={(e) => setTaskId(e.target.value)}
                         required
                         disabled={submitBusy || submitSuccess}
                       >
@@ -648,7 +681,7 @@ export default function ChildDashboardPage() {
                             {t.title}
                           </option>
                         ))}
-                      </select>
+                      </GTSelect>
                     </motion.div>
 
                     <motion.div className={styles.scanRow} variants={evidenceFieldVariants}>

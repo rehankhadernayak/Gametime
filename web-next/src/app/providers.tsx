@@ -2,11 +2,11 @@
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { Toaster, toast } from 'sonner';
 import { StringTuneRoot } from '@/components/StringTuneRoot';
 import shell from './app-shell.module.css';
 import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
-import ToastStack from '@gametime/frontend/components/ToastStack.jsx';
 import { trackEvent } from '@gametime/frontend/utils/analytics.js';
 import { clearDashboardSessionCookies, switchToChildSession } from '@/lib/auth/syncWebSession';
 
@@ -16,7 +16,34 @@ export type GametimeAuthState = {
   user: { name?: string; isAdmin?: boolean } | null;
 };
 
-type ToastItem = { id: string; type?: string; title?: string; message?: string };
+type ToastDetail = { type?: string; title?: string; message?: string };
+
+function emitGametimeToast(detail: ToastDetail) {
+  const title = detail.title?.trim();
+  const message = detail.message?.trim();
+  const type = detail.type;
+  const opts =
+    title && message && title !== message ? ({ description: message } as const) : undefined;
+  const headline = title || message || 'Update';
+
+  if (type === 'error') {
+    toast.error(opts ? title! : headline, opts);
+    return;
+  }
+  if (type === 'warning') {
+    toast.warning(opts ? title! : headline, opts);
+    return;
+  }
+  if (type === 'success') {
+    toast.success(opts ? title! : headline, opts);
+    return;
+  }
+  if (opts) {
+    toast(headline, opts);
+    return;
+  }
+  toast(headline);
+}
 
 function BackIcon() {
   return (
@@ -80,7 +107,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [auth, setAuth] = useState<GametimeAuthState>(defaultAuth);
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -96,14 +122,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, [auth, hydrated]);
-
-  const pushToast = useCallback((nextToast: Partial<ToastItem> & { message?: string }) => {
-    const toast: ToastItem = { id: `${Date.now()}-${Math.random()}`, ...nextToast };
-    setToasts((prev) => [...prev, toast]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((item) => item.id !== toast.id));
-    }, 4500);
-  }, []);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -130,14 +148,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const onToast = (event: Event) => {
-      const ce = event as CustomEvent<Partial<ToastItem>>;
-      pushToast(ce.detail || { message: 'Update' });
+      const ce = event as CustomEvent<ToastDetail>;
+      emitGametimeToast(ce.detail || { message: 'Update' });
     };
     const onSessionExpired = async () => {
       if (!auth.token) return;
       await handleLogout();
       router.replace('/login');
-      pushToast({ type: 'warning', title: 'Session expired', message: 'Please sign in again.' });
+      toast.warning('Session expired', { description: 'Please sign in again.' });
     };
 
     window.addEventListener('gametime:toast', onToast as EventListener);
@@ -146,7 +164,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       window.removeEventListener('gametime:toast', onToast as EventListener);
       window.removeEventListener('gametime:session-expired', onSessionExpired);
     };
-  }, [auth.token, handleLogout, pathname, pushToast, router]);
+  }, [auth.token, handleLogout, pathname, router]);
 
   const switchToChild = useCallback(
     async (childId: string) => {
@@ -158,14 +176,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Please try again.';
         trackEvent('switch_to_child_failed', { childId, error: message });
-        pushToast({
-          type: 'error',
-          title: 'Unable to open child view',
-          message: message || 'Please try again.',
+        toast.error('Unable to open child view', {
+          description: message || 'Please try again.',
         });
       }
     },
-    [auth.token, pushToast, router]
+    [auth.token, router]
   );
 
   /** Hide on auth routes — legacy `.utility-bar` can sit above the fold and eat clicks on Sign in / signup. */
@@ -185,10 +201,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <GametimeAuthContext.Provider value={authValue}>
       <StringTuneRoot />
-      <ToastStack
-        toasts={toasts}
-        onDismiss={(id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))}
-      />
+      <Toaster position="bottom-right" richColors expand closeButton />
       {showUtility && (
         <div className="utility-bar" aria-label="Global navigation controls">
           <button
