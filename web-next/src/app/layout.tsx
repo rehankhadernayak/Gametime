@@ -13,10 +13,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FAFAFA" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090B" },
-  ],
+  themeColor: "#FAFAFA",
 };
 
 export default function RootLayout({
@@ -25,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" data-theme="light">
       <body
         className={`${GeistSans.className} ${GeistSans.variable} ${GeistMono.variable} antialiased ${shell.appBody}`}
       >

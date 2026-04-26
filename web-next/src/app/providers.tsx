@@ -6,7 +6,6 @@ import { StringTuneRoot } from '@/components/StringTuneRoot';
 import shell from './app-shell.module.css';
 import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
-import ThemeToggleButton from '@gametime/frontend/components/ThemeToggleButton.jsx';
 import ToastStack from '@gametime/frontend/components/ToastStack.jsx';
 import { trackEvent } from '@gametime/frontend/utils/analytics.js';
 
@@ -15,8 +14,6 @@ export type GametimeAuthState = {
   role: string;
   user: { name?: string; isAdmin?: boolean } | null;
 };
-
-export type GametimeTheme = 'dark' | 'light';
 
 type ToastItem = { id: string; type?: string; title?: string; message?: string };
 
@@ -70,18 +67,6 @@ function readStoredAuth(): GametimeAuthState {
   }
 }
 
-function readStoredTheme(): GametimeTheme {
-  if (typeof window === 'undefined') return 'light';
-  try {
-    const savedTheme = localStorage.getItem('gametime_theme');
-    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-    return 'light';
-  } catch {
-    return 'light';
-  }
-}
-
 export const GametimeAuthContext = createContext<{
   auth: GametimeAuthState;
   authHydrated: boolean;
@@ -90,23 +75,15 @@ export const GametimeAuthContext = createContext<{
   switchToChild: (childId: string) => Promise<void>;
 } | null>(null);
 
-export const GametimeThemeContext = createContext<{
-  theme: GametimeTheme;
-  setTheme: React.Dispatch<React.SetStateAction<GametimeTheme>>;
-  toggleTheme: () => void;
-} | null>(null);
-
 export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [auth, setAuth] = useState<GametimeAuthState>(defaultAuth);
-  const [theme, setTheme] = useState<GametimeTheme>('light');
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setAuth(readStoredAuth());
-    setTheme(readStoredTheme());
     setHydrated(true);
   }, []);
 
@@ -118,16 +95,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, [auth, hydrated]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      localStorage.setItem('gametime_theme', theme);
-      document.documentElement.setAttribute('data-theme', theme);
-    } catch {
-      // ignore
-    }
-  }, [theme, hydrated]);
 
   const pushToast = useCallback((nextToast: Partial<ToastItem> & { message?: string }) => {
     const toast: ToastItem = { id: `${Date.now()}-${Math.random()}`, ...nextToast };
@@ -207,57 +174,46 @@ export function Providers({ children }: { children: React.ReactNode }) {
     pathname === '/reset-password' ||
     pathname === '/child-login';
   const showUtility = !auth.token && !hideUtilityChrome;
-  const toggleTheme = useCallback(() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')), []);
 
   const authValue = useMemo(
     () => ({ auth, authHydrated: hydrated, setAuth, logout: handleLogout, switchToChild }),
     [auth, hydrated, handleLogout, switchToChild]
   );
 
-  const themeValue = useMemo(
-    () => ({ theme, setTheme, toggleTheme }),
-    [theme, toggleTheme]
-  );
-
   return (
     <GametimeAuthContext.Provider value={authValue}>
-      <GametimeThemeContext.Provider value={themeValue}>
-        <StringTuneRoot />
-        <ToastStack
-          toasts={toasts}
-          onDismiss={(id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+      <StringTuneRoot />
+      <ToastStack
+        toasts={toasts}
+        onDismiss={(id: string) => setToasts((prev) => prev.filter((t) => t.id !== id))}
+      />
+      {showUtility && (
+        <div className="utility-bar" aria-label="Global navigation controls">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Go back"
+            onClick={() => (typeof window !== 'undefined' && window.history.length > 1 ? router.back() : router.push('/'))}
+          >
+            <BackIcon />
+          </button>
+          <button type="button" className="icon-button" aria-label="Go home" onClick={() => router.push('/')}>
+            <HomeIcon />
+          </button>
+          <span className="utility-path">{pathname}</span>
+        </div>
+      )}
+
+      {auth.token ? (
+        <NavBar
+          role={auth.role}
+          token={auth.token}
+          onLogout={handleLogout}
+          isAdmin={Boolean(auth.user?.isAdmin)}
         />
-        {showUtility && (
-          <div className="utility-bar" aria-label="Global navigation controls">
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Go back"
-              onClick={() => (typeof window !== 'undefined' && window.history.length > 1 ? router.back() : router.push('/'))}
-            >
-              <BackIcon />
-            </button>
-            <button type="button" className="icon-button" aria-label="Go home" onClick={() => router.push('/')}>
-              <HomeIcon />
-            </button>
-            <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
-            <span className="utility-path">{pathname}</span>
-          </div>
-        )}
+      ) : null}
 
-        {auth.token ? (
-          <NavBar
-            role={auth.role}
-            token={auth.token}
-            onLogout={handleLogout}
-            theme={theme}
-            onToggleTheme={toggleTheme}
-            isAdmin={Boolean(auth.user?.isAdmin)}
-          />
-        ) : null}
-
-        <main className={shell.appMain}>{children}</main>
-      </GametimeThemeContext.Provider>
+      <main className={shell.appMain}>{children}</main>
     </GametimeAuthContext.Provider>
   );
 }
