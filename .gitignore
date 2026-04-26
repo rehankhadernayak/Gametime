@@ -33,5 +33,4 @@ web-next/frontend/
 infra/aws/terraform/.terraform/
 infra/aws/terraform/*.tfstate
 infra/aws/terraform/*.tfstate.*
-infra/aws/terraform/.terraform.lock.hcl
 infra/aws/terraform/terraform.tfvars
