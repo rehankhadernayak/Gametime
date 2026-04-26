@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { toast } from "sonner";
 import { apiRequest } from "@/lib/api/client";
 import { fireGoldConfettiBurst } from "@/lib/confettiBurst";
 import { useAppRouter } from "@/hooks/useAppRouter";
@@ -12,6 +13,7 @@ import { GTGlassModal } from "@/components/ui/GTGlassModal";
 import { GTBadge } from "@/components/ui/GTBadge";
 import { GTButton } from "@/components/ui/GTButton";
 import { GTInput } from "@/components/ui/GTInput";
+import { GTSelect } from "@/components/ui/GTSelect";
 import { EmptyState, GTSkeleton } from "@/components/ui";
 import hubStyles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
 import themeModule from "@/styles/theme.module.css";
@@ -131,8 +133,6 @@ export default function ChildDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [taskId, setTaskId] = useState("");
   const [evidenceNote, setEvidenceNote] = useState("");
@@ -269,35 +269,33 @@ export default function ChildDashboardPage() {
 
   async function handleSubmitChore(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitMessage(null);
-    setSubmitError(null);
     if (!taskId) {
-      setSubmitError("Select a quest first.");
+      toast.error("Select a quest first.");
       return;
     }
     const questOk = activeTasks.some((t) => t.id === taskId);
     if (!questOk) {
-      setSubmitError("That quest is not active. Refresh and pick an active quest.");
+      toast.error("That quest is not active. Refresh and pick an active quest.");
       return;
     }
     if (!evidenceFile) {
-      setSubmitError("Scan or upload evidence to continue.");
+      toast.error("Scan or upload evidence to continue.");
       return;
     }
     const isAllowed =
       evidenceFile.type.startsWith("image/") || evidenceFile.type.startsWith("video/");
     if (!isAllowed) {
-      setSubmitError("Only image or video evidence is allowed.");
+      toast.error("Only image or video evidence is allowed.");
       return;
     }
     if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
-      setSubmitError("Evidence must be 10MB or less.");
+      toast.error("Evidence must be 10MB or less.");
       return;
     }
 
     const now = Date.now();
     if (now - lastEvidenceSubmitAtRef.current < EVIDENCE_SUBMIT_COOLDOWN_MS) {
-      setSubmitError("Please wait a few seconds before submitting again.");
+      toast.error("Please wait a few seconds before submitting again.");
       return;
     }
     lastEvidenceSubmitAtRef.current = now;
@@ -328,20 +326,21 @@ export default function ChildDashboardPage() {
         },
       });
       trackEvent("task_complete_submitted", { taskId });
-      setSubmitMessage(result.message ?? "Submitted for parent review.");
+      toast.success("Submitted for parent review", {
+        description: result.message ?? undefined,
+      });
       setSubmitSuccess(true);
       await loadDashboard({ showSpinner: false });
       await waitMinUi();
       window.setTimeout(() => {
         setEvidenceModalOpen(false);
         setSubmitSuccess(false);
-        setSubmitMessage(null);
         setTaskId("");
         setEvidenceFile(null);
         setEvidenceNote("");
       }, 450);
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Failed to submit task completion.");
+      toast.error(err instanceof Error ? err.message : "Failed to submit task completion.");
       await waitMinUi();
     } finally {
       setSubmitBusy(false);
@@ -351,14 +350,12 @@ export default function ChildDashboardPage() {
   function onEvidenceFromCamera(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setEvidenceFile(file);
-    setSubmitError(null);
     e.target.value = "";
   }
 
   function onEvidenceFromFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setEvidenceFile(file);
-    setSubmitError(null);
     e.target.value = "";
   }
 
@@ -366,7 +363,6 @@ export default function ChildDashboardPage() {
     if (t.state !== "Active") return;
     if (!reduceMotion) lightTapVibrate();
     setTaskId(t.id);
-    setSubmitError(null);
     focusEvidenceFieldAfterOpenRef.current = true;
     setEvidenceModalOpen(true);
   }
@@ -537,7 +533,6 @@ export default function ChildDashboardPage() {
                   type="button"
                   className={`${styles.evidenceFab} ${hubStyles.shimmerFab}${fabDisabled ? ` ${styles.evidenceFabDisabled}` : ""}`}
                   onClick={() => {
-                    setSubmitError(null);
                     const keepExisting = Boolean(taskId && activeTasks.some((t) => t.id === taskId));
                     const nextId = keepExisting ? taskId : pickSmartDefaultTaskId(activeTasks);
                     setTaskId(nextId);
@@ -584,16 +579,6 @@ export default function ChildDashboardPage() {
                   <p className={styles.evidenceIntro}>
                     Photo or video, max 10MB. Your parent reviews before you earn points.
                   </p>
-                  {submitMessage ? (
-                    <p className={styles.statusOk} role="status">
-                      {submitMessage}
-                    </p>
-                  ) : null}
-                  {submitError ? (
-                    <p className={styles.statusErr} role="alert">
-                      {submitError}
-                    </p>
-                  ) : null}
                   <motion.form
                     className={styles.formStack}
                     onSubmit={(e) => void handleSubmitChore(e)}
@@ -602,17 +587,11 @@ export default function ChildDashboardPage() {
                     variants={evidenceFormVariants}
                   >
                     <motion.div variants={evidenceFieldVariants}>
-                      <label className={styles.fieldLabel} htmlFor="child-task-select">
-                        Quest
-                      </label>
-                      <select
+                      <GTSelect
                         id="child-task-select"
-                        className={styles.select}
+                        label="Quest"
                         value={taskId}
-                        onChange={(e) => {
-                          setTaskId(e.target.value);
-                          setSubmitError(null);
-                        }}
+                        onChange={(e) => setTaskId(e.target.value)}
                         required
                         disabled={submitBusy || submitSuccess}
                       >
@@ -622,7 +601,7 @@ export default function ChildDashboardPage() {
                             {t.title}
                           </option>
                         ))}
-                      </select>
+                      </GTSelect>
                     </motion.div>
 
                     <motion.div className={styles.scanRow} variants={evidenceFieldVariants}>
