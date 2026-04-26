@@ -28,6 +28,35 @@
   margin: 0;
 }
 
+.titleReveal {
+  display: inline-block;
+}
+
+.titleReveal .-s-char,
+.titleReveal .-s-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 0.35em, 0);
+  animation: gtTitleCharIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--char-start, var(--word-start, 0)) * 28ms);
+}
+
+@keyframes gtTitleCharIn {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titleReveal .-s-char,
+  .titleReveal .-s-word {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .subtitle {
   margin: 0.25rem 0 0;
   font-size: 0.9rem;
