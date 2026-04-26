@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { usePathname, useRouter } from 'next/navigation';
 import { Toaster, toast } from 'sonner';
 import { StringTuneRoot } from '@/components/StringTuneRoot';
@@ -8,7 +9,11 @@ import shell from './app-shell.module.css';
 import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
 import { trackEvent } from '@gametime/frontend/utils/analytics.js';
-import { clearDashboardSessionCookies, switchToChildSession } from '@/lib/auth/syncWebSession';
+import {
+  clearDashboardSessionCookies,
+  restoreAuthFromCookieSession,
+  switchToChildSession,
+} from '@/lib/auth/syncWebSession';
 
 export type GametimeAuthState = {
   token: string;
@@ -110,8 +115,38 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setAuth(readStoredAuth());
-    setHydrated(true);
+    let cancelled = false;
+    void (async () => {
+      const fromLs = readStoredAuth();
+      if (fromLs.token) {
+        if (!cancelled) {
+          setAuth(fromLs);
+          setHydrated(true);
+        }
+        return;
+      }
+      const restored = await restoreAuthFromCookieSession();
+      if (cancelled) return;
+      const latest = readStoredAuth();
+      if (latest.token) {
+        setAuth(latest);
+        setHydrated(true);
+        return;
+      }
+      if (restored?.token) {
+        setAuth({
+          token: restored.token,
+          role: restored.role,
+          user: restored.user as GametimeAuthState['user'],
+        });
+      } else {
+        setAuth(fromLs);
+      }
+      setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -170,7 +205,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     async (childId: string) => {
       try {
         const response = await switchToChildSession(auth.token, childId);
-        setAuth({ token: response.token, role: 'child', user: response.child as GametimeAuthState['user'] });
+        flushSync(() => {
+          setAuth({ token: response.token, role: 'child', user: response.child as GametimeAuthState['user'] });
+        });
         router.replace('/child/dashboard');
         trackEvent('switch_to_child_success', { childId });
       } catch (error: unknown) {
