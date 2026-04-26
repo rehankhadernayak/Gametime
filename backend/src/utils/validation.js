@@ -73,6 +73,11 @@ export const childSessionLoginSchema = z.object({
   childId: z.string().uuid()
 });
 
+/** Child session proves parent identity to receive a parent JWT (same household). */
+export const childElevateToParentSchema = z.object({
+  password: z.string().min(1).max(200)
+});
+
 export const taskCreateSchema = z.object({
   childId: z.string().uuid(),
   title: z.string().min(1).max(50),

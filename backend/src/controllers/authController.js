@@ -11,6 +11,7 @@ import { verifyEmailExists } from '../services/emailExistenceService.js';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/emailService.js';
 import { logger } from '../utils/logger.js';
 import {
+  childElevateToParentSchema,
   childLoginSchema,
   childSessionLoginSchema,
   childPinLoginSchema,
@@ -85,6 +86,33 @@ function cookieOptions() {
   };
 }
 
+/** Non-httpOnly role hint for UI gating (never trust for authorization). */
+function userRoleCookieOptions() {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: false,
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd,
+    maxAge: SESSION_DURATION_MS,
+    path: '/'
+  };
+}
+
+function setUserRoleCookie(res, role) {
+  const value = role === 'parent' || role === 'child' ? role : '';
+  if (!value) return;
+  res.cookie('user_role', value, userRoleCookieOptions());
+}
+
+function clearUserRoleCookie(res) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('user_role', {
+    path: '/',
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd
+  });
+}
+
 function getAgeYears(dateOfBirth) {
   const dob = new Date(dateOfBirth);
   const now = new Date();
@@ -110,6 +138,7 @@ async function issueToken(res, payload) {
 
   const token = jwt.sign({ ...payload, sessionId }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
   res.cookie('gametime_token', token, cookieOptions());
+  setUserRoleCookie(res, payload.role);
   return token;
 }
 
@@ -336,7 +365,64 @@ export async function logout(req, res, next) {
     const db = await getDb();
     await db.run('UPDATE sessions SET revoked = 1 WHERE id = ?', [req.auth.sessionId]);
     res.clearCookie('gametime_token');
+    clearUserRoleCookie(res);
     return res.json({ message: 'Logged out' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /auth/sync-cookies
+ * Refreshes the readable `user_role` cookie from the validated session (JWT in
+ * cookie or Authorization header). Used after legacy localStorage-only upgrades.
+ */
+export async function syncSessionCookies(req, res, next) {
+  try {
+    setUserRoleCookie(res, req.auth.role);
+    return res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /auth/elevate-to-parent
+ * Child proves they know the parent account password; issues a parent JWT for the same household.
+ */
+export async function childElevateToParent(req, res, next) {
+  try {
+    if (req.auth.role !== 'child') {
+      throw new ApiError(403, 'Child session required');
+    }
+    const { password } = childElevateToParentSchema.parse(req.body);
+    const db = await getDb();
+
+    const parent = await db.get(
+      'SELECT id, name, email, password_hash, is_admin as isAdmin FROM parent_accounts WHERE id = ?',
+      [req.auth.parentId]
+    );
+    if (!parent) throw new ApiError(404, 'Parent account not found');
+
+    const matches = await bcrypt.compare(password, parent.password_hash);
+    if (!matches) {
+      throw new ApiError(401, 'Invalid parent password');
+    }
+
+    await db.run('UPDATE sessions SET revoked = 1 WHERE id = ?', [req.auth.sessionId]);
+
+    const isAdmin = Boolean(parent.isAdmin);
+    const token = await issueToken(res, { role: 'parent', parentId: parent.id, isAdmin });
+
+    return res.json({
+      token,
+      parent: {
+        id: parent.id,
+        name: parent.name,
+        email: parent.email,
+        isAdmin
+      }
+    });
   } catch (error) {
     next(error);
   }

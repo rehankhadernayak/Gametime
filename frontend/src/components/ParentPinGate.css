@@ -1,0 +1,27 @@
+.parent-pin-gate {
+  margin-bottom: var(--space-lg, 1.5rem);
+}
+
+.parent-pin-gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 1rem);
+  max-width: 22rem;
+  margin-top: var(--space-md, 1rem);
+}
+
+.parent-pin-gate-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 0.35rem);
+  font-weight: 600;
+}
+
+.parent-pin-gate-label input {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+  background: var(--surface-raised, rgba(0, 0, 0, 0.25));
+  color: inherit;
+}

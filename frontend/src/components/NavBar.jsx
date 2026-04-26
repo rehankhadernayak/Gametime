@@ -1,6 +1,7 @@
 import './NavBar.css';
 import NotificationBell from './NotificationBell.jsx';
 import { useAppRouter } from 'gametime-web-nav';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /* ── Inline SVGs ────────────────────────────────────────────────────── */
 function SettingsIcon() {
@@ -23,8 +24,10 @@ function LogoutIcon() {
 }
 
 /* ── NavBar ─────────────────────────────────────────────────────────── */
-export default function NavBar({ role, token, onLogout, isAdmin }) {
+export default function NavBar({ role, token, onLogout, isAdmin, showParentChrome = true }) {
   const router = useAppRouter();
+  const { cookieRole } = useAuth();
+  const effectiveRole = cookieRole || role;
 
   return (
     <nav className="nav" aria-label="Primary navigation">
@@ -41,10 +44,10 @@ export default function NavBar({ role, token, onLogout, isAdmin }) {
 
       {/* Right: Actions */}
       <div className="nav-actions">
-        <NotificationBell token={token} role={role} />
+        <NotificationBell token={token} role={effectiveRole} />
 
-        {/* Settings (parent only) */}
-        {role === 'parent' && (
+        {/* Settings (parent only) — hidden for child sessions until parent gate passes */}
+        {showParentChrome && effectiveRole === 'parent' && (
           <button
             type="button"
             className="nav-icon-btn nav-settings-btn"
@@ -59,7 +62,7 @@ export default function NavBar({ role, token, onLogout, isAdmin }) {
         <div className="nav-sep" aria-hidden="true" />
 
         {/* Admin badge */}
-        {isAdmin && (
+        {showParentChrome && isAdmin && (
           <button
             type="button"
             className="nav-admin-badge"
@@ -72,8 +75,8 @@ export default function NavBar({ role, token, onLogout, isAdmin }) {
         )}
 
         {/* Role pill */}
-        <span className={`nav-role-pill ${role === 'parent' ? 'parent' : 'child'}`}>
-          {role === 'parent' ? 'Parent' : 'Child'}
+        <span className={`nav-role-pill ${effectiveRole === 'parent' ? 'parent' : 'child'}`}>
+          {effectiveRole === 'parent' ? 'Parent' : 'Child'}
         </span>
 
         {/* Logout */}
