@@ -1,3 +1,12 @@
+.magneticInner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transform: translate3d(calc(var(--magnetic-x, 0) * 1px), calc(var(--magnetic-y, 0) * 1px), 0);
+  will-change: transform;
+}
+
 .button {
   position: relative;
   display: inline-flex;

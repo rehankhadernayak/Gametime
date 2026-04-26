@@ -6,6 +6,12 @@ declare module "react" {
   interface HTMLAttributes<T> {
     string?: string;
     "string-parallax"?: string;
+    "string-strength"?: string;
+    "string-radius"?: string;
+    "string-split"?: string;
+    "data-string-strength"?: string;
+    "data-string-radius"?: string;
+    "data-string-split"?: string;
   }
 }
 

@@ -1,4 +1,6 @@
-import type { HTMLAttributes, ReactNode } from "react";
+"use client";
+
+import { useInsertionEffect, useRef, type HTMLAttributes, type ReactNode } from "react";
 import styles from "./dashboard.module.css";
 
 export type DashboardGridSpan = "full" | "half" | "third" | "twoThirds";
@@ -34,6 +36,14 @@ export function DashboardPageShell({
 }: DashboardPageShellProps) {
   const hasHeader =
     eyebrow != null || title != null || subtitle != null || actions != null;
+  const titleText = typeof title === "string" ? title : null;
+  const titleRevealRef = useRef<HTMLSpanElement>(null);
+
+  useInsertionEffect(() => {
+    const el = titleRevealRef.current;
+    if (!el || titleText == null) return;
+    el.textContent = titleText;
+  }, [titleText]);
 
   return (
     <div className={[styles.outer, className].filter(Boolean).join(" ")} {...rest}>
@@ -42,7 +52,22 @@ export function DashboardPageShell({
           <header className={styles.header}>
             <div>
               {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
-              {title ? <h1 className={styles.title}>{title}</h1> : null}
+              {title ? (
+                titleText != null ? (
+                  <h1 className={styles.title} aria-label={titleText}>
+                    <span
+                      key={titleText}
+                      ref={titleRevealRef}
+                      className={styles.titleReveal}
+                      string="split"
+                      string-split="char[start]|word[start]"
+                      aria-hidden="true"
+                    />
+                  </h1>
+                ) : (
+                  <h1 className={styles.title}>{title}</h1>
+                )
+              ) : null}
               {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
             </div>
             {actions ? <div className={styles.actions}>{actions}</div> : null}
