@@ -1,0 +1,42 @@
+# One-off or on-demand: set FRONTEND_ORIGIN in SSM and force ECS to pick it up.
+# Does not rebuild the Docker image (unlike aws-deploy.yml).
+
+name: AWS — SSM FRONTEND_ORIGIN + ECS rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend_origin:
+        description: "Comma-separated browser origins (CORS allowlist)"
+        required: true
+        default: "https://gametime-app.org,https://*.vercel.app"
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  PROJECT_NAME: gametime
+  ENVIRONMENT: prod
+
+jobs:
+  rollout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update SSM and force new deployment
+        env:
+          FRONTEND_ORIGIN_VALUE: ${{ inputs.frontend_origin }}
+        run: |
+          chmod +x infra/aws/scripts/update-frontend-origin-ssm-and-rollout.sh
+          infra/aws/scripts/update-frontend-origin-ssm-and-rollout.sh
