@@ -14,14 +14,14 @@
 .parentTheme:global(.gt-dashboard-parent),
 .parentTheme {
   color-scheme: light;
-  --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
-  --gt-font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+  --gt-font-sans: var(--font-sans);
+  --gt-font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --gt-bg: #ffffff;
-  --gt-bg-soft: #f4f4f5;
+  --gt-bg-soft: #f4f5f7;
   --gt-bg-elevated: #fafafa;
   --gt-surface: rgba(255, 255, 255, 0.92);
-  --gt-ink: #0a0a0a;
+  --gt-ink: #111827;
   --gt-ink-soft: #52525b;
   --gt-ink-muted: #71717a;
   --gt-line: rgba(0, 0, 0, 0.08);
@@ -72,8 +72,9 @@
   --gt-motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   font-family: var(--gt-font-sans);
-  color: var(--gt-ink);
-  background: var(--gt-bg);
+  min-height: 100vh;
+  color: #111827;
+  background: radial-gradient(circle at top left, #ffffff 0%, #f4f5f7 100%);
 }
 
 /* ── Child: dark-centric, neon accents, launcher feel ────────────────────── */
@@ -81,8 +82,8 @@
 .childTheme:global(.gt-dashboard-child),
 .childTheme {
   color-scheme: dark;
-  --gt-font-sans: var(--font-geist-sans), "Geist", system-ui, -apple-system, sans-serif;
-  --gt-font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
+  --gt-font-sans: var(--font-sans);
+  --gt-font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --gt-bg: #09090b;
   --gt-bg-soft: #18181b;
@@ -145,8 +146,9 @@
   --gt-motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   font-family: var(--gt-font-sans);
-  color: var(--gt-ink);
-  background: var(--gt-bg);
+  min-height: 100vh;
+  color: #fafafa;
+  background: radial-gradient(circle at top right, #18181b 0%, #09090b 100%);
 }
 
 /* ── Glassmorphism ──────────────────────────────────────────────────────── */

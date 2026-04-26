@@ -1,0 +1,108 @@
+/* Mesh hero — signup left panel (scoped via .meshSignupRoot on signup page) */
+
+.meshSignupRoot :global([class*="signupPromo"]) {
+  position: relative;
+  background-color: #09090b;
+  overflow: hidden;
+  border-right-color: rgba(255, 255, 255, 0.08);
+  background-image:
+    radial-gradient(circle 280px at 25% 40%, rgba(225, 29, 72, 0.22), transparent 62%),
+    radial-gradient(circle 320px at 78% 72%, rgba(39, 39, 42, 0.55), transparent 58%),
+    radial-gradient(
+      ellipse 120% 100% at 50% 50%,
+      rgba(88, 28, 135, 0.32) 0%,
+      transparent 65%
+    );
+  background-size: 100% 100%, 100% 100%, 140% 140%;
+  background-position: 20% 35%, 82% 68%, 40% 50%;
+  animation: meshBgDrift 15s ease-in-out infinite;
+}
+
+.meshSignupRoot :global([class*="signupPromo"]::before),
+.meshSignupRoot :global([class*="signupPromo"]::after) {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(100px);
+  z-index: 0;
+  inset: unset;
+}
+
+.meshSignupRoot :global([class*="signupPromo"]::before) {
+  width: 400px;
+  height: 400px;
+  background: #e11d48;
+  opacity: 0.4;
+  top: -8%;
+  left: -12%;
+  animation: float 15s ease-in-out infinite;
+}
+
+.meshSignupRoot :global([class*="signupPromo"]::after) {
+  inset: unset;
+  width: 500px;
+  height: 500px;
+  background: #3f3f46;
+  opacity: 0.5;
+  bottom: -18%;
+  right: -15%;
+  animation: float 15s ease-in-out infinite reverse;
+  animation-delay: -7.5s;
+}
+
+/* Light copy on dark promo */
+.meshSignupRoot :global([class*="signupBrandBlock"]) {
+  position: relative;
+  z-index: 1;
+}
+
+.meshSignupRoot :global([class*="signupBrandName"]) {
+  color: #fafafa;
+}
+
+.meshSignupRoot :global([class*="signupBrandTagline"]) {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.meshSignupRoot :global([class*="signupFeatureList"] li) {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.meshSignupRoot :global([class*="signupFeatureList"]) {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10%, -10%);
+  }
+}
+
+@keyframes meshBgDrift {
+  0%,
+  100% {
+    background-position: 20% 35%, 82% 68%, 40% 50%;
+  }
+  50% {
+    background-position: 32% 22%, 68% 78%, 58% 42%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meshSignupRoot :global([class*="signupPromo"]) {
+    animation: none;
+    background-position: 26% 36%, 74% 70%, 50% 50%;
+  }
+
+  .meshSignupRoot :global([class*="signupPromo"]::before),
+  .meshSignupRoot :global([class*="signupPromo"]::after) {
+    animation: none;
+    transform: translate(5%, -5%);
+  }
+}

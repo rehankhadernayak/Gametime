@@ -4,6 +4,16 @@
   background: var(--gt-surface);
   color: var(--gt-ink);
   font-family: var(--gt-font-sans);
+  border: 0.5px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0px 4px 24px -8px rgba(0, 0, 0, 0.08),
+    0px 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+/* Child / dark dashboard shell — same tokens as theme.module.css hooks */
+:global(.childTheme) .card,
+:global(.gt-dashboard-child) .card {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .paddingSm {
@@ -24,10 +34,15 @@
   padding: 1.5rem 1.75rem;
 }
 
-.glass {
-  background: var(--gt-glass-bg);
-  backdrop-filter: blur(var(--gt-glass-blur));
-  -webkit-backdrop-filter: blur(var(--gt-glass-blur));
+.card.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+:global(.childTheme) .card.glass,
+:global(.gt-dashboard-child) .card.glass {
+  background: rgba(24, 24, 27, 0.5);
 }
 
 .cardHeader {
