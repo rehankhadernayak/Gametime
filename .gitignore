@@ -22,3 +22,10 @@ demo_build/
 
 # Supabase CLI (may contain project ref / local overrides)
 .supabase/
+
+# Terraform (local state; use remote backend in real teams)
+infra/aws/terraform/.terraform/
+infra/aws/terraform/*.tfstate
+infra/aws/terraform/*.tfstate.*
+infra/aws/terraform/.terraform.lock.hcl
+infra/aws/terraform/terraform.tfvars

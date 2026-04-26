@@ -1,0 +1,75 @@
+# Build Dockerfile.railway, push to ECR, roll ECS Fargate (same image tag :latest).
+# Prerequisites: Terraform applied (see infra/aws/README.md), GitHub OIDC role ARN in AWS_ROLE_TO_ASSUME,
+# SSM parameters populated. Keep PROJECT_NAME and ENVIRONMENT in sync with infra/aws/terraform variables.
+
+name: Deploy to AWS (ECS)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-southeast-1
+  PROJECT_NAME: gametime
+  ENVIRONMENT: prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: aws-deploy-${{ github.ref }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set names from project + environment
+        id: names
+        run: |
+          PREFIX="${PROJECT_NAME}-${ENVIRONMENT}"
+          echo "ecr_repo=${PREFIX}-app" >> "$GITHUB_OUTPUT"
+          echo "cluster=${PREFIX}-cluster" >> "$GITHUB_OUTPUT"
+          echo "service=${PREFIX}-svc" >> "$GITHUB_OUTPUT"
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ steps.names.outputs.ecr_repo }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f Dockerfile.railway -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" -t "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" .
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          docker push "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest"
+
+      - name: Register task definition with new image and deploy
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ steps.names.outputs.ecr_repo }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          chmod +x infra/aws/scripts/register-ecs-task-image.sh
+          TASK_FAMILY="${PROJECT_NAME}-${ENVIRONMENT}-app"
+          NEW_IMAGE="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          TD_ARN="$(infra/aws/scripts/register-ecs-task-image.sh "$TASK_FAMILY" "$NEW_IMAGE")"
+          aws ecs update-service \
+            --cluster "${{ steps.names.outputs.cluster }}" \
+            --service "${{ steps.names.outputs.service }}" \
+            --task-definition "$TD_ARN" \
+            --region "${{ env.AWS_REGION }}"
