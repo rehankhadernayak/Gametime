@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/.env
+**/.env.*
+!**/.env.example
+**/data/*.db
+**/data/*.db-*
+**/dist
+**/.vite
+**/coverage
+mobile
+web-next
+*.md
+tasks
