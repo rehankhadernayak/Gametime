@@ -4,6 +4,7 @@ import { getDb } from '../db/connection.js';
 import { logger } from '../utils/logger.js';
 import { ApiError } from '../utils/errors.js';
 import { purchaseParentGp } from './giftcardPointsService.js';
+import { AMAZON_VAULT_PURPOSE } from './billingService.js';
 
 /** Returns a configured Stripe client, or throws 503 if key is absent. */
 function getStripe() {
@@ -86,6 +87,14 @@ export async function handleWebhook(rawBody, signature) {
 
   // Only process fully paid sessions
   if (session.payment_status !== 'paid') {
+    return { received: true };
+  }
+
+  if (session.metadata?.purpose === AMAZON_VAULT_PURPOSE) {
+    logger.info(
+      { sessionId: session.id, parentId: session.metadata.parent_id },
+      'Stripe checkout completed for Amazon vault funding; GP credit skipped (manual fulfillment)'
+    );
     return { received: true };
   }
 
