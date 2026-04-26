@@ -4,7 +4,8 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "secrets:handover": "node scripts/push-secrets-from-env-secrets.mjs"
+    "secrets:handover": "node scripts/push-secrets-from-env-secrets.mjs",
+    "deploy:aws:ecs": "node scripts/deploy-ecs-from-local-env.mjs"
   },
   "devDependencies": {
     "@aws-sdk/client-ssm": "^3.787.0",
