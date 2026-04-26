@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
+import shell from './app-shell.module.css';
 import { usePathname, useRouter } from 'next/navigation';
 import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
@@ -253,7 +254,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           />
         ) : null}
 
-        {children}
+        <main className={shell.appMain}>{children}</main>
       </GametimeThemeContext.Provider>
     </GametimeAuthContext.Provider>
   );

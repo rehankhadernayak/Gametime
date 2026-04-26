@@ -1,0 +1,18 @@
+/**
+ * Full-viewport shell (Tailwind-equivalent: min-h-screen w-full flex flex-col).
+ * Main is a flex child so it fills space below the nav.
+ */
+.appBody {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.appMain {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

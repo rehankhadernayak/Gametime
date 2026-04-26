@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import { baseMetadata } from "./metadata";
 import "./globals.css";
 import "@gametime/frontend/styles/app.css";
+import shell from "./app-shell.module.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${shell.appBody}`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>
