@@ -170,3 +170,21 @@
 **Rule:** Run E2E Next from `web-next/node_modules/.bin/next` after `npm install` in `web-next`. If hydrating auth from cookies after `await`, re-read `localStorage` before applying the restore result so a concurrent login wins. Use `flushSync(() => setAuth(...))` before `router.replace` when switching roles so destination RSC/pages never render with the previous role. Keep `useMemo` dependency identifiers aligned with actual `useState` bindings.
 
 ---
+
+### 2026-04-26 — web-next: legacy `NavBar` needs `AuthProvider` (client wrapper)
+**What happened:** After parent login, Next.js showed "useAuth must be used within AuthProvider" because `NavBar.jsx` calls `useAuth()` but the App Router root layout is a Server Component and could not mount `AuthProvider` directly.
+**Rule:** Wrap `Providers` + app shell in a small `"use client"` component (for example `AppRootProviders`) that imports `AuthProvider` from the shared frontend package, and use that from `layout.tsx` instead of importing hook-using modules in the server layout.
+
+---
+
+### 2026-04-26 — Shared `frontend/src/api/client.js` must default to `/api` in the browser for Next
+**What happened:** `AuthProvider`’s `/auth/me` used `API_BASE` resolved to `http://localhost:4000` when bundled in Next (no Vite `import.meta.env`). Some environments resolve `localhost` inconsistently with the backend, so session checks failed and protected routes bounced to `/login`.
+**Rule:** In `resolveApiBase()`, when `window` is defined and there is no `NEXT_PUBLIC_API_URL`, return same-origin `/api` (Next rewrites). Reserve `http://127.0.0.1:4000` for non-browser contexts only.
+
+---
+
+### 2026-04-26 — Child "Switch to Parent" lives on child dashboard, not every child route
+**What happened:** A demo E2E navigated to `/child/ai` then looked for "Switch to Parent"; the button only exists on `/child/dashboard`, so the test hung until timeout.
+**Rule:** After touring `/child/ai`, `goto('/child/dashboard')` (or use a shared layout control) before clicking parent switch / PIN flows.
+
+---
