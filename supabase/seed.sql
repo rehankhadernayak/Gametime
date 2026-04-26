@@ -1,0 +1,1 @@
+-- No default seed data. Use `supabase db reset` locally only when you add real seeds.
