@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { baseMetadata } from "./metadata";
 import "./globals.css";
 import "@gametime/frontend/styles/app.css";
+import shell from "./app-shell.module.css";
 
 export const metadata: Metadata = baseMetadata;
 
@@ -26,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${GeistSans.className} ${GeistSans.variable} ${GeistMono.variable} antialiased`}
+        className={`${GeistSans.className} ${GeistSans.variable} ${GeistMono.variable} antialiased ${shell.appBody}`}
       >
         <Providers>{children}</Providers>
       </body>

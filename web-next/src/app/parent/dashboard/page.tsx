@@ -194,6 +194,23 @@ function ParentDashboardInner() {
 
   const activeRewards = useMemo(() => rewards.filter((r) => r.active !== false), [rewards]);
 
+  const activeQuests = useMemo(
+    () => tasks.filter((t) => t.state === "Active" || t.state === "PendingApproval"),
+    [tasks],
+  );
+
+  const totalRpIssued = useMemo(
+    () => children.reduce((sum, c) => sum + (c.pointsBalance ?? 0), 0),
+    [children],
+  );
+
+  const pendingApprovalCount = useMemo(
+    () => tasks.filter((t) => t.state === "PendingApproval").length,
+    [tasks],
+  );
+
+  const activeChoresCount = useMemo(() => tasks.filter((t) => t.state === "Active").length, [tasks]);
+
   const choreCompletionSummary = useMemo(() => {
     const byState: Record<string, number> = {};
     for (const t of tasks) {
@@ -356,178 +373,219 @@ function ParentDashboardInner() {
         ) : null}
 
         {!loading && !error ? (
-          <motion.div
-            className={styles.grid}
-            variants={stagger}
-            initial="hidden"
-            animate="show"
-          >
-            <motion.div className={styles.mainCol} variants={itemSlide}>
-              <GTCard
-                title="Pending approvals"
-                description="Chores waiting for your decision. Approve to award points, or reject to send back for retry."
-              >
-                {Object.keys(pendingByChild).length === 0 ? (
-                  <p className={styles.emptyHint}>No tasks waiting for approval. You are all caught up.</p>
-                ) : (
-                  <div className={styles.stack}>
-                    {Object.entries(pendingByChild).map(([childName, childTasks]) => (
-                      <div key={childName}>
-                        <p className={styles.groupLabel}>{childName}</p>
-                        <div className={styles.stack}>
-                          {childTasks.map((task) => {
-                            const badge = taskStatusBadge(task.state);
-                            return (
-                              <GTCard
-                                key={task.id}
-                                title={task.title}
-                                titleLevel="h3"
-                                headerExtra={<GTBadge tone={badge.tone}>{badge.label}</GTBadge>}
-                              >
-                                <GTInput
-                                  id={`note-${task.id}`}
-                                  label="Approval note (optional)"
-                                  maxLength={200}
-                                  value={decisionNotes[task.id] ?? ""}
-                                  onChange={(e) =>
-                                    setDecisionNotes((prev) => ({
-                                      ...prev,
-                                      [task.id]: e.target.value,
-                                    }))
-                                  }
-                                />
-                                <div className={styles.rowActions}>
-                                  <GTButton
-                                    variant="primary"
-                                    disabled={actionBusy}
-                                    onClick={() => void handleApproveChore(task)}
-                                  >
-                                    Approve
-                                  </GTButton>
-                                  <GTButton
-                                    variant="danger"
-                                    disabled={actionBusy}
-                                    onClick={() => void handleRejectChore(task)}
-                                  >
-                                    Reject
-                                  </GTButton>
-                                </div>
-                              </GTCard>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+          <motion.div variants={stagger} initial="hidden" animate="show">
+            <motion.div className={styles.statsRow} variants={itemSlide}>
+              <GTCard padding="sm" className={styles.statCard} title="Total RP issued">
+                <p className={styles.statValue}>{totalRpIssued.toLocaleString()}</p>
+                <p className={styles.statHint}>Combined RP balances on children&apos;s accounts.</p>
+              </GTCard>
+              <GTCard padding="sm" className={styles.statCard} title="Pending approvals">
+                <p className={styles.statValue}>{pendingApprovalCount}</p>
+                <p className={styles.statHint}>Submissions waiting for your decision.</p>
+              </GTCard>
+              <GTCard padding="sm" className={styles.statCard} title="Active chores">
+                <p className={styles.statValue}>{activeChoresCount}</p>
+                <p className={styles.statHint}>Quests in progress right now.</p>
               </GTCard>
             </motion.div>
 
-            <motion.aside className={styles.sideCol} variants={itemSlide}>
-              <div className={styles.sideStack}>
-                <GTCard title="Family overview" description="Children, balances, and task mix at a glance.">
-                  {children.length === 0 ? (
-                    <p className={styles.emptyHint}>No children yet. Add profiles in settings.</p>
-                  ) : (
-                    <div>
-                      {children.map((c) => (
-                        <div key={c.id} className={styles.childRow}>
-                          <span className={styles.childName}>{c.name}</span>
-                          <span className={styles.balances}>
-                            RP {c.pointsBalance ?? 0} · GP {c.giftcardPointsBalance ?? 0}
-                          </span>
-                          <GTButton
-                            variant="ghost"
-                            size="sm"
-                            type="button"
-                            onClick={() => void switchToChild(c.id)}
-                          >
-                            Child view
-                          </GTButton>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className={styles.summaryBlock}>
-                    <p className={styles.subsectionLabel}>Chore completion (states)</p>
-                    <ul className={styles.mutedList}>
-                      {Object.entries(choreCompletionSummary).map(([state, count]) => (
-                        <li key={state}>
-                          {state}: {count}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className={styles.rewardsBlock}>
-                    <p className={styles.subsectionLabel}>Active rewards</p>
-                    {activeRewards.length === 0 ? (
-                      <p className={styles.emptyHint}>No active rewards.</p>
+            <motion.div className={styles.mainRow} variants={itemSlide}>
+              <div className={styles.mainFeed}>
+                <div className={styles.feedStack}>
+                  <GTCard
+                    title="Pending approvals"
+                    description="Chores waiting for your decision. Approve to award points, or reject to send back for retry."
+                  >
+                    {Object.keys(pendingByChild).length === 0 ? (
+                      <p className={styles.emptyHint}>No tasks waiting for approval. You are all caught up.</p>
                     ) : (
+                      <div className={styles.stack}>
+                        {Object.entries(pendingByChild).map(([childName, childTasks]) => (
+                          <div key={childName}>
+                            <p className={styles.groupLabel}>{childName}</p>
+                            <div className={styles.stack}>
+                              {childTasks.map((task) => {
+                                const badge = taskStatusBadge(task.state);
+                                return (
+                                  <GTCard
+                                    key={task.id}
+                                    title={task.title}
+                                    titleLevel="h3"
+                                    headerExtra={<GTBadge tone={badge.tone}>{badge.label}</GTBadge>}
+                                  >
+                                    <GTInput
+                                      id={`note-${task.id}`}
+                                      label="Approval note (optional)"
+                                      maxLength={200}
+                                      value={decisionNotes[task.id] ?? ""}
+                                      onChange={(e) =>
+                                        setDecisionNotes((prev) => ({
+                                          ...prev,
+                                          [task.id]: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                    <div className={styles.rowActions}>
+                                      <GTButton
+                                        variant="primary"
+                                        disabled={actionBusy}
+                                        onClick={() => void handleApproveChore(task)}
+                                      >
+                                        Approve
+                                      </GTButton>
+                                      <GTButton
+                                        variant="danger"
+                                        disabled={actionBusy}
+                                        onClick={() => void handleRejectChore(task)}
+                                      >
+                                        Reject
+                                      </GTButton>
+                                    </div>
+                                  </GTCard>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </GTCard>
+
+                  <GTCard
+                    title="Active quests"
+                    description="In-flight and awaiting-review chores across the household."
+                  >
+                    {activeQuests.length === 0 ? (
+                      <p className={styles.emptyHint}>No active or pending-review quests.</p>
+                    ) : (
+                      <div>
+                        {activeQuests.map((task) => {
+                          const badge = taskStatusBadge(task.state);
+                          return (
+                            <div key={task.id} className={styles.questRow}>
+                              <div>
+                                <p className={styles.questTitle}>{task.title}</p>
+                                <p className={styles.questMeta}>{task.childName ?? "Unknown"}</p>
+                              </div>
+                              <GTBadge tone={badge.tone}>{badge.label}</GTBadge>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </GTCard>
+                </div>
+              </div>
+
+              <aside className={styles.sideRail}>
+                <div className={styles.sideStack}>
+                  <GTCard title="Family roster" description="Children and balances at a glance.">
+                    {children.length === 0 ? (
+                      <p className={styles.emptyHint}>No children yet. Add profiles in settings.</p>
+                    ) : (
+                      <div>
+                        {children.map((c) => (
+                          <div key={c.id} className={styles.childRow}>
+                            <span className={styles.childName}>{c.name}</span>
+                            <span className={styles.balances}>
+                              RP {c.pointsBalance ?? 0} · GP {c.giftcardPointsBalance ?? 0}
+                            </span>
+                            <GTButton
+                              variant="ghost"
+                              size="sm"
+                              type="button"
+                              onClick={() => void switchToChild(c.id)}
+                            >
+                              Child view
+                            </GTButton>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className={styles.summaryBlock}>
+                      <p className={styles.subsectionLabel}>Chore completion (states)</p>
                       <ul className={styles.mutedList}>
-                        {activeRewards.map((r) => (
-                          <li key={r.id}>
-                            {r.title} — {r.pointsCost} {r.pointsType ?? "RP"}
-                            {r.quantityLimit != null ? ` (limit ${r.quantityLimit})` : ""}
+                        {Object.entries(choreCompletionSummary).map(([state, count]) => (
+                          <li key={state}>
+                            {state}: {count}
                           </li>
                         ))}
                       </ul>
-                    )}
-                  </div>
-                </GTCard>
-
-                <GTCard title="Quick actions" description="Shortcuts without leaving the console.">
-                  <div className={styles.rowActions}>
-                    <GTButton variant="secondary" type="button" onClick={() => push("/parent/settings?tab=children")}>
-                      Manage children
-                    </GTButton>
-                  </div>
-                </GTCard>
-
-                <GTCard title="Add points (RP)" description="Manual balance adjustment with an audit trail.">
-                  <form onSubmit={(e) => void handleAddPoints(e)} className={styles.stack}>
-                    <div className={styles.field}>
-                      <label className={styles.label} htmlFor="points-child">
-                        Child
-                      </label>
-                      <select
-                        id="points-child"
-                        className={styles.select}
-                        value={pointsForm.childId}
-                        onChange={(e) => setPointsForm((p) => ({ ...p, childId: e.target.value }))}
-                        required
-                      >
-                        <option value="">Select child</option>
-                        {children.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name}
-                          </option>
-                        ))}
-                      </select>
                     </div>
-                    <GTInput
-                      id="points-rp"
-                      label="RP amount"
-                      type="number"
-                      min={-1000}
-                      max={1000}
-                      value={pointsForm.points}
-                      onChange={(e) => setPointsForm((p) => ({ ...p, points: e.target.value }))}
-                    />
-                    <GTInput
-                      id="points-reason"
-                      label="Reason"
-                      value={pointsForm.note}
-                      onChange={(e) => setPointsForm((p) => ({ ...p, note: e.target.value }))}
-                    />
-                    <GTButton type="submit" variant="primary" disabled={actionBusy}>
-                      Add / adjust points
-                    </GTButton>
-                  </form>
-                </GTCard>
-              </div>
-            </motion.aside>
+
+                    <div className={styles.rewardsBlock}>
+                      <p className={styles.subsectionLabel}>Active rewards</p>
+                      {activeRewards.length === 0 ? (
+                        <p className={styles.emptyHint}>No active rewards.</p>
+                      ) : (
+                        <ul className={styles.mutedList}>
+                          {activeRewards.map((r) => (
+                            <li key={r.id}>
+                              {r.title} — {r.pointsCost} {r.pointsType ?? "RP"}
+                              {r.quantityLimit != null ? ` (limit ${r.quantityLimit})` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </GTCard>
+
+                  <GTCard title="Quick actions" description="Assign quests and open settings without leaving the console.">
+                    <div className={styles.rowActions}>
+                      <GTButton variant="primary" type="button" onClick={() => push("/parent/tasks")}>
+                        Assign new quest
+                      </GTButton>
+                      <GTButton variant="secondary" type="button" onClick={() => push("/parent/settings?tab=children")}>
+                        Manage children
+                      </GTButton>
+                    </div>
+                  </GTCard>
+
+                  <GTCard title="Add points (RP)" description="Manual balance adjustment with an audit trail.">
+                    <form onSubmit={(e) => void handleAddPoints(e)} className={styles.stack}>
+                      <div className={styles.field}>
+                        <label className={styles.label} htmlFor="points-child">
+                          Child
+                        </label>
+                        <select
+                          id="points-child"
+                          className={styles.select}
+                          value={pointsForm.childId}
+                          onChange={(e) => setPointsForm((p) => ({ ...p, childId: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select child</option>
+                          {children.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <GTInput
+                        id="points-rp"
+                        label="RP amount"
+                        type="number"
+                        min={-1000}
+                        max={1000}
+                        value={pointsForm.points}
+                        onChange={(e) => setPointsForm((p) => ({ ...p, points: e.target.value }))}
+                      />
+                      <GTInput
+                        id="points-reason"
+                        label="Reason"
+                        value={pointsForm.note}
+                        onChange={(e) => setPointsForm((p) => ({ ...p, note: e.target.value }))}
+                      />
+                      <GTButton type="submit" variant="primary" disabled={actionBusy}>
+                        Add / adjust points
+                      </GTButton>
+                    </form>
+                  </GTCard>
+                </div>
+              </aside>
+            </motion.div>
           </motion.div>
         ) : null}
       </div>
