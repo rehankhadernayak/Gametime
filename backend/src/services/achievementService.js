@@ -67,7 +67,9 @@ export async function checkAndUnlockAchievements(childId, db) {
   const now = new Date().toISOString();
   for (const ach of newlyUnlocked) {
     await db.run(
-      'INSERT OR IGNORE INTO child_achievements (id, child_id, achievement_id, unlocked_at) VALUES (?, ?, ?, ?)',
+      `INSERT INTO child_achievements (id, child_id, achievement_id, unlocked_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT (child_id, achievement_id) DO NOTHING`,
       [uuidv4(), childId, ach.id, now]
     );
     await createNotification(

@@ -36,8 +36,17 @@ if (process.env.NODE_ENV === 'production') {
   if (!process.env.DATA_ENCRYPTION_KEY || process.env.DATA_ENCRYPTION_KEY === DEV_ENC_KEY) {
     throw new Error('[FATAL] DATA_ENCRYPTION_KEY must be set in production. Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
   }
-  if (!process.env.DATABASE_PATH) {
-    throw new Error('[FATAL] DATABASE_PATH must be set to an absolute path in production (e.g. /data/gametime.db). The default relative path is unsafe in containerised deployments.');
+  const pgUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
+  const sqliteFallback = process.env.USE_SQLITE_FALLBACK === 'true';
+  if (!sqliteFallback && !pgUrl) {
+    throw new Error(
+      '[FATAL] In production set DATABASE_URL or SUPABASE_DATABASE_URL (PostgreSQL). ' +
+        'Ephemeral hosts (e.g. Vercel) cannot use a local SQLite file. ' +
+        'To run SQLite anyway (not recommended), set USE_SQLITE_FALLBACK=true and DATABASE_PATH.'
+    );
+  }
+  if (sqliteFallback && !process.env.DATABASE_PATH) {
+    throw new Error('[FATAL] USE_SQLITE_FALLBACK requires DATABASE_PATH to an absolute path in production.');
   }
 } else {
   if (rawJwtSecret === DEV_JWT_SECRET) {
@@ -48,11 +57,19 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL || '';
+
 export const env = {
   port: Number(process.env.PORT || 4000),
   jwtSecret: rawJwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
+  /** When true, `getDb()` uses local SQLite (dev/tests only on ephemeral hosts). */
+  useSqliteFallback: process.env.USE_SQLITE_FALLBACK === 'true',
+  /** PostgreSQL connection string (Supabase pooler or direct). */
+  databaseUrl: databaseUrl || undefined,
   databasePath: process.env.DATABASE_PATH || './data/gametime.db',
+  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   frontendOrigins,
   dataEncryptionKey: rawEncKey,
   smtpHost: process.env.SMTP_HOST || '',
