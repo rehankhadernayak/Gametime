@@ -15,9 +15,11 @@
   color-scheme: dark;
   position: relative;
   isolation: isolate;
-  min-height: calc(100vh - var(--nav-h, 60px));
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  padding: 1.25rem clamp(1rem, 4vw, 2rem) 2.75rem;
+  padding: 0;
   color: var(--gh-text);
   background:
     radial-gradient(ellipse 100% 70% at 50% -15%, var(--gh-purple-glow), transparent 55%),
@@ -42,8 +44,12 @@
 }
 
 .shell {
-  max-width: 42rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: stretch;
