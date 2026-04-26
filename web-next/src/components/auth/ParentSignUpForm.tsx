@@ -7,6 +7,7 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import type { GametimeAuthState } from "@/app/providers";
 import { saveAuth } from "./persistAuth";
+import { syncDashboardSessionCookies } from "@/lib/auth/syncWebSession";
 import styles from "@/styles/auth.module.css";
 
 const AGES = ["Under 1", ...Array.from({ length: 18 }, (_, i) => `${i + 1}`), "18+"];
@@ -379,7 +380,7 @@ export function ParentSignUpForm() {
     }, 200);
   }
 
-  function handleAuth(data: { token: string; parent: unknown }) {
+  async function handleAuth(data: { token: string; parent: unknown }) {
     const next: GametimeAuthState = {
       token: data.token,
       role: "parent",
@@ -387,6 +388,7 @@ export function ParentSignUpForm() {
     };
     saveAuth({ token: data.token, role: "parent", user: data.parent });
     setAuth(next);
+    await syncDashboardSessionCookies(data.token);
     replace("/parent/dashboard");
   }
 

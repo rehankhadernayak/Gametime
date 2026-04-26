@@ -8,6 +8,7 @@ import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
 import ToastStack from '@gametime/frontend/components/ToastStack.jsx';
 import { trackEvent } from '@gametime/frontend/utils/analytics.js';
+import { clearDashboardSessionCookies, switchToChildSession } from '@/lib/auth/syncWebSession';
 
 export type GametimeAuthState = {
   token: string;
@@ -118,6 +119,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       } catch {
         // ignore
       }
+      try {
+        await clearDashboardSessionCookies();
+      } catch {
+        // ignore
+      }
       trackEvent('logout', { fromPath: pathname });
     }
   }, [auth.token, pathname]);
@@ -145,12 +151,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const switchToChild = useCallback(
     async (childId: string) => {
       try {
-        const response = (await apiRequest('/auth/child-login', {
-          method: 'POST',
-          token: auth.token,
-          body: { childId },
-        })) as { token: string; child: GametimeAuthState['user'] };
-        setAuth({ token: response.token, role: 'child', user: response.child });
+        const response = await switchToChildSession(auth.token, childId);
+        setAuth({ token: response.token, role: 'child', user: response.child as GametimeAuthState['user'] });
         router.replace('/child/dashboard');
         trackEvent('switch_to_child_success', { childId });
       } catch (error: unknown) {

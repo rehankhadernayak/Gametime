@@ -7,6 +7,7 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import type { GametimeAuthState } from "@/app/providers";
 import { saveAuth } from "./persistAuth";
+import { syncDashboardSessionCookies } from "@/lib/auth/syncWebSession";
 import { ChildPinLogin, type PinChildProfile } from "./ChildPinLogin";
 import styles from "@/styles/auth.module.css";
 
@@ -51,6 +52,7 @@ export function ChildLoginForm() {
         };
         saveAuth({ token: next.token, role: "child", user: data.child });
         setAuth(next);
+        await syncDashboardSessionCookies(next.token);
         replace("/child/dashboard");
       } else {
         const parentEmail = pinForm.parentEmail.trim();
@@ -74,7 +76,7 @@ export function ChildLoginForm() {
     }
   }
 
-  function handlePinSuccess(token: string) {
+  async function handlePinSuccess(token: string) {
     if (!pinChildProfile) return;
     const next: GametimeAuthState = {
       token,
@@ -83,6 +85,7 @@ export function ChildLoginForm() {
     };
     saveAuth({ token, role: "child", user: pinChildProfile });
     setAuth(next);
+    await syncDashboardSessionCookies(token);
     replace("/child/dashboard");
   }
 

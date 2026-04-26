@@ -6,6 +6,9 @@ import { apiRequest } from "@/lib/api/client";
 import { fireGoldConfettiBurst } from "@/lib/confettiBurst";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
+import type { GametimeAuthState } from "@/app/providers";
+import { saveAuth } from "@/components/auth/persistAuth";
+import { ParentPinGate } from "@/components/auth/ParentPinGate";
 import { trackEvent } from "@/lib/analytics";
 import { GTCard } from "@/components/ui/GTCard";
 import { GTGlassModal } from "@/components/ui/GTGlassModal";
@@ -111,8 +114,8 @@ function questBadgeLabel(state: string): string {
 }
 
 export default function ChildDashboardPage() {
-  const { replace } = useAppRouter();
-  const { auth, authHydrated } = useGametimeAuth();
+  const { replace, push } = useAppRouter();
+  const { auth, authHydrated, setAuth } = useGametimeAuth();
   const token = auth.token;
   const reduceMotion = useReducedMotion();
 
@@ -138,6 +141,7 @@ export default function ChildDashboardPage() {
   const [evidenceNote, setEvidenceNote] = useState("");
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
+  const [parentPinOpen, setParentPinOpen] = useState(false);
 
   const loadDashboard = useCallback(
     async (opts?: { showSpinner?: boolean }) => {
@@ -396,7 +400,29 @@ export default function ChildDashboardPage() {
               Welcome back{me?.name ? <span className={styles.welcomeName}>, {me.name}</span> : null}. Your quests and
               loot are synced.
             </p>
+            <div className={styles.parentSwitchRow}>
+              <GTButton type="button" variant="secondary" size="sm" onClick={() => setParentPinOpen(true)}>
+                Switch to Parent
+              </GTButton>
+            </div>
           </header>
+
+          <ParentPinGate
+            open={parentPinOpen}
+            onClose={() => setParentPinOpen(false)}
+            titleId="parent-pin-gate-title"
+            onVerified={async (session) => {
+              const next: GametimeAuthState = {
+                token: session.token,
+                role: "parent",
+                user: session.user as GametimeAuthState["user"],
+              };
+              saveAuth({ token: session.token, role: "parent", user: session.user });
+              setAuth(next);
+              trackEvent("switch_to_parent_success", {});
+              push("/parent/dashboard");
+            }}
+          />
 
           <header className={styles.hero} aria-labelledby="rp-hero-label">
             <div className={styles.heroInner}>

@@ -7,6 +7,7 @@ import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import type { GametimeAuthState } from "@/app/providers";
 import { saveAuth } from "./persistAuth";
+import { syncDashboardSessionCookies } from "@/lib/auth/syncWebSession";
 import styles from "@/styles/auth.module.css";
 
 type LoginResponse = { token: string; parent: unknown };
@@ -43,6 +44,7 @@ export function ParentLoginForm() {
       };
       saveAuth({ token: next.token, role: "parent", user: data.parent });
       setAuth(next);
+      await syncDashboardSessionCookies(next.token);
       replace("/parent/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Sign in failed.");
