@@ -159,6 +159,12 @@
 
 ---
 
+### 2026-04-26 — Vercel CLI in agents: device login blocks; use VERCEL_TOKEN
+**What happened:** `npx vercel whoami` with no credentials started OAuth device flow and waited indefinitely; no Railway/Supabase/JWT values exist in-repo from other agents, so production env could not be pushed interactively.
+**Rule:** For non-interactive or CI deploys, use a Vercel token (`VERCEL_TOKEN` / `vercel login --token`) and `vercel link --yes --project <name>`. Never rely on device-code login in headless environments.
+
+---
+
 ### 2026-04-26 — Playwright + web-next: pinned Next binary, cookie restore, and navigation races
 **What happened:** `npx next dev` in Playwright’s `webServer` pulled a mismatched Next.js and Turbopack failed; clearing `localStorage` left no SPA token so `/parent/dashboard` redirected to login; an async `restoreAuthFromCookieSession()` finished after login and overwrote fresh auth with empty; `switchToChild` navigated before React committed child role so `/child/dashboard` briefly saw `parent` and bounced to login; `useMemo` referenced `serverClockTick` but state was declared as `[, setServer]` causing a runtime ReferenceError on the child dashboard.
 **Rule:** Run E2E Next from `web-next/node_modules/.bin/next` after `npm install` in `web-next`. If hydrating auth from cookies after `await`, re-read `localStorage` before applying the restore result so a concurrent login wins. Use `flushSync(() => setAuth(...))` before `router.replace` when switching roles so destination RSC/pages never render with the previous role. Keep `useMemo` dependency identifiers aligned with actual `useState` bindings.

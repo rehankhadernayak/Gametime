@@ -19,6 +19,7 @@ Gametime-Product-Build-Web.zip
 demo_build/
 .aider*
 .env*
+!web-next/.env.deployment.example
 
 # Supabase CLI (may contain project ref / local overrides)
 .supabase/
