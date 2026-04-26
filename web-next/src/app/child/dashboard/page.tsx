@@ -143,7 +143,7 @@ function questBadgeLabel(state: string): string {
 }
 
 export default function ChildDashboardPage() {
-  const { replace, push } = useAppRouter();
+  const { replace } = useAppRouter();
   const { auth, authHydrated, setAuth } = useGametimeAuth();
   const token = auth.token;
   const reduceMotion = useReducedMotion();
@@ -166,7 +166,7 @@ export default function ChildDashboardPage() {
   /** serverTimeFromApi - Date.now() at last successful tasks fetch; null if API omitted serverTime. */
   const [clockOffsetMs, setClockOffsetMs] = useState<number | null>(null);
   /** Bumps on an interval so due-based active status updates without waiting for the next poll. */
-  const [, setServerClockTick] = useState(0);
+  const [serverClockTick, setServerClockTick] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
@@ -530,9 +530,11 @@ export default function ChildDashboardPage() {
                 user: session.user as GametimeAuthState["user"],
               };
               saveAuth({ token: session.token, role: "parent", user: session.user });
-              setAuth(next);
+              flushSync(() => {
+                setAuth(next);
+              });
               trackEvent("switch_to_parent_success", {});
-              push("/parent/dashboard");
+              replace("/parent/dashboard");
             }}
           />
 

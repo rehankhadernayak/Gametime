@@ -117,10 +117,10 @@ test("parent → child evidence → parent approve updates RP", async ({ page })
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/parent\/dashboard/);
 
-  await expect(page.getByRole("heading", { name: "Family overview" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Parent dashboard" })).toBeVisible();
   await expect(page.getByText(childName).first()).toBeVisible();
   await page.getByRole("button", { name: "Approve" }).click();
-  await expect(page.getByRole("status").filter({ hasText: /approved/i })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText(/Task approved/i).first()).toBeVisible({ timeout: 30_000 });
 
   await expect(page.getByText(new RegExp(`RP\\s+${rpBefore + TASK_POINTS}\\b`))).toBeVisible();
 

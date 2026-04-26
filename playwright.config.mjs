@@ -27,7 +27,7 @@ export default defineConfig({
     },
     {
       command:
-        "cd web-next && JWT_SECRET=dev-secret-change-me npx next dev --port 3000",
+        "cd web-next && JWT_SECRET=dev-secret-change-me ./node_modules/.bin/next dev --port 3000",
       url: "http://127.0.0.1:3000/login",
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,

@@ -158,3 +158,9 @@
 **Rule:** For client-only retry timers in Next.js, type the handle as `number | null` (browser timer id) or use `clearTimeout` without storing a `ReturnType<typeof setTimeout>` inferred from Node typings.
 
 ---
+
+### 2026-04-26 — Playwright + web-next: pinned Next binary, cookie restore, and navigation races
+**What happened:** `npx next dev` in Playwright’s `webServer` pulled a mismatched Next.js and Turbopack failed; clearing `localStorage` left no SPA token so `/parent/dashboard` redirected to login; an async `restoreAuthFromCookieSession()` finished after login and overwrote fresh auth with empty; `switchToChild` navigated before React committed child role so `/child/dashboard` briefly saw `parent` and bounced to login; `useMemo` referenced `serverClockTick` but state was declared as `[, setServer]` causing a runtime ReferenceError on the child dashboard.
+**Rule:** Run E2E Next from `web-next/node_modules/.bin/next` after `npm install` in `web-next`. If hydrating auth from cookies after `await`, re-read `localStorage` before applying the restore result so a concurrent login wins. Use `flushSync(() => setAuth(...))` before `router.replace` when switching roles so destination RSC/pages never render with the previous role. Keep `useMemo` dependency identifiers aligned with actual `useState` bindings.
+
+---

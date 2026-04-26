@@ -58,3 +58,17 @@ export async function verifyParentPin(pin: string): Promise<ParentPinSuccess> {
 export async function clearDashboardSessionCookies(): Promise<void> {
   await fetch("/api/auth/session-cleanup", { method: "POST", credentials: "same-origin" });
 }
+
+export type RestoreClientSession = { token: string; role: string; user: unknown };
+
+/** When localStorage is cleared but the httpOnly session cookie remains valid. */
+export async function restoreAuthFromCookieSession(): Promise<RestoreClientSession | null> {
+  const res = await fetch("/api/auth/restore-client-session", {
+    method: "POST",
+    credentials: "same-origin",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as RestoreClientSession & { error?: string };
+  if (!data.token) return null;
+  return { token: data.token, role: data.role, user: data.user };
+}
