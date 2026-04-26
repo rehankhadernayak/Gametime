@@ -188,3 +188,9 @@
 **Rule:** After touring `/child/ai`, `goto('/child/dashboard')` (or use a shared layout control) before clicking parent switch / PIN flows.
 
 ---
+
+### 2026-04-26 — Vercel preview: fetch fails when CORS omits *.vercel.app
+**What happened:** Browsers showed "Network request failed. Check backend at …" because credentialed cross-origin `fetch` to the API throws when the preflight is rejected; only production `https://project.vercel.app` was in `FRONTEND_ORIGIN`, not every preview URL.
+**Rule:** Either list every preview origin explicitly, or add `https://*.vercel.app` to `FRONTEND_ORIGIN` (supported by the backend as an opt-in wildcard for `https://<sub>.vercel.app` only). Redeploy the API after changing env.
+
+---
