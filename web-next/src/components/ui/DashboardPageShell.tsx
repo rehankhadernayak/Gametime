@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from "react";
-import styles from "./DashboardPageShell.module.css";
+import styles from "./dashboard.module.css";
 
 export type DashboardGridSpan = "full" | "half" | "third" | "twoThirds";
 
@@ -11,6 +11,7 @@ const spanClass: Record<DashboardGridSpan, string | undefined> = {
 };
 
 export type DashboardPageShellProps = HTMLAttributes<HTMLDivElement> & {
+  eyebrow?: ReactNode;
   title?: ReactNode;
   subtitle?: ReactNode;
   actions?: ReactNode;
@@ -23,6 +24,7 @@ export type DashboardPageShellProps = HTMLAttributes<HTMLDivElement> & {
  * unless you wrap them in DashboardWidget with span props.
  */
 export function DashboardPageShell({
+  eyebrow,
   title,
   subtitle,
   actions,
@@ -30,7 +32,8 @@ export function DashboardPageShell({
   className,
   ...rest
 }: DashboardPageShellProps) {
-  const hasHeader = title != null || subtitle != null || actions != null;
+  const hasHeader =
+    eyebrow != null || title != null || subtitle != null || actions != null;
 
   return (
     <div className={[styles.outer, className].filter(Boolean).join(" ")} {...rest}>
@@ -38,6 +41,7 @@ export function DashboardPageShell({
         {hasHeader ? (
           <header className={styles.header}>
             <div>
+              {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
               {title ? <h1 className={styles.title}>{title}</h1> : null}
               {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
             </div>
