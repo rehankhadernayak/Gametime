@@ -26,6 +26,12 @@ variable "github_repo" {
   description = "Repository name only, without org (for OIDC trust)."
 }
 
+variable "existing_github_oidc_provider_arn" {
+  type        = string
+  description = "If set (non-empty), reuse this IAM OIDC provider ARN for GitHub Actions instead of creating aws_iam_openid_connect_provider.github. Required when the account already has token.actions.githubusercontent.com."
+  default     = ""
+}
+
 variable "container_port" {
   type        = number
   description = "Container listen port (Railway-style image uses 8080 for Nginx)."

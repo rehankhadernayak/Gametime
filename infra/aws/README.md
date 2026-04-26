@@ -12,6 +12,16 @@ This stack runs the **same production image as Railway** (`Dockerfile.railway`: 
 
 HTTPS (ACM certificate) and a custom domain are optional follow-ups; the live URL after apply is `http://<alb_dns_name>`.
 
+### GitHub OIDC provider already exists?
+
+AWS allows **one** IAM OIDC provider per account for `https://token.actions.githubusercontent.com`. If another stack already created it, set in `terraform.tfvars`:
+
+```hcl
+existing_github_oidc_provider_arn = "arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com"
+```
+
+Find the ARN in **IAM → Identity providers** (or `aws iam list-open-id-connect-providers`). When this variable is non-empty, Terraform **does not** create `aws_iam_openid_connect_provider.github` and the GitHub Actions role still trusts that provider.
+
 ## One-time: AWS CLI + Terraform
 
 1. Install [Terraform](https://www.terraform.io/) and configure [AWS CLI](https://aws.amazon.com/cli/) with an admin or power-user profile.
@@ -53,7 +63,7 @@ HTTPS (ACM certificate) and a custom domain are optional follow-ups; the live UR
    aws ssm put-parameter --name "${PREFIX}/FRONTEND_ORIGIN" --type SecureString --value "https://your-alb-or-domain.example" --overwrite
    ```
 
-   For the bundled SPA, set `FRONTEND_ORIGIN` to the **browser origin** users hit (e.g. `http://your-alb-xxx.elb.amazonaws.com` until you add HTTPS + domain).
+   Set `FRONTEND_ORIGIN` to the **browser origin** users hit. After you add HTTPS + a hostname, use `https://api.yourdomain.com` (or your Vercel URL if the browser never talks to the ALB origin directly).
 
 5. Apply:
 
@@ -71,16 +81,22 @@ HTTPS (ACM certificate) and a custom domain are optional follow-ups; the live UR
 
 ## Stripe webhooks
 
-Point the webhook URL at your public host, for example:
+Stripe **live** endpoints require **HTTPS**. Use `https://<your-hostname>/api/billing/webhook` after ACM + DNS (below). For local or dashboard testing, use **Stripe CLI** forwarding.
 
-- `https://<your-domain>/api/billing/webhook` (after ACM + DNS), or  
-- `http://<alb_dns>/api/billing/webhook` for early testing (Stripe may require HTTPS for live mode).
+## HTTPS: ACM, DNS, and `FRONTEND_ORIGIN`
+
+You need **a hostname you control** (any registrar or DNS: Route 53, Cloudflare, Namecheap, Google Domains, etc.). The repo does not know whether you already own a domain; if you do, request a public ACM certificate in the **same region as the ALB** (e.g. `ap-southeast-1`) for `api.example.com`, validate via **DNS** (CNAME records ACM gives you), then add an **ALB listener on 443** with that certificate and point your DNS **A/AAAA alias** (Route 53) or **CNAME** (other DNS) to the ALB. Finally:
+
+1. Stripe webhook URL → `https://api.example.com/api/billing/webhook`  
+2. Update SSM `FRONTEND_ORIGIN` if the browser origin changed (e.g. your Vercel app URL or the HTTPS API host, depending on how you front the app).
+
+Terraform does not yet create the ACM listener or Route 53 records; add those in a follow-up module or by hand once the certificate is issued.
 
 ## Terraform and CI ownership
 
 - Terraform creates the **first** task definition and service.  
 - **GitHub Actions** registers **new** task definition revisions (new image digest). Terraform ignores `container_definitions` and the service’s `task_definition` so applies do not roll back releases.
 
-## Optional: HTTPS
+## Optional: CloudFront in front of the ALB
 
-Add an ACM certificate (us-east-1 if using CloudFront; same region as ALB for ALB-only), `aws_lb_listener` on 443, and DNS `A`/`AAAA` alias to the ALB.
+If you put **CloudFront** in front of the ALB, request the ACM certificate in **us-east-1** (CloudFront requirement). For **ALB-only** TLS, keep the certificate in the **ALB region**.

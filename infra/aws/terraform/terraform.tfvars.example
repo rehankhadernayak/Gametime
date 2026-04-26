@@ -7,3 +7,6 @@ project_name = "gametime"
 
 github_org  = "YOUR_ORG_OR_USER"
 github_repo = "Gametime"
+
+# If this AWS account already has a GitHub OIDC provider, set its ARN and leave creation disabled:
+# existing_github_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"

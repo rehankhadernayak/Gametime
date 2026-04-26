@@ -29,6 +29,11 @@ output "github_actions_role_arn" {
   value       = aws_iam_role.github_actions.arn
 }
 
+output "github_oidc_provider_arn" {
+  description = "OIDC provider ARN used by the GitHub Actions role (created or existing)."
+  value       = local.github_oidc_provider_arn
+}
+
 output "ssm_parameter_names" {
   description = "Create each as SecureString before the service can run (see README)."
   value       = [for k in local.ssm_secret_names : "/${var.ssm_parameter_prefix}/${k}"]
