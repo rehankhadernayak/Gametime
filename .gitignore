@@ -17,3 +17,4 @@ Gametime-Product-Build-Web.zip
 demo_build/
 .aider*
 .env*
+!web-next/.env.deployment.example
