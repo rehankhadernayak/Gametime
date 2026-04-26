@@ -189,6 +189,12 @@
 
 ---
 
+### 2026-04-26 — Bash: avoid nested `${var#...}` inside `${x#"${x%%...}"}"` patterns
+**What happened:** `check-aws-credentials.sh` used a complex nested parameter expansion to detect leading/trailing whitespace; bash reported "unexpected EOF while looking for matching \`}'".
+**Rule:** For credential diagnostics, use `grep` for CR/LF and `sed` to trim a copy for comparison, or use Python — avoid fragile nested `${...}` trimming in bash.
+
+---
+
 ### 2026-04-26 — Vercel preview: fetch fails when CORS omits *.vercel.app
 **What happened:** Browsers showed "Network request failed. Check backend at …" because credentialed cross-origin `fetch` to the API throws when the preflight is rejected; only production `https://project.vercel.app` was in `FRONTEND_ORIGIN`, not every preview URL.
 **Rule:** Either list every preview origin explicitly, or add `https://*.vercel.app` to `FRONTEND_ORIGIN` (supported by the backend as an opt-in wildcard for `https://<sub>.vercel.app` only). Redeploy the API after changing env.

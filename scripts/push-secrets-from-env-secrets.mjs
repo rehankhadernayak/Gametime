@@ -56,7 +56,7 @@ function loadDotEnv(path) {
   }
   const out = {};
   for (const line of readFileSync(path, "utf8").split("\n")) {
-    const t = line.trim();
+    const t = line.replace(/\r/g, "").trim();
     if (!t || t.startsWith("#")) continue;
     const i = t.indexOf("=");
     if (i === -1) continue;
@@ -68,7 +68,7 @@ function loadDotEnv(path) {
     ) {
       val = val.slice(1, -1);
     }
-    out[key] = val;
+    out[key] = val.trim();
   }
   return out;
 }
