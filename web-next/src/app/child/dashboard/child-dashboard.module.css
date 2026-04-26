@@ -364,6 +364,26 @@
   gap: 1rem;
 }
 
+.submitBtnSuccess {
+  opacity: 1 !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gt-green) 45%, transparent),
+    0 0 28px color-mix(in srgb, var(--gt-green) 55%, transparent),
+    0 0 48px color-mix(in srgb, var(--gt-green) 22%, transparent) !important;
+  transition: box-shadow 0.35s ease;
+}
+
+.submitCheckIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gt-green);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--gt-green) 70%, transparent);
+}
+
 .fieldLabel {
   display: block;
   margin-bottom: 0.375rem;
