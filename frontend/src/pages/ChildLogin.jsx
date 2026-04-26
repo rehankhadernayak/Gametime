@@ -36,7 +36,7 @@ export default function ChildLogin({ onAuth }) {
           method: 'POST',
           body: { email, password: emailForm.password },
         });
-        onAuth({ token: data.token, role: 'child', user: data.child });
+        await onAuth({ token: data.token, role: 'child', user: data.child });
         router.push('/child/dashboard');
       } else {
         // PIN mode - step 1: validate inputs, then show numpad for PIN entry
@@ -64,8 +64,8 @@ export default function ChildLogin({ onAuth }) {
     }
   }
 
-  function handlePinSuccess(token) {
-    onAuth({ token, role: 'child', user: pinChildProfile });
+  async function handlePinSuccess(token) {
+    await onAuth({ token, role: 'child', user: pinChildProfile });
     router.push('/child/dashboard');
   }
 
