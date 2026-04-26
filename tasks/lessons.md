@@ -188,3 +188,9 @@
 **Rule:** After touring `/child/ai`, `goto('/child/dashboard')` (or use a shared layout control) before clicking parent switch / PIN flows.
 
 ---
+
+### 2026-04-26 — Never put API keys in git or paste them into agent chats
+**What happened:** A user asked to add Stripe (`sk_test_…`) and Vercel (`vcp_…`) credentials into the codebase; those must stay out of version control and are compromised once shared in chat.
+**Rule:** Store secrets only in local `backend/.env` (gitignored), host dashboards (Vercel / Railway / AWS SSM), or CI secret stores — never commit them. If a secret appears in chat or a public repo, rotate it immediately in the provider dashboard.
+
+---
