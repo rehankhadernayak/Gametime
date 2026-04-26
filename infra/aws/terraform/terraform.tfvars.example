@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars (never commit real tfvars with secrets).
+# github_org is the GitHub username or organisation that owns the repo.
+
+aws_region   = "ap-southeast-1"
+environment  = "prod"
+project_name = "gametime"
+
+github_org  = "YOUR_ORG_OR_USER"
+github_repo = "Gametime"
