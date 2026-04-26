@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { apiRequest } from "@/lib/api/client";
+import { fireGoldConfettiBurst } from "@/lib/confettiBurst";
 import { useAppRouter } from "@/hooks/useAppRouter";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import { trackEvent } from "@/lib/analytics";
@@ -18,6 +19,16 @@ import styles from "./child-dashboard.module.css";
 
 const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 const POLL_MS = 30_000;
+
+function lightTapVibrate() {
+  try {
+    if (typeof window !== "undefined" && typeof window.navigator?.vibrate === "function") {
+      window.navigator.vibrate(10);
+    }
+  } catch {
+    /* ignore unsupported vibrate */
+  }
+}
 
 type MeUser = {
   id: string;
@@ -84,15 +95,20 @@ export default function ChildDashboardPage() {
   const { replace } = useAppRouter();
   const { auth, authHydrated } = useGametimeAuth();
   const token = auth.token;
+  const reduceMotion = useReducedMotion();
 
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const prevTaskStateByIdRef = useRef<Map<string, string>>(new Map());
+  const prevRpRef = useRef<number | null>(null);
+  const prevGpRef = useRef<number | null>(null);
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -144,7 +160,68 @@ export default function ChildDashboardPage() {
     return () => window.clearInterval(id);
   }, [auth.role, token, loadDashboard]);
 
+  /** Gold confetti when a quest flips to Approved or balances increase (claim / payout). */
+  useEffect(() => {
+    if (loading || error) return;
+
+    const prevMap = prevTaskStateByIdRef.current;
+    let questJustApproved = false;
+    for (const t of tasks) {
+      const was = prevMap.get(t.id);
+      if (was === "PendingApproval" && t.state === "Approved") {
+        questJustApproved = true;
+        break;
+      }
+    }
+    const nextMap = new Map(tasks.map((t) => [t.id, t.state]));
+    prevTaskStateByIdRef.current = nextMap;
+
+    const rpNow = me?.pointsBalance ?? 0;
+    const gpNow = me?.giftcardPointsBalance ?? 0;
+    let balanceUp = false;
+    if (prevRpRef.current !== null && rpNow > prevRpRef.current) balanceUp = true;
+    if (prevGpRef.current !== null && gpNow > prevGpRef.current) balanceUp = true;
+    prevRpRef.current = rpNow;
+    prevGpRef.current = gpNow;
+
+    if (!reduceMotion && (questJustApproved || balanceUp)) {
+      fireGoldConfettiBurst();
+    }
+  }, [tasks, me, loading, error, reduceMotion]);
+
+  useEffect(() => {
+    if (!evidenceModalOpen) return;
+    setSubmitSuccess(false);
+  }, [evidenceModalOpen]);
+
   const activeTasks = useMemo(() => tasks.filter((t) => t.state === "Active"), [tasks]);
+
+  const evidenceFormVariants = useMemo(
+    () => ({
+      hidden: {},
+      show: {
+        transition: reduceMotion
+          ? { staggerChildren: 0, delayChildren: 0 }
+          : { staggerChildren: 0.09, delayChildren: 0.08 },
+      },
+    }),
+    [reduceMotion],
+  );
+
+  const evidenceFieldVariants = useMemo(
+    () =>
+      reduceMotion
+        ? { hidden: { opacity: 1 }, show: { opacity: 1 } }
+        : {
+            hidden: { opacity: 0, y: 10 },
+            show: {
+              opacity: 1,
+              y: 0,
+              transition: { type: "spring" as const, stiffness: 380, damping: 28 },
+            },
+          },
+    [reduceMotion],
+  );
 
   async function handleSubmitChore(e: React.FormEvent) {
     e.preventDefault();
@@ -188,11 +265,16 @@ export default function ChildDashboardPage() {
       });
       trackEvent("task_complete_submitted", { taskId });
       setSubmitMessage(result.message ?? "Submitted for parent review.");
-      setTaskId("");
-      setEvidenceFile(null);
-      setEvidenceNote("");
-      setEvidenceModalOpen(false);
+      setSubmitSuccess(true);
       await loadDashboard({ showSpinner: false });
+      window.setTimeout(() => {
+        setEvidenceModalOpen(false);
+        setSubmitSuccess(false);
+        setSubmitMessage(null);
+        setTaskId("");
+        setEvidenceFile(null);
+        setEvidenceNote("");
+      }, 950);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Failed to submit task completion.");
     } finally {
@@ -216,6 +298,7 @@ export default function ChildDashboardPage() {
 
   function selectQuest(t: TaskRow) {
     if (t.state !== "Active") return;
+    if (!reduceMotion) lightTapVibrate();
     setTaskId(t.id);
     setSubmitError(null);
     setEvidenceModalOpen(true);
@@ -339,7 +422,7 @@ export default function ChildDashboardPage() {
                           key={t.id}
                           glass
                           padding="md"
-                          className={`${styles.questCard} ${isActive ? styles.questCardInteractive : ""}`}
+                          className={`${styles.questCard} ${isActive ? styles.questCardInteractive : ""} ${isActive ? hubStyles.questReadyPulse : ""}`}
                           role={isActive ? "button" : undefined}
                           tabIndex={isActive ? 0 : undefined}
                           aria-pressed={isActive ? isSelected : undefined}
@@ -385,7 +468,7 @@ export default function ChildDashboardPage() {
               <div className={styles.evidenceFabWrap} aria-hidden={loading || !tasks.length}>
                 <button
                   type="button"
-                  className={styles.evidenceFab}
+                  className={`${styles.evidenceFab} ${hubStyles.shimmerFab}`}
                   onClick={() => {
                     setEvidenceModalOpen(true);
                     setSubmitError(null);
@@ -394,14 +477,20 @@ export default function ChildDashboardPage() {
                   aria-expanded={evidenceModalOpen}
                   aria-controls="child-evidence-uplink-dialog"
                 >
-                  Evidence uplink
-                  {taskId ? <span className={styles.evidenceFabBadge}>1</span> : null}
+                  <span className={hubStyles.shimmer} aria-hidden />
+                  <span className={hubStyles.shimmerFabInner}>
+                    Evidence uplink
+                    {taskId ? <span className={styles.evidenceFabBadge}>1</span> : null}
+                  </span>
                 </button>
               </div>
 
               <GTGlassModal
                 open={evidenceModalOpen}
-                onClose={() => setEvidenceModalOpen(false)}
+                onClose={() => {
+                  if (submitSuccess) return;
+                  setEvidenceModalOpen(false);
+                }}
                 titleId="evidence-heading"
               >
                 <div id="child-evidence-uplink-dialog" className={styles.evidenceModalBody}>
@@ -409,7 +498,13 @@ export default function ChildDashboardPage() {
                     <h2 id="evidence-heading" className={hubStyles.sectionTitle}>
                       Evidence uplink
                     </h2>
-                    <GTButton type="button" variant="secondary" size="sm" onClick={() => setEvidenceModalOpen(false)}>
+                    <GTButton
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={submitBusy || submitSuccess}
+                      onClick={() => setEvidenceModalOpen(false)}
+                    >
                       Close
                     </GTButton>
                   </div>
@@ -426,8 +521,14 @@ export default function ChildDashboardPage() {
                       {submitError}
                     </p>
                   ) : null}
-                  <form className={styles.formStack} onSubmit={(e) => void handleSubmitChore(e)}>
-                    <div>
+                  <motion.form
+                    className={styles.formStack}
+                    onSubmit={(e) => void handleSubmitChore(e)}
+                    initial="hidden"
+                    animate="show"
+                    variants={evidenceFormVariants}
+                  >
+                    <motion.div variants={evidenceFieldVariants}>
                       <label className={styles.fieldLabel} htmlFor="child-task-select">
                         Quest
                       </label>
@@ -440,6 +541,7 @@ export default function ChildDashboardPage() {
                           setSubmitError(null);
                         }}
                         required
+                        disabled={submitBusy || submitSuccess}
                       >
                         <option value="">Choose an active quest</option>
                         {activeTasks.map((t) => (
@@ -448,9 +550,9 @@ export default function ChildDashboardPage() {
                           </option>
                         ))}
                       </select>
-                    </div>
+                    </motion.div>
 
-                    <div className={styles.scanRow}>
+                    <motion.div className={styles.scanRow} variants={evidenceFieldVariants}>
                       <input
                         ref={galleryInputRef}
                         id="evidence-gallery"
@@ -458,6 +560,7 @@ export default function ChildDashboardPage() {
                         accept="image/*,video/*"
                         className={styles.visuallyHidden}
                         onChange={onEvidenceFromFiles}
+                        disabled={submitBusy || submitSuccess}
                       />
                       <input
                         ref={cameraInputRef}
@@ -467,11 +570,13 @@ export default function ChildDashboardPage() {
                         capture="environment"
                         className={styles.visuallyHidden}
                         onChange={onEvidenceFromCamera}
+                        disabled={submitBusy || submitSuccess}
                       />
                       <GTButton
                         type="button"
                         variant="primary"
                         size="lg"
+                        disabled={submitBusy || submitSuccess}
                         onClick={() => galleryInputRef.current?.click()}
                       >
                         Scan evidence — Files
@@ -480,30 +585,53 @@ export default function ChildDashboardPage() {
                         type="button"
                         variant="primary"
                         size="lg"
+                        disabled={submitBusy || submitSuccess}
                         onClick={() => cameraInputRef.current?.click()}
                       >
                         Scan evidence — Camera
                       </GTButton>
-                    </div>
+                    </motion.div>
 
-                    {evidenceFile ? (
-                      <p className={styles.fileName}>
-                        Locked in: {evidenceFile.name} ({Math.round(evidenceFile.size / 1024)} KB)
-                      </p>
-                    ) : null}
+                    <motion.div variants={evidenceFieldVariants}>
+                      {evidenceFile ? (
+                        <p className={styles.fileName}>
+                          Locked in: {evidenceFile.name} ({Math.round(evidenceFile.size / 1024)} KB)
+                        </p>
+                      ) : null}
+                    </motion.div>
 
-                    <GTInput
-                      label="Note for parent (optional)"
-                      value={evidenceNote}
-                      onChange={(e) => setEvidenceNote(e.target.value)}
-                      maxLength={500}
-                      placeholder="Anything your parent should know…"
-                    />
+                    <motion.div variants={evidenceFieldVariants}>
+                      <GTInput
+                        label="Note for parent (optional)"
+                        value={evidenceNote}
+                        onChange={(e) => setEvidenceNote(e.target.value)}
+                        maxLength={500}
+                        placeholder="Anything your parent should know…"
+                        disabled={submitBusy || submitSuccess}
+                      />
+                    </motion.div>
 
-                    <GTButton type="submit" variant="primary" size="lg" loading={submitBusy} disabled={submitBusy}>
-                      Submit for review
-                    </GTButton>
-                  </form>
+                    <motion.div variants={evidenceFieldVariants}>
+                      <GTButton
+                        type="submit"
+                        variant="primary"
+                        size="lg"
+                        fullWidth
+                        loading={submitBusy && !submitSuccess}
+                        disabled={submitBusy || submitSuccess}
+                        className={submitSuccess ? styles.submitBtnSuccess : ""}
+                        aria-label={submitSuccess ? "Submitted successfully" : "Submit for review"}
+                      >
+                        {submitSuccess ? (
+                          <span className={styles.submitCheckIcon} aria-hidden>
+                            ✓
+                          </span>
+                        ) : (
+                          "Submit for review"
+                        )}
+                      </GTButton>
+                    </motion.div>
+                  </motion.form>
                 </div>
               </GTGlassModal>
             </>
