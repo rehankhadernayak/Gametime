@@ -2032,6 +2032,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
         sections={sections}
         variant="parent"
         controlRef={shellRef}
+        settingsHref="/parent/settings"
       />
       {reviewPanel && (
         <EvidenceReviewPanel
