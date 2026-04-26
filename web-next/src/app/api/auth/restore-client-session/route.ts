@@ -3,9 +3,7 @@ import { jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 import { TOKEN_COOKIE } from "@/lib/auth/sessionCookies";
 
-function apiOrigin(): string {
-  return (process.env.API_PROXY_TARGET || "http://127.0.0.1:4000").replace(/\/$/, "");
-}
+import { apiProxyTarget } from "@/lib/apiProxyTarget";
 
 /**
  * When `gametime_auth` is missing from localStorage but the httpOnly `gametime_token`
@@ -40,7 +38,7 @@ export async function POST() {
 
   let user: unknown = null;
   try {
-    const meRes = await fetch(`${apiOrigin()}/auth/me`, {
+    const meRes = await fetch(`${apiProxyTarget()}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (meRes.ok) {

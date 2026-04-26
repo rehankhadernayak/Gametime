@@ -7,12 +7,9 @@ import {
   maxAgeSecondsFromJwtExp,
   sessionCookieBaseOptions,
 } from "@/lib/auth/sessionCookies";
+import { apiProxyTarget } from "@/lib/apiProxyTarget";
 
 const DEFAULT_DEV_PIN = "1234";
-
-function apiOrigin(): string {
-  return (process.env.API_PROXY_TARGET || "http://127.0.0.1:4000").replace(/\/$/, "");
-}
 
 function expectedPin(): string {
   const fromEnv = process.env.PARENT_MODE_PIN?.trim();
@@ -75,7 +72,7 @@ export async function POST(request: Request) {
 
   let user: unknown = null;
   try {
-    const meRes = await fetch(`${apiOrigin()}/auth/me`, {
+    const meRes = await fetch(`${apiProxyTarget()}/auth/me`, {
       headers: { Authorization: `Bearer ${escrow}` },
     });
     if (meRes.ok) {
