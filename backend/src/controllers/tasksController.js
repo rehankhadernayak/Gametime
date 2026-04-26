@@ -38,13 +38,17 @@ export async function createTaskController(req, res, next) {
   }
 }
 
+function tasksListPayload(tasks) {
+  return { serverTime: Date.now(), tasks: Array.isArray(tasks) ? tasks : [] };
+}
+
 export async function listTasksController(req, res, next) {
   try {
     if (req.auth.role === 'parent') {
-      return res.json(await listTasksForParent(req.auth.parentId));
+      return res.json(tasksListPayload(await listTasksForParent(req.auth.parentId)));
     }
 
-    return res.json(await listTasksForChild(req.auth.childId));
+    return res.json(tasksListPayload(await listTasksForChild(req.auth.childId)));
   } catch (error) {
     next(error);
   }

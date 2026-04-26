@@ -19,6 +19,7 @@ import {
   GTSkeleton,
   EmptyState,
 } from "@/components/ui";
+import { normalizeTasksListResponse } from "@/lib/tasksList";
 import styles from "./dashboard.module.css";
 
 const SETTINGS_KEY = "gametime_parent_settings";
@@ -182,13 +183,14 @@ function ParentDashboardInner() {
       if (showSpinner) setLoading(true);
       setError(null);
       try {
-        const [childList, taskList, rewardList] = await Promise.all([
+        const [childList, taskListRaw, rewardList] = await Promise.all([
           apiRequest<ChildRow[]>("/children/list", { token }),
-          apiRequest<TaskRow[]>("/tasks/list", { token }),
+          apiRequest<unknown>("/tasks/list", { token }),
           apiRequest<RewardRow[]>("/rewards/list", { token }),
         ]);
         setChildren(Array.isArray(childList) ? childList : []);
-        setTasks(Array.isArray(taskList) ? taskList : []);
+        const { tasks: taskRows } = normalizeTasksListResponse(taskListRaw);
+        setTasks(taskRows as TaskRow[]);
         setRewards(Array.isArray(rewardList) ? rewardList : []);
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to load dashboard.";

@@ -14,6 +14,7 @@ import { apiRequest } from '../../api/client';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { getErrorMessage } from '../../utils/format';
+import { normalizeTasksListResponse } from '../../utils/tasksList.js';
 
 // ─── Animated Counter (smooth number transitions) ─────────────────────────────
 function AnimatedNumber({ value, style }) {
@@ -488,13 +489,13 @@ export default function ChildHomeScreen() {
         apiRequest('/gaming/overview', { token }),
         apiRequest('/achievements/list', { token }).catch(() => ({ achievements: [] })),
         apiRequest('/achievements/streak', { token }).catch(() => ({ streak: 0 })),
-        apiRequest('/tasks/list', { token }).catch(() => ({ tasks: [] })),
+        apiRequest('/tasks/list', { token }).catch(() => ({ tasks: [], serverTime: null })),
       ]);
       setNotifications(list);
       setGamingOverview(overview);
       setAchievements(achRes?.achievements ?? []);
       setStreak(streakRes?.streak ?? 0);
-      setTasks(Array.isArray(taskRes?.tasks) ? taskRes.tasks : Array.isArray(taskRes) ? taskRes : []);
+      setTasks(normalizeTasksListResponse(taskRes).tasks);
       await refreshMe();
     } catch (e) {
       setError(getErrorMessage(e));

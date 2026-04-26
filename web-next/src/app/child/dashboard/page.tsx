@@ -19,6 +19,7 @@ import { GTSelect } from "@/components/ui/GTSelect";
 import { EmptyState, GTSkeleton } from "@/components/ui";
 import hubStyles from "@/components/child-gamer-hub/ChildGamerHub.module.css";
 import themeModule from "@/styles/theme.module.css";
+import { normalizeTasksListResponse } from "@/lib/tasksList";
 import styles from "./child-dashboard.module.css";
 
 const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
@@ -83,15 +84,36 @@ function ChildQuestGridSkeleton() {
   );
 }
 
+/** Parse ISO timestamps for ordering (not tied to local clock interpretation for Z/offset forms). */
+function utcMillisFromIso(iso: string | null | undefined): number | null {
+  if (iso == null || !String(iso).trim()) return null;
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/** Server-aligned instant: offset = serverTimeAtFetch - performance.now() anchor (see loadDashboard). */
+function serverAlignedNowMs(clockOffsetMs: number | null): number {
+  const offset = clockOffsetMs ?? 0;
+  return Date.now() + offset;
+}
+
+/** Active for UI/evidence: API Active and not past due by server-aligned time. */
+function isQuestActiveForChildUi(t: TaskRow, serverNowMs: number): boolean {
+  if (t.state !== "Active") return false;
+  const dueMs = utcMillisFromIso(t.dueDate);
+  if (dueMs == null) return true;
+  return serverNowMs < dueMs;
+}
+
 /** Prefer closest due date, then earliest created time (API returns createdAt). */
-function pickSmartDefaultTaskId(active: TaskRow[]): string {
+function pickSmartDefaultTaskId(active: TaskRow[], serverNowMs: number): string {
   if (active.length === 0) return "";
   const sorted = [...active].sort((a, b) => {
-    const dueA = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
-    const dueB = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+    const dueA = utcMillisFromIso(a.dueDate) ?? Number.POSITIVE_INFINITY;
+    const dueB = utcMillisFromIso(b.dueDate) ?? Number.POSITIVE_INFINITY;
     if (dueA !== dueB) return dueA - dueB;
-    const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    const createdA = utcMillisFromIso(a.createdAt) ?? 0;
+    const createdB = utcMillisFromIso(b.createdAt) ?? 0;
     return createdA - createdB;
   });
   return sorted[0]?.id ?? "";
@@ -133,6 +155,10 @@ export default function ChildDashboardPage() {
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
+  /** serverTimeFromApi - Date.now() at last successful tasks fetch; null if API omitted serverTime. */
+  const [clockOffsetMs, setClockOffsetMs] = useState<number | null>(null);
+  /** Bumps on an interval so due-based active status updates without waiting for the next poll. */
+  const [, setServerClockTick] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitBusy, setSubmitBusy] = useState(false);
@@ -152,10 +178,14 @@ export default function ChildDashboardPage() {
       try {
         const [meRes, taskRes] = await Promise.all([
           apiRequest<{ user: MeUser }>("/auth/me", { token }),
-          apiRequest<TaskRow[]>("/tasks/list", { token }),
+          apiRequest<unknown>("/tasks/list", { token }),
         ]);
         setMe(meRes.user ?? null);
-        setTasks(Array.isArray(taskRes) ? taskRes : []);
+        const { tasks: list, serverTime } = normalizeTasksListResponse(taskRes);
+        setTasks(list as TaskRow[]);
+        if (serverTime != null) {
+          setClockOffsetMs(serverTime - Date.now());
+        }
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Failed to load dashboard.";
         setError(msg);
@@ -185,6 +215,14 @@ export default function ChildDashboardPage() {
     }, POLL_MS);
     return () => window.clearInterval(id);
   }, [auth.role, token, loadDashboard]);
+
+  useEffect(() => {
+    if (auth.role !== "child" || !token) return;
+    const id = window.setInterval(() => {
+      setServerClockTick((n) => n + 1);
+    }, 15_000);
+    return () => window.clearInterval(id);
+  }, [auth.role, token]);
 
   const dispatchQuestStatusToast = useCallback(() => {
     window.dispatchEvent(
@@ -260,7 +298,11 @@ export default function ChildDashboardPage() {
     setSubmitSuccess(false);
   }, [evidenceModalOpen]);
 
-  const activeTasks = useMemo(() => tasks.filter((t) => t.state === "Active"), [tasks]);
+  const activeTasks = useMemo(() => {
+    void serverClockTick;
+    const now = serverAlignedNowMs(clockOffsetMs);
+    return tasks.filter((t) => isQuestActiveForChildUi(t, now));
+  }, [tasks, clockOffsetMs, serverClockTick]);
   const activeQuestCount = activeTasks.length;
   const fabDisabled = !loading && activeQuestCount === 0;
 
@@ -317,7 +359,9 @@ export default function ChildDashboardPage() {
       toast.error("Select a quest first.");
       return;
     }
-    const questOk = activeTasks.some((t) => t.id === taskId);
+    const questOk = tasks.some(
+      (t) => t.id === taskId && isQuestActiveForChildUi(t, serverAlignedNowMs(clockOffsetMs)),
+    );
     if (!questOk) {
       toast.error("That quest is not active. Refresh and pick an active quest.");
       return;
@@ -404,7 +448,7 @@ export default function ChildDashboardPage() {
   }
 
   function selectQuest(t: TaskRow) {
-    if (t.state !== "Active") return;
+    if (!isQuestActiveForChildUi(t, serverAlignedNowMs(clockOffsetMs))) return;
     if (!reduceMotion) lightTapVibrate();
     setTaskId(t.id);
     focusEvidenceFieldAfterOpenRef.current = true;
@@ -412,7 +456,7 @@ export default function ChildDashboardPage() {
   }
 
   function onQuestKeyDown(e: React.KeyboardEvent, t: TaskRow) {
-    if (t.state !== "Active") return;
+    if (!isQuestActiveForChildUi(t, serverAlignedNowMs(clockOffsetMs))) return;
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       selectQuest(t);
@@ -521,7 +565,9 @@ export default function ChildDashboardPage() {
                       const due = t.dueDate
                         ? `Due ${new Date(t.dueDate).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
                         : null;
-                      const isActive = t.state === "Active";
+                      const isActive = isQuestActiveForChildUi(t, serverAlignedNowMs(clockOffsetMs));
+                      const badgeState =
+                        t.state === "Active" && !isActive ? "Expired" : t.state;
                       const isSelected = taskId === t.id;
                       const badgeTone = isActive ? "accent" : "success";
 
@@ -568,7 +614,7 @@ export default function ChildDashboardPage() {
                           <div className={styles.questCardHeader}>
                             <h3 className={styles.questTitle}>{t.title}</h3>
                             <GTBadge tone={badgeTone} size="sm">
-                              {questBadgeLabel(t.state)}
+                              {questBadgeLabel(badgeState)}
                             </GTBadge>
                           </div>
                           <p className={styles.questMeta}>{rewards}</p>
@@ -588,7 +634,9 @@ export default function ChildDashboardPage() {
                   className={`${styles.evidenceFab} ${hubStyles.shimmerFab}${fabDisabled ? ` ${styles.evidenceFabDisabled}` : ""}`}
                   onClick={() => {
                     const keepExisting = Boolean(taskId && activeTasks.some((t) => t.id === taskId));
-                    const nextId = keepExisting ? taskId : pickSmartDefaultTaskId(activeTasks);
+                    const nextId = keepExisting
+                      ? taskId
+                      : pickSmartDefaultTaskId(activeTasks, serverAlignedNowMs(clockOffsetMs));
                     setTaskId(nextId);
                     if (nextId) focusEvidenceFieldAfterOpenRef.current = true;
                     setEvidenceModalOpen(true);

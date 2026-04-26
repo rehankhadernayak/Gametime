@@ -94,7 +94,7 @@ describe('E2E: Parent → Create Child → Task → Approval → Reward Redempti
       console.error('Tasks list request failed:', allTasks.statusCode, allTasks.body);
     }
     expect(allTasks.statusCode).toBe(200);
-    const pending = allTasks.body.find((t) => t.id === taskId);
+    const pending = allTasks.body.tasks.find((t) => t.id === taskId);
     expect(pending).toBeTruthy();
 
     // 7. Parent approves task
