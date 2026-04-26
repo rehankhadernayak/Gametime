@@ -1,2 +1,4 @@
 demo-output/
 .next/
+# Local secrets for scripts/vercel-deploy-prod.sh (copy from scripts/vercel-prod.env.example)
+vercel-prod.env
