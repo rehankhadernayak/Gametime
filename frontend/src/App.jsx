@@ -17,6 +17,7 @@ import { apiRequest } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ToastStack from './components/ToastStack.jsx';
 import { trackEvent } from './utils/analytics.js';
+import { useAuth } from './context/AuthContext.jsx';
 
 function BackIcon() {
   return (
@@ -38,15 +39,20 @@ function HomeIcon() {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [auth, setAuth] = useState(() => {
-    const raw = localStorage.getItem('gametime_auth');
-    return raw ? JSON.parse(raw) : { token: '', role: '', user: null };
-  });
+  const {
+    token,
+    role,
+    user,
+    cookieRole,
+    sessionChecked,
+    hasSession,
+    showParentChrome,
+    setAuth,
+    clearAuth,
+    refreshCookieRole,
+    lockParentNav
+  } = useAuth();
   const [toasts, setToasts] = useState([]);
-
-  useEffect(() => {
-    localStorage.setItem('gametime_auth', JSON.stringify(auth));
-  }, [auth]);
 
   function handleAuth(nextAuth) {
     setAuth(nextAuth);
@@ -54,14 +60,13 @@ export default function App() {
 
   async function handleLogout() {
     try {
-      if (auth.token) {
-        await apiRequest('/auth/logout', { method: 'POST', token: auth.token });
+      if (token || hasSession) {
+        await apiRequest('/auth/logout', { method: 'POST', token: token || undefined });
       }
     } catch {
       // Always continue local logout even if server logout fails.
     } finally {
-      setAuth({ token: '', role: '', user: null });
-      localStorage.removeItem('gametime_auth');
+      clearAuth();
       trackEvent('logout', { fromPath: location.pathname });
     }
   }
@@ -77,7 +82,7 @@ export default function App() {
   useEffect(() => {
     const onToast = (event) => pushToast(event.detail || { message: 'Update' });
     const onSessionExpired = async () => {
-      if (!auth.token) return;
+      if (!hasSession && !token) return;
       await handleLogout();
       navigate('/login', { replace: true });
       pushToast({ type: 'warning', title: 'Session expired', message: 'Please sign in again.' });
@@ -89,12 +94,19 @@ export default function App() {
       window.removeEventListener('gametime:toast', onToast);
       window.removeEventListener('gametime:session-expired', onSessionExpired);
     };
-  }, [auth.token]);
+  }, [hasSession, token]);
 
   async function switchToChild(childId) {
     try {
-      const response = await apiRequest('/auth/child-login', { method: 'POST', token: auth.token, body: { childId } });
+      const response = await apiRequest('/auth/child-login', {
+        method: 'POST',
+        token: token || undefined,
+        body: { childId }
+      });
       setAuth({ token: response.token, role: 'child', user: response.child });
+      lockParentNav();
+      refreshCookieRole();
+      window.dispatchEvent(new CustomEvent('gametime:cookie-role-refresh'));
       navigate('/child/dashboard');
       trackEvent('switch_to_child_success', { childId });
     } catch (error) {
@@ -107,7 +119,9 @@ export default function App() {
     }
   }
 
-  const showUtility = !auth.token;
+  const navToken = token || (hasSession ? 'cookie' : '');
+  const routeRole = cookieRole || role;
+  const showUtility = sessionChecked && !hasSession;
   return (
     <div>
       <ToastStack toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
@@ -128,17 +142,25 @@ export default function App() {
         </div>
       )}
 
-      {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} isAdmin={Boolean(auth.user?.isAdmin)} />}
+      {hasSession && (
+        <NavBar
+          role={routeRole}
+          token={navToken}
+          onLogout={handleLogout}
+          isAdmin={Boolean(user?.isAdmin)}
+          showParentChrome={showParentChrome}
+        />
+      )}
       <Routes>
-        <Route path="/" element={<HomePage auth={auth} />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/signup" element={<ParentSignUp onAuth={handleAuth} />} />
         <Route path="/login" element={<ParentLogin onAuth={handleAuth} />} />
         <Route path="/child-login" element={<ChildLogin onAuth={handleAuth} />} />
         <Route
           path="/parent/dashboard"
           element={
-            auth.role === 'parent' ? (
-              <ParentDashboard token={auth.token} onSwitchToChild={switchToChild} parentName={auth.user?.name} />
+            routeRole === 'parent' ? (
+              <ParentDashboard token={token} onSwitchToChild={switchToChild} parentName={user?.name} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -147,17 +169,17 @@ export default function App() {
         {/* AI is the primary parent landing - redirect /parent to it */}
         <Route
           path="/parent"
-          element={auth.role === 'parent' ? <Navigate to="/parent/ai" replace /> : <Navigate to="/login" replace />}
+          element={routeRole === 'parent' ? <Navigate to="/parent/ai" replace /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/child/dashboard"
-          element={auth.role === 'child' ? <ChildDashboard token={auth.token} /> : <Navigate to="/login" replace />}
+          element={routeRole === 'child' ? <ChildDashboard token={token} /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/parent/ai"
           element={
-            auth.role === 'parent' ? (
-              <AiWorkspacePage token={auth.token} parentName={auth.user?.name} />
+            routeRole === 'parent' ? (
+              <AiWorkspacePage token={token} parentName={user?.name} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -166,8 +188,8 @@ export default function App() {
         <Route
           path="/parent/settings"
           element={
-            auth.role === 'parent' ? (
-              <SettingsPage token={auth.token} parentName={auth.user?.name} />
+            routeRole === 'parent' ? (
+              <SettingsPage token={token} parentName={user?.name} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -176,8 +198,8 @@ export default function App() {
         <Route
           path="/child/ai"
           element={
-            auth.role === 'child' ? (
-              <ChildAiPage token={auth.token} childName={auth.user?.name} />
+            routeRole === 'child' ? (
+              <ChildAiPage token={token} childName={user?.name} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -186,8 +208,8 @@ export default function App() {
         <Route
           path="/parent/onboarding"
           element={
-            auth.role === 'parent' ? (
-              <ParentOnboarding token={auth.token} />
+            routeRole === 'parent' ? (
+              <ParentOnboarding token={token} />
             ) : (
               <Navigate to="/login" replace />
             )
@@ -196,8 +218,8 @@ export default function App() {
         <Route
           path="/admin"
           element={
-            auth.role === 'parent' && auth.user?.isAdmin
-              ? <AdminPage token={auth.token} />
+            routeRole === 'parent' && user?.isAdmin
+              ? <AdminPage token={token} />
               : <Navigate to="/login" replace />
           }
         />

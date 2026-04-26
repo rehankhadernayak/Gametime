@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { GametimeLink } from 'gametime-web-nav';
 import StringTune, { StringParallax } from '@fiddle-digital/string-tune';
 import styles from '../styles/landing.module.css';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
 function IconAI() {
@@ -41,8 +42,8 @@ function IconArrow() {
 }
 
 /* ── NavBar ─────────────────────────────────────────────────────────────── */
-function NavBar({ auth }) {
-  if (auth.token) return null;
+function NavBar({ hasSession }) {
+  if (hasSession) return null;
   return (
     <nav className={styles.nav} aria-label="Site navigation">
       <div className={styles.navInner}>
@@ -59,7 +60,8 @@ function NavBar({ auth }) {
 }
 
 /* ── HomePage ───────────────────────────────────────────────────────────── */
-export default function HomePage({ auth }) {
+export default function HomePage() {
+  const { hasSession } = useAuth();
   const heroSnapRef = useRef(null);
   const heroTrackRef = useRef(null);
 
@@ -129,7 +131,7 @@ export default function HomePage({ auth }) {
 
   return (
     <div className={styles.root}>
-      <NavBar auth={auth} />
+      <NavBar hasSession={hasSession} />
 
       <main role="main">
         {/* ── StringTune Hero Stage ──────────────────────────────────
@@ -257,7 +259,7 @@ export default function HomePage({ auth }) {
         </section>
 
         {/* ── Closing CTA ─────────────────────────────────────────── */}
-        {!auth.token && (
+        {!hasSession && (
           <section className={styles.closing} aria-labelledby="hp-closing-heading">
             <div className={styles.closingInner}>
               <h2 id="hp-closing-heading" className={styles.closingH2}>
