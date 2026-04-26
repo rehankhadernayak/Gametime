@@ -468,14 +468,16 @@ async function executeTool(parentId, name, input) {
       const rows = await db.all(
         `SELECT t.id, t.title, t.points, t.state,
                 tc.evidence_note, tc.evidence_type, tc.evidence_mime,
-                tc.ai_review_verdict, tc.ai_review_score, tc.ai_review_summary,
-                tc.submitted_at,
+                tc.ai_recommendation AS ai_review_verdict,
+                tc.ai_confidence AS ai_review_score,
+                tc.ai_reason AS ai_review_summary,
+                t.completion_submitted_at AS submitted_at,
                 cp.name AS childName
          FROM tasks t
          JOIN task_completions tc ON tc.task_id = t.id
          JOIN child_profiles cp ON cp.id = t.child_id
          WHERE cp.parent_id = ? AND t.state = 'PendingApproval'
-         ORDER BY tc.submitted_at DESC`,
+         ORDER BY t.completion_submitted_at DESC NULLS LAST, tc.updated_at DESC`,
         [parentId]
       );
       return {

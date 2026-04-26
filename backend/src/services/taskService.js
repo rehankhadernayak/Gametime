@@ -266,7 +266,7 @@ export async function completeTask(childId, payload) {
   }
 
   // ── Phase 1: Main transaction - must succeed atomically ───────────────
-  await db.exec('BEGIN IMMEDIATE');
+  await db.exec('BEGIN');
   try {
     const taskLocked = await db.get('SELECT * FROM tasks WHERE id = ? AND child_id = ?', [taskId, childId]);
     if (!taskLocked) {

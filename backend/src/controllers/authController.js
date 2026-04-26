@@ -481,10 +481,11 @@ export async function resetPassword(req, res, next) {
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
+    const nowIso = new Date().toISOString();
     const record = await db.get(
       `SELECT * FROM password_reset_tokens
-       WHERE token_hash = ? AND used_at IS NULL AND expires_at > datetime('now')`,
-      [tokenHash]
+       WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?`,
+      [tokenHash, nowIso]
     );
 
     if (!record) {
