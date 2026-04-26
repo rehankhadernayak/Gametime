@@ -9,18 +9,43 @@
  * Usage (from repo root or web-next):
  *   node scripts/push-vercel-production.mjs
  *
- * Does: vercel link → vercel env add (production) → vercel deploy --prod
+ * Does: cp -a ../frontend → ./frontend (Vercel CLI only uploads web-next/) → vercel link →
+ *       vercel deploy --prod with -b/-e (avoids slow/hanging `vercel env add` in CI).
  * Optional post-check: VERIFY_AI_PROXY=1 hits /api/ai/chat (expect 401 when unauthenticated).
  */
 
 import { spawnSync } from "node:child_process";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const WEB_NEXT = join(__dirname, "..");
 const ENV_FILE = join(WEB_NEXT, ".env.deployment");
+const BUNDLED_FRONTEND = join(WEB_NEXT, "frontend");
+const MONOREPO_FRONTEND = join(WEB_NEXT, "..", "frontend");
+
+/** Vercel only uploads `web-next/`; mirror sibling `frontend/` so @gametime/frontend resolves on the builder. */
+function syncBundledFrontend() {
+  if (!existsSync(MONOREPO_FRONTEND)) {
+    console.error(`Expected monorepo frontend at ${MONOREPO_FRONTEND}`);
+    process.exit(1);
+  }
+  try {
+    rmSync(BUNDLED_FRONTEND, { recursive: true, force: true });
+  } catch {
+    /* ignore */
+  }
+  const r = spawnSync("cp", ["-a", MONOREPO_FRONTEND, BUNDLED_FRONTEND], {
+    cwd: WEB_NEXT,
+    encoding: "utf8",
+    stdio: ["inherit", "pipe", "pipe"],
+  });
+  if (r.status !== 0) {
+    console.error(r.stderr || r.stdout || "cp -a failed copying ../frontend into web-next/frontend");
+    process.exit(r.status ?? 1);
+  }
+}
 
 function loadDotEnv(path) {
   if (!existsSync(path)) {
@@ -92,44 +117,44 @@ if (!railway) {
   process.exit(1);
 }
 
+syncBundledFrontend();
+
 const vercelEnv = { VERCEL_TOKEN: token };
 const linkArgs = ["link", "--yes", "--project", project];
 if (scope) linkArgs.push("--scope", scope);
 runVercel(linkArgs, vercelEnv);
 
-/** @param {string} name */
-function envAdd(name, value, sensitive) {
-  const args = [
-    "env",
-    "add",
-    name,
-    "production",
-    "--value",
-    value,
-    "--yes",
-    "--force",
-  ];
-  if (sensitive) args.push("--sensitive");
-  else args.push("--no-sensitive");
-  runVercel(args, vercelEnv);
-}
+const r0 = railway.replace(/\/$/, "");
+const api0 = apiPublic.replace(/\/$/, "");
+const sup0 = supabaseUrl.replace(/\/$/, "");
 
-envAdd("API_PROXY_TARGET", railway.replace(/\/$/, ""), false);
-envAdd("NEXT_PUBLIC_API_URL", apiPublic.replace(/\/$/, ""), false);
-envAdd("NEXT_PUBLIC_SUPABASE_URL", supabaseUrl.replace(/\/$/, ""), false);
-envAdd("NEXT_PUBLIC_SUPABASE_ANON_KEY", supabaseAnon, true);
-envAdd("JWT_SECRET", jwtSecret, true);
-
+/** Build- and run-time env for this deployment (dashboard env vars unchanged). */
+const envPairs = [
+  ["API_PROXY_TARGET", r0],
+  ["NEXT_PUBLIC_API_URL", api0],
+  ["NEXT_PUBLIC_SUPABASE_URL", sup0],
+  ["NEXT_PUBLIC_SUPABASE_ANON_KEY", supabaseAnon],
+  ["JWT_SECRET", jwtSecret],
+];
 if (fileEnv.NEXT_PUBLIC_SITE_URL?.trim()) {
-  envAdd("NEXT_PUBLIC_SITE_URL", fileEnv.NEXT_PUBLIC_SITE_URL.trim().replace(/\/$/, ""), false);
+  envPairs.push(["NEXT_PUBLIC_SITE_URL", fileEnv.NEXT_PUBLIC_SITE_URL.trim().replace(/\/$/, "")]);
 }
 
 const deployArgs = ["deploy", "--prod", "--yes", "--format", "json"];
+for (const [k, v] of envPairs) {
+  deployArgs.push("-b", `${k}=${v}`, "-e", `${k}=${v}`);
+}
+if (scope) deployArgs.push("--scope", scope);
+
 const jsonOut = runVercel(deployArgs, vercelEnv);
 let url = null;
 try {
   const parsed = JSON.parse(jsonOut);
-  url = parsed.url || parsed.alias?.[0] || null;
+  url =
+    parsed.url ||
+    parsed.alias?.[0] ||
+    parsed.deployment?.url ||
+    null;
 } catch {
   console.error("Could not parse deploy JSON:", jsonOut.slice(0, 500));
   process.exit(1);

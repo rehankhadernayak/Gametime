@@ -22,6 +22,8 @@ demo_build/
 # Explicit: local secret handover (never commit)
 .env.secrets
 web-next/.env.deployment
+# Copied from ../frontend for Vercel CLI deploys (monorepo sibling not uploaded)
+web-next/frontend/
 !web-next/.env.deployment.example
 
 # Supabase CLI (may contain project ref / local overrides)

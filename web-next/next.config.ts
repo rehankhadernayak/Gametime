@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
+import fs from "node:fs";
 import path from "node:path";
 
-const navShim = path.resolve(__dirname, "../frontend/src/shims/nav.next.jsx");
-const frontendSrc = path.resolve(__dirname, "../frontend/src");
+/** Vercel CLI uploads only `web-next/`; sync `../frontend` into `./frontend` before deploy (see push-vercel-production.mjs). */
+const bundledFrontendSrc = path.join(__dirname, "frontend", "src");
+const monorepoFrontendSrc = path.resolve(__dirname, "../frontend/src");
+const frontendSrc = fs.existsSync(bundledFrontendSrc) ? bundledFrontendSrc : monorepoFrontendSrc;
+const navShim = path.join(frontendSrc, "shims", "nav.next.jsx");
 
 const nextConfig: NextConfig = {
   images: {
