@@ -61,7 +61,7 @@ resource "aws_ecs_service" "app" {
     assign_public_ip = true
   }
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [aws_lb_listener.https]
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn

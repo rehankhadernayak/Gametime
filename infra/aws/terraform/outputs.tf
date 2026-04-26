@@ -3,8 +3,23 @@ output "aws_region" {
 }
 
 output "alb_dns_name" {
-  description = "HTTP URL host (use http:// prefix for API and SPA until you add ACM + HTTPS)."
+  description = "ALB hostname (use http:// until HTTPS + custom domain are live)."
   value       = aws_lb.app.dns_name
+}
+
+output "alb_http_url" {
+  description = "Full HTTP base URL for the load balancer (Vercel env / integration tests until DNS is ready)."
+  value       = "http://${aws_lb.app.dns_name}"
+}
+
+output "api_https_url" {
+  description = "HTTPS origin for the API once DNS + certificate validation have completed."
+  value       = "https://${var.api_certificate_domain}"
+}
+
+output "api_acm_certificate_arn" {
+  description = "ARN of the validated ACM certificate attached to the HTTPS listener."
+  value       = aws_acm_certificate_validation.api.certificate_arn
 }
 
 output "ecr_repository_url" {
