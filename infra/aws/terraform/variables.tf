@@ -59,3 +59,15 @@ variable "ssm_parameter_prefix" {
   description = "Prefix for SSM SecureString paths (no leading slash). ECS reads /prefix/KEY."
   default     = "gametime/prod"
 }
+
+variable "route53_zone_name" {
+  type        = string
+  description = "Public Route 53 hosted zone name (trailing dot optional; AWS accepts either)."
+  default     = "gametime-app.org"
+}
+
+variable "api_certificate_domain" {
+  type        = string
+  description = "FQDN for the API ACM certificate and alias record (e.g. api.gametime-app.org)."
+  default     = "api.gametime-app.org"
+}
