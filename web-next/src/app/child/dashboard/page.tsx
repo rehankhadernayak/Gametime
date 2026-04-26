@@ -19,6 +19,10 @@ import styles from "./child-dashboard.module.css";
 
 const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 const POLL_MS = 30_000;
+/** Minimum busy/success state after Submit (anti double-submit / console spam). */
+const EVIDENCE_SUBMIT_MIN_UI_MS = 5000;
+/** Block another uplink submit until this many ms after the previous attempt started. */
+const EVIDENCE_SUBMIT_COOLDOWN_MS = 5000;
 
 function lightTapVibrate() {
   try {
@@ -119,6 +123,7 @@ export default function ChildDashboardPage() {
   const prevTaskStateByIdRef = useRef<Map<string, string>>(new Map());
   const prevRpRef = useRef<number | null>(null);
   const prevGpRef = useRef<number | null>(null);
+  const lastEvidenceSubmitAtRef = useRef<number>(0);
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -270,6 +275,11 @@ export default function ChildDashboardPage() {
       setSubmitError("Select a quest first.");
       return;
     }
+    const questOk = activeTasks.some((t) => t.id === taskId);
+    if (!questOk) {
+      setSubmitError("That quest is not active. Refresh and pick an active quest.");
+      return;
+    }
     if (!evidenceFile) {
       setSubmitError("Scan or upload evidence to continue.");
       return;
@@ -284,6 +294,21 @@ export default function ChildDashboardPage() {
       setSubmitError("Evidence must be 10MB or less.");
       return;
     }
+
+    const now = Date.now();
+    if (now - lastEvidenceSubmitAtRef.current < EVIDENCE_SUBMIT_COOLDOWN_MS) {
+      setSubmitError("Please wait a few seconds before submitting again.");
+      return;
+    }
+    lastEvidenceSubmitAtRef.current = now;
+    const submitStartedAt = now;
+
+    const waitMinUi = () =>
+      new Promise<void>((resolve) => {
+        const elapsed = Date.now() - submitStartedAt;
+        const left = Math.max(0, EVIDENCE_SUBMIT_MIN_UI_MS - elapsed);
+        window.setTimeout(resolve, left);
+      });
 
     setSubmitBusy(true);
     try {
@@ -306,6 +331,7 @@ export default function ChildDashboardPage() {
       setSubmitMessage(result.message ?? "Submitted for parent review.");
       setSubmitSuccess(true);
       await loadDashboard({ showSpinner: false });
+      await waitMinUi();
       window.setTimeout(() => {
         setEvidenceModalOpen(false);
         setSubmitSuccess(false);
@@ -313,9 +339,10 @@ export default function ChildDashboardPage() {
         setTaskId("");
         setEvidenceFile(null);
         setEvidenceNote("");
-      }, 950);
+      }, 450);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Failed to submit task completion.");
+      await waitMinUi();
     } finally {
       setSubmitBusy(false);
     }

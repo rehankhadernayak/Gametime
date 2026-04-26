@@ -31,6 +31,44 @@ function buildRewardSummary({ rpPoints, gpPoints }) {
   return parts.join(', ');
 }
 
+/**
+ * Pessimistic gate for child evidence uplink: only Active (or Rejected + resubmit path) may proceed.
+ * Pending approval is a hard reject (no silent ignore) to block duplicate / scripted submits.
+ */
+function assertEvidenceSubmissionAllowed({ task, existingCompletion }) {
+  if (task.state === TASK_STATES.APPROVED) {
+    throw new ApiError(409, 'This quest is already approved.');
+  }
+  if (task.state === TASK_STATES.PENDING_APPROVAL) {
+    if (existingCompletion?.status === TASK_STATES.PENDING_APPROVAL) {
+      throw new ApiError(409, 'Evidence for this quest is already being reviewed. Please wait for your parent.');
+    }
+    throw new ApiError(409, 'This quest is already submitted for review.');
+  }
+  if (task.state === TASK_STATES.EXPIRED) {
+    throw new ApiError(400, 'Task is expired');
+  }
+  if (task.state === TASK_STATES.CANCELLED) {
+    throw new ApiError(400, 'This quest is no longer available.');
+  }
+  if (task.state === TASK_STATES.DRAFT) {
+    throw new ApiError(400, 'This quest is not active yet.');
+  }
+
+  if (existingCompletion?.status === TASK_STATES.PENDING_APPROVAL) {
+    throw new ApiError(409, 'Evidence for this quest is already being reviewed. Please wait for your parent.');
+  }
+  if (existingCompletion?.status === TASK_STATES.APPROVED) {
+    throw new ApiError(409, 'This quest is already approved.');
+  }
+
+  if (existingCompletion?.status === TASK_STATES.REJECTED) {
+    if (![TASK_STATES.ACTIVE, TASK_STATES.REJECTED].includes(task.state)) {
+      throw new ApiError(400, 'Task is not open for resubmission');
+    }
+  }
+}
+
 export async function createTask(parentId, payload) {
   const db = await getDb();
   ensureDueDateWithinSevenDays(payload.dueDate);
@@ -204,16 +242,8 @@ export async function completeTask(childId, payload) {
   }
 
   const existingCompletion = await db.get('SELECT * FROM task_completions WHERE task_id = ? AND child_id = ?', [taskId, childId]);
-  if (existingCompletion && existingCompletion.status !== TASK_STATES.REJECTED) {
-    return { ignored: true, message: 'Completion already submitted' };
-  }
-  if (
-    existingCompletion &&
-    existingCompletion.status === TASK_STATES.REJECTED &&
-    ![TASK_STATES.ACTIVE, TASK_STATES.REJECTED].includes(task.state)
-  ) {
-    return { ignored: true, message: 'Task is not open for resubmission' };
-  }
+
+  assertEvidenceSubmissionAllowed({ task, existingCompletion });
 
   const now = new Date().toISOString();
   const isResubmission = Boolean(existingCompletion);
@@ -236,9 +266,16 @@ export async function completeTask(childId, payload) {
   }
 
   // ── Phase 1: Main transaction - must succeed atomically ───────────────
-  await db.exec('BEGIN');
+  await db.exec('BEGIN IMMEDIATE');
   try {
-    if (existingCompletion && existingCompletion.status === TASK_STATES.REJECTED) {
+    const taskLocked = await db.get('SELECT * FROM tasks WHERE id = ? AND child_id = ?', [taskId, childId]);
+    if (!taskLocked) {
+      throw new ApiError(404, 'Task not found');
+    }
+    const completionLocked = await db.get('SELECT * FROM task_completions WHERE task_id = ? AND child_id = ?', [taskId, childId]);
+    assertEvidenceSubmissionAllowed({ task: taskLocked, existingCompletion: completionLocked });
+
+    if (completionLocked && completionLocked.status === TASK_STATES.REJECTED) {
       await db.run(
         `UPDATE task_completions
          SET completed_at = ?,
@@ -268,32 +305,42 @@ export async function completeTask(childId, payload) {
           payload.evidenceType ?? null,
           sanitizeText(payload.evidenceNote ?? null),
           now,
-          existingCompletion.id
+          completionLocked.id
         ]
       );
     } else {
-      await db.run(
-        `INSERT INTO task_completions (id, task_id, child_id, completed_at, status, evidence_data, evidence_mime, evidence_type, evidence_note, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          completionIdToUse,
-          taskId,
-          childId,
-          now,
-          TASK_STATES.PENDING_APPROVAL,
-          evidencePath,
-          payload.evidenceMime ?? null,
-          payload.evidenceType ?? null,
-          sanitizeText(payload.evidenceNote ?? null),
-          now,
-          now
-        ]
-      );
+      try {
+        await db.run(
+          `INSERT INTO task_completions (id, task_id, child_id, completed_at, status, evidence_data, evidence_mime, evidence_type, evidence_note, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            completionIdToUse,
+            taskId,
+            childId,
+            now,
+            TASK_STATES.PENDING_APPROVAL,
+            evidencePath,
+            payload.evidenceMime ?? null,
+            payload.evidenceType ?? null,
+            sanitizeText(payload.evidenceNote ?? null),
+            now,
+            now
+          ]
+        );
+      } catch (insertErr) {
+        if (insertErr && insertErr.code === 'SQLITE_CONSTRAINT') {
+          throw new ApiError(
+            409,
+            'Evidence for this quest is already being reviewed. Please wait for your parent.'
+          );
+        }
+        throw insertErr;
+      }
     }
 
     await db.run(
-      'UPDATE tasks SET state = ?, completion_submitted_at = ?, rejected_at = NULL, updated_at = ? WHERE id = ?',
-      [TASK_STATES.PENDING_APPROVAL, now, now, taskId]
+      'UPDATE tasks SET state = ?, completion_submitted_at = ?, rejected_at = NULL, updated_at = ? WHERE id = ? AND child_id = ?',
+      [TASK_STATES.PENDING_APPROVAL, now, now, taskId, childId]
     );
 
     const parent = await db.get('SELECT parent_id FROM child_profiles WHERE id = ?', childId);
