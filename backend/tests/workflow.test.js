@@ -77,13 +77,20 @@ describe('Parent-child workflow', () => {
       .post('/tasks/complete')
       .set('Authorization', `Bearer ${childToken}`)
       .send({ taskId, ...evidencePayload });
-    expect(duplicateComplete.body.ignored).toBe(true);
+    expect(duplicateComplete.statusCode).toBe(409);
+    expect(String(duplicateComplete.body.error || '')).toMatch(/review|submitted/i);
 
     const approveRes = await request(app)
       .post('/tasks/approve')
       .set('Authorization', `Bearer ${parentToken}`)
       .send({ taskId });
     expect(approveRes.body.ignored).toBe(false);
+
+    const completeAfterApprove = await request(app)
+      .post('/tasks/complete')
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({ taskId, ...evidencePayload });
+    expect(completeAfterApprove.statusCode).toBe(409);
 
     const duplicateApprove = await request(app)
       .post('/tasks/approve')
