@@ -18,6 +18,8 @@ export async function getDb() {
   });
 
   await db.exec('PRAGMA foreign_keys = ON;');
+  // Reduce SQLITE_BUSY failures when evidence submissions hit the DB concurrently.
+  await db.exec('PRAGMA busy_timeout = 8000;');
   return db;
 }
 

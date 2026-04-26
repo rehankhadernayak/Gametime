@@ -21,6 +21,10 @@ import styles from "./child-dashboard.module.css";
 
 const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 const POLL_MS = 30_000;
+/** Minimum busy/success state after Submit (anti double-submit / console spam). */
+const EVIDENCE_SUBMIT_MIN_UI_MS = 5000;
+/** Block another uplink submit until this many ms after the previous attempt started. */
+const EVIDENCE_SUBMIT_COOLDOWN_MS = 5000;
 
 function lightTapVibrate() {
   try {
@@ -46,6 +50,7 @@ type TaskRow = {
   points?: number;
   gpPoints?: number;
   dueDate?: string | null;
+  createdAt?: string | null;
 };
 
 type CompleteResponse = { message?: string };
@@ -76,6 +81,20 @@ function ChildQuestGridSkeleton() {
   );
 }
 
+/** Prefer closest due date, then earliest created time (API returns createdAt). */
+function pickSmartDefaultTaskId(active: TaskRow[]): string {
+  if (active.length === 0) return "";
+  const sorted = [...active].sort((a, b) => {
+    const dueA = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+    const dueB = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+    if (dueA !== dueB) return dueA - dueB;
+    const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return createdA - createdB;
+  });
+  return sorted[0]?.id ?? "";
+}
+
 function questBadgeLabel(state: string): string {
   switch (state) {
     case "Active":
@@ -101,9 +120,12 @@ export default function ChildDashboardPage() {
 
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const evidenceNoteRef = useRef<HTMLInputElement>(null);
+  const focusEvidenceFieldAfterOpenRef = useRef(false);
   const prevTaskStateByIdRef = useRef<Map<string, string>>(new Map());
   const prevRpRef = useRef<number | null>(null);
   const prevGpRef = useRef<number | null>(null);
+  const lastEvidenceSubmitAtRef = useRef<number>(0);
 
   const [me, setMe] = useState<MeUser | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
@@ -195,6 +217,28 @@ export default function ChildDashboardPage() {
   }, [evidenceModalOpen]);
 
   const activeTasks = useMemo(() => tasks.filter((t) => t.state === "Active"), [tasks]);
+  const activeQuestCount = activeTasks.length;
+  const fabDisabled = !loading && activeQuestCount === 0;
+
+  useEffect(() => {
+    if (evidenceModalOpen) return;
+    if (taskId && !activeTasks.some((t) => t.id === taskId)) {
+      setTaskId("");
+    }
+  }, [activeTasks, evidenceModalOpen, taskId]);
+
+  useEffect(() => {
+    if (!evidenceModalOpen || submitBusy || submitSuccess) return;
+    if (!focusEvidenceFieldAfterOpenRef.current) return;
+    focusEvidenceFieldAfterOpenRef.current = false;
+    const id = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        if (!taskId || activeTasks.length < 1) return;
+        evidenceNoteRef.current?.focus();
+      });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [evidenceModalOpen, taskId, activeTasks.length, submitBusy, submitSuccess]);
 
   const evidenceFormVariants = useMemo(
     () => ({
@@ -229,6 +273,11 @@ export default function ChildDashboardPage() {
       toast.error("Select a quest first.");
       return;
     }
+    const questOk = activeTasks.some((t) => t.id === taskId);
+    if (!questOk) {
+      toast.error("That quest is not active. Refresh and pick an active quest.");
+      return;
+    }
     if (!evidenceFile) {
       toast.error("Scan or upload evidence to continue.");
       return;
@@ -243,6 +292,21 @@ export default function ChildDashboardPage() {
       toast.error("Evidence must be 10MB or less.");
       return;
     }
+
+    const now = Date.now();
+    if (now - lastEvidenceSubmitAtRef.current < EVIDENCE_SUBMIT_COOLDOWN_MS) {
+      toast.error("Please wait a few seconds before submitting again.");
+      return;
+    }
+    lastEvidenceSubmitAtRef.current = now;
+    const submitStartedAt = now;
+
+    const waitMinUi = () =>
+      new Promise<void>((resolve) => {
+        const elapsed = Date.now() - submitStartedAt;
+        const left = Math.max(0, EVIDENCE_SUBMIT_MIN_UI_MS - elapsed);
+        window.setTimeout(resolve, left);
+      });
 
     setSubmitBusy(true);
     try {
@@ -267,15 +331,17 @@ export default function ChildDashboardPage() {
       });
       setSubmitSuccess(true);
       await loadDashboard({ showSpinner: false });
+      await waitMinUi();
       window.setTimeout(() => {
         setEvidenceModalOpen(false);
         setSubmitSuccess(false);
         setTaskId("");
         setEvidenceFile(null);
         setEvidenceNote("");
-      }, 950);
+      }, 450);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to submit task completion.");
+      await waitMinUi();
     } finally {
       setSubmitBusy(false);
     }
@@ -297,6 +363,7 @@ export default function ChildDashboardPage() {
     if (t.state !== "Active") return;
     if (!reduceMotion) lightTapVibrate();
     setTaskId(t.id);
+    focusEvidenceFieldAfterOpenRef.current = true;
     setEvidenceModalOpen(true);
   }
 
@@ -461,11 +528,19 @@ export default function ChildDashboardPage() {
                 )}
               </section>
 
-              <div className={styles.evidenceFabWrap} aria-hidden={loading || !tasks.length}>
+              <div className={styles.evidenceFabWrap} aria-hidden={loading}>
                 <button
                   type="button"
-                  className={`${styles.evidenceFab} ${hubStyles.shimmerFab}`}
-                  onClick={() => setEvidenceModalOpen(true)}
+                  className={`${styles.evidenceFab} ${hubStyles.shimmerFab}${fabDisabled ? ` ${styles.evidenceFabDisabled}` : ""}`}
+                  onClick={() => {
+                    const keepExisting = Boolean(taskId && activeTasks.some((t) => t.id === taskId));
+                    const nextId = keepExisting ? taskId : pickSmartDefaultTaskId(activeTasks);
+                    setTaskId(nextId);
+                    if (nextId) focusEvidenceFieldAfterOpenRef.current = true;
+                    setEvidenceModalOpen(true);
+                  }}
+                  disabled={loading || fabDisabled}
+                  title={fabDisabled ? "No active quests" : undefined}
                   aria-haspopup="dialog"
                   aria-expanded={evidenceModalOpen}
                   aria-controls="child-evidence-uplink-dialog"
@@ -579,6 +654,7 @@ export default function ChildDashboardPage() {
 
                     <motion.div variants={evidenceFieldVariants}>
                       <GTInput
+                        ref={evidenceNoteRef}
                         label="Note for parent (optional)"
                         value={evidenceNote}
                         onChange={(e) => setEvidenceNote(e.target.value)}
