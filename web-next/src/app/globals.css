@@ -1,4 +1,10 @@
 :root {
+  /* Global stacking — toasts > modals > nav / overlays > mobile dock / FAB tier */
+  --z-toast: 1000;
+  --z-modal: 900;
+  --z-nav-overlay: 800;
+  --z-sidebar-bottom-bar: 700;
+
   --font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
   --background: #ffffff;
   --foreground: #171717;
@@ -53,6 +59,11 @@ h3 {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Sonner — root portal must sit above modals (900) and mobile chrome (≤800) */
+[data-sonner-toaster] {
+  z-index: var(--z-toast) !important;
 }
 
 /* Native form controls — premium baseline (GTInput/GTSelect mirror these in module CSS) */

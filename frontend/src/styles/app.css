@@ -5,6 +5,12 @@
    Google/Microsoft-tier token system
    ═══════════════════════════════════════════════════════════════════════ */
 :root {
+  /* Global stacking (aligned with web-next globals.css) */
+  --z-toast: 1000;
+  --z-modal: 900;
+  --z-nav-overlay: 800;
+  --z-sidebar-bottom-bar: 700;
+
   /* ── Backgrounds (Dark Glass Theme) ───────────────────────────────── */
   --bg-root:    #05060D;
   --bg-shell:   #0A0F1F;
@@ -334,7 +340,7 @@ a:focus-visible {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 500;
+  z-index: var(--z-toast);
   display: grid;
   gap: 0.6rem;
   width: min(380px, calc(100vw - 3rem));
@@ -399,7 +405,7 @@ a:focus-visible {
   box-shadow: none;
   position: sticky;
   top: 0;
-  z-index: 160;
+  z-index: var(--z-nav-overlay);
   max-width: none;
   margin: 0;
   width: 100%;
@@ -1279,7 +1285,7 @@ a:focus-visible {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 220;
+  z-index: var(--z-sidebar-bottom-bar);
   min-height: var(--mobile-nav-h);
   padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
   justify-content: space-around;
@@ -2262,7 +2268,7 @@ button:disabled {
   color: var(--text-main);
   padding: 0.75rem;
   box-shadow: var(--shadow-lg);
-  z-index: 220;
+  z-index: calc(var(--z-nav-overlay) + 50);
 }
 
 .notification-popover-header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
@@ -2309,7 +2315,7 @@ button:disabled {
     min-height: auto;
     transform: translateX(-110%);
     transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 210;
+    z-index: calc(var(--z-modal) - 45);
     border-right: 1px solid var(--line);
   }
 
@@ -2323,7 +2329,7 @@ button:disabled {
     padding: 0;
     background: rgba(0, 0, 0, 0.25);
     backdrop-filter: blur(2px);
-    z-index: 180;
+    z-index: calc(var(--z-modal) - 50);
     cursor: pointer;
   }
 
@@ -5725,7 +5731,7 @@ body.sidebar-open { overflow: hidden; }
 
   .dashboard-sidebar.open {
     display: flex;
-    z-index: 230;
+    z-index: calc(var(--z-modal) - 40);
   }
 
   .dashboard-shell .hamburger {
@@ -5743,7 +5749,7 @@ body.sidebar-open { overflow: hidden; }
   }
 
   .sidebar-overlay {
-    z-index: 225;
+    z-index: calc(var(--z-modal) - 42);
   }
 }
 
@@ -6241,7 +6247,7 @@ body.sidebar-open { overflow: hidden; }
 .quest-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: var(--z-modal);
   background: color-mix(in srgb, var(--text-main) 35%, transparent);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
