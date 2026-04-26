@@ -152,3 +152,9 @@
 **Rule:** In the browser, resolve the API base at request time: prefer same-origin `/api` when the page host is not loopback but the configured backend URL is loopback; only use an explicit absolute `NEXT_PUBLIC_API_URL` when it matches a real cross-origin deployment.
 
 ---
+
+### 2026-04-26 — Next `setTimeout` return type vs browser
+**What happened:** `next build` failed with `Type 'number' is not assignable to type 'Timeout'` when storing `ReturnType<typeof window.setTimeout>` in a variable typed from Node's DOM lib mismatch.
+**Rule:** For client-only retry timers in Next.js, type the handle as `number | null` (browser timer id) or use `clearTimeout` without storing a `ReturnType<typeof setTimeout>` inferred from Node typings.
+
+---
