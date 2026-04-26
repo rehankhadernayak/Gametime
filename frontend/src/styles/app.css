@@ -4746,6 +4746,14 @@ body.sidebar-open { overflow: hidden; }
   margin-bottom: 0.75rem;
 }
 
+.task-table-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 /* ── Filter bar ──────────────────────────────────────────────────────────── */
 .task-filter-bar {
   flex-wrap: wrap;
@@ -6228,25 +6236,184 @@ body.sidebar-open { overflow: hidden; }
   line-height: 1.45;
 }
 
-/* Quest assign modal */
+/* Glass modal shell (quest assign + confirm dialogs) */
+.gt-glass-modal-overlay,
 .quest-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 200;
   background: color-mix(in srgb, var(--text-main) 35%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
 }
+
+.gt-glass-modal-panel {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border, var(--line));
+  background: var(--glass-bg, var(--bg-panel));
+  backdrop-filter: var(--glass-blur, blur(20px));
+  -webkit-backdrop-filter: var(--glass-blur, blur(20px));
+  box-shadow: var(--shadow-lg);
+}
+
 .quest-modal {
   width: min(520px, 100%);
   max-height: min(92vh, 720px);
   overflow: auto;
-  border-radius: var(--radius-lg);
+}
+
+/* Compact destructive confirmation */
+.gt-confirm-dialog {
+  width: min(400px, 100%);
+  max-width: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+
+.gt-confirm-inner {
+  padding: 1.25rem 1.35rem 1.2rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gt-confirm-title {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 800;
+  font-family: 'Sora', 'Inter', sans-serif;
+  color: var(--bg-danger);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.gt-confirm-desc {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--text-sub);
+}
+
+.gt-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--line);
+}
+
+.gt-confirm-danger-btn {
+  border: 1px solid color-mix(in srgb, var(--bg-danger) 55%, #000 20%);
+  border-radius: var(--radius-sm);
+  background: var(--bg-danger);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  transition: opacity 120ms, transform 120ms;
+}
+
+.gt-confirm-danger-btn:hover:not(:disabled) {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.gt-confirm-danger-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Hold-to-confirm bulk action */
+.hold-confirm-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  padding: 0.45rem 0.75rem 0.45rem 0.45rem;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--line);
-  background: var(--bg-panel);
-  box-shadow: var(--shadow);
+  background: var(--bg-panel-2);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+
+.hold-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hold-confirm-ring {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.hold-confirm-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3;
+}
+
+.hold-confirm-progress {
+  fill: none;
+  stroke: var(--bg-action);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 26px 26px;
+  transition: stroke-dashoffset 50ms linear;
+}
+
+.hold-confirm-label {
+  text-align: left;
+  line-height: 1.25;
+}
+
+.bulk-safe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 0 0.65rem;
+}
+
+.bulk-safe-actions .hold-confirm-btn {
+  flex: 1 1 auto;
+  min-width: 140px;
+}
+
+[data-theme='dark'] .gt-confirm-title {
+  color: #f87171;
+}
+
+/* Toast optional leading icon */
+.toast-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.toast-icon {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.toast-content-wrap {
+  flex: 1;
+  min-width: 0;
 }
 .quest-modal-inner {
   padding: 1.1rem 1.15rem 1.25rem;

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppRouter, useAppSearchParams } from 'gametime-web-nav';
-import { API_BASE, apiRequest } from '../api/client.js';
+import { API_BASE, apiRequest, pushDeletionToast } from '../api/client.js';
 import ChildCreation from './ChildCreation.jsx';
 import ParentTheme from '../components/ParentTheme.jsx';
 import GTCard from '../components/GTCard.jsx';
 import GTInput from '../components/GTInput.jsx';
+import GTConfirmDialog from '../components/GTConfirmDialog.jsx';
 
 /* ── Icons ──────────────────────────────────────────────────────────── */
 function IconChildren() {
@@ -118,6 +119,9 @@ export default function SettingsPage({ token, parentName }) {
   const [pwdBusy, setPwdBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteAccountGate, setShowDeleteAccountGate] = useState(false);
+  const [removeChildTarget, setRemoveChildTarget] = useState(null);
+  const [removeChildBusy, setRemoveChildBusy] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteMsg, setDeleteMsg] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -218,14 +222,23 @@ export default function SettingsPage({ token, parentName }) {
     }
   }
 
-  async function handleDeleteChild(childId, childName) {
-    if (!window.confirm(`Remove ${childName} from your Gametime account? This cannot be undone.`)) return;
+  async function handleDeleteChildConfirmed() {
+    if (!removeChildTarget) return;
+    const { id, name } = removeChildTarget;
+    setRemoveChildBusy(true);
     try {
-      await apiRequest(`/children/${childId}`, { method: 'DELETE', token });
-      notifyChild(`${childName} removed.`);
+      await apiRequest(`/children/${id}`, { method: 'DELETE', token });
+      setRemoveChildTarget(null);
+      pushDeletionToast({
+        title: 'Child removed',
+        message: `${name} was removed from your account.`
+      });
+      notifyChild(`${name} removed.`);
       await loadChildren();
     } catch (err) {
       notifyChild(err.message || 'Could not remove child.', 'error');
+    } finally {
+      setRemoveChildBusy(false);
     }
   }
 
@@ -259,6 +272,10 @@ export default function SettingsPage({ token, parentName }) {
     setDeleteMsg('');
     try {
       await apiRequest('/auth/account', { method: 'DELETE', token, body: { password: deletePassword } });
+      pushDeletionToast({
+        title: 'Account deleted',
+        message: 'Your Gametime account and family data have been removed.'
+      });
       // Hard reload to clear all state
       localStorage.clear();
       window.location.href = '/';
@@ -348,7 +365,7 @@ export default function SettingsPage({ token, parentName }) {
                             type="button"
                             className="settings-delete-btn settings-roster-remove"
                             aria-label={`Remove ${child.name}`}
-                            onClick={() => handleDeleteChild(child.id, child.name)}
+                            onClick={() => setRemoveChildTarget({ id: child.id, name: child.name })}
                           >
                             <IconTrash />
                           </button>
@@ -604,7 +621,7 @@ export default function SettingsPage({ token, parentName }) {
             <button
               type="button"
               className="settings-danger-btn"
-              onClick={() => { setShowDeleteConfirm(true); setDeleteMsg(''); setDeletePassword(''); }}
+              onClick={() => { setShowDeleteAccountGate(true); setDeleteMsg(''); setDeletePassword(''); }}
             >
               Delete My Account
             </button>
@@ -715,6 +732,30 @@ export default function SettingsPage({ token, parentName }) {
 
   return (
     <div className="settings-page">
+      <GTConfirmDialog
+        open={Boolean(removeChildTarget)}
+        title={removeChildTarget ? `Remove ${removeChildTarget.name}?` : 'Remove child?'}
+        description="This action cannot be undone. All associated progress will be lost."
+        cancelLabel="Cancel"
+        confirmLabel="Confirm Delete"
+        confirmBusy={removeChildBusy}
+        onCancel={() => !removeChildBusy && setRemoveChildTarget(null)}
+        onConfirm={handleDeleteChildConfirmed}
+      />
+      <GTConfirmDialog
+        open={showDeleteAccountGate}
+        title="Delete Account?"
+        description="This action cannot be undone. All associated progress will be lost."
+        cancelLabel="Cancel"
+        confirmLabel="Continue"
+        onCancel={() => setShowDeleteAccountGate(false)}
+        onConfirm={() => {
+          setShowDeleteAccountGate(false);
+          setShowDeleteConfirm(true);
+          setDeleteMsg('');
+          setDeletePassword('');
+        }}
+      />
       {/* Header */}
       <header className="settings-header">
         <button type="button" className="settings-back-btn" onClick={() => router.back()} aria-label="Go back">

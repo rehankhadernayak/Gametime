@@ -65,6 +65,7 @@ import StatusChip from '../components/StatusChip.jsx';
 import MetricIcon from '../components/MetricIcon.jsx';
 import TaskTable from '../components/TaskTable.jsx';
 import WeeklyPlanTable from '../components/WeeklyPlanTable.jsx';
+import HoldToConfirmButton from '../components/HoldToConfirmButton.jsx';
 import { trackEvent } from '../utils/analytics.js';
 import amazonCardImage from '../assets/giftcards/amazon.svg';
 import steamCardImage from '../assets/giftcards/steam.svg';
@@ -197,6 +198,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [gamingError, setGamingError] = useState('');
   const [gamingBusy, setGamingBusy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [approveAllBusy, setApproveAllBusy] = useState(false);
   const [stripeAmountSgd, setStripeAmountSgd] = useState(10);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [briefing, setBriefing] = useState(null); // { briefing, stats, actions }
@@ -498,6 +500,37 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     [giftcardSkus, giftcardPurchaseForm.skuId]
   );
 
+  async function approveAllPendingTasks() {
+    const pending = tasks.filter((t) => t.state === 'PendingApproval');
+    if (pending.length === 0) return;
+    if (settings.requireApprovalNotes) {
+      const missing = pending.some((task) => !sanitizeText(decisionNotes[task.id] || ''));
+      if (missing) {
+        notify('Approval notes are required by settings. Add a note for each task first.', 'error');
+        return;
+      }
+    }
+    setApproveAllBusy(true);
+    try {
+      for (const task of pending) {
+        const note = sanitizeText(decisionNotes[task.id] || '');
+        await apiRequest('/tasks/approve', {
+          method: 'POST',
+          token,
+          body: { taskId: task.id, note: note || null }
+        });
+      }
+      notify(`Approved ${pending.length} task(s).`);
+      trackEvent('task_bulk_approve', { count: pending.length });
+      await loadAll();
+    } catch (error) {
+      notify(error.message || 'Bulk approve failed.', 'error');
+      await loadAll();
+    } finally {
+      setApproveAllBusy(false);
+    }
+  }
+
   async function applyTaskDecision(task, decision) {
     const note = sanitizeText(decisionNotes[task.id] || '');
     if (settings.requireApprovalNotes && !note) {
@@ -717,7 +750,17 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           </section>
 
           <section className="panel">
-            <h2>Approvals by Child</h2>
+            <div className="panel-top">
+              <h2>Approvals by Child</h2>
+              {tasks.some((t) => t.state === 'PendingApproval') ? (
+                <HoldToConfirmButton
+                  label="Approve all pending"
+                  disabled={approveAllBusy}
+                  aria-label="Hold to approve all tasks that are waiting for approval"
+                  onComplete={approveAllPendingTasks}
+                />
+              ) : null}
+            </div>
             {Object.keys(pendingByChild).length === 0 ? (
               <p>No tasks are waiting for approval.</p>
             ) : (

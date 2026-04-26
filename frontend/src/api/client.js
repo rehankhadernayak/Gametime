@@ -118,3 +118,18 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
   });
   return data;
 }
+
+/** Global toast for successful destructive removals (type: error + trash icon per product spec). */
+export function pushDeletionToast({ message, title = 'Removed' } = {}) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent('gametime:toast', {
+      detail: {
+        type: 'error',
+        title,
+        message,
+        icon: '🗑️'
+      }
+    })
+  );
+}
