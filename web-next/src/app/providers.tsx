@@ -1,8 +1,9 @@
 'use client';
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import { StringTuneRoot } from '@/components/StringTuneRoot';
 import { usePathname, useRouter } from 'next/navigation';
+import { StringTuneRoot } from '@/components/StringTuneRoot';
+import shell from './app-shell.module.css';
 import { apiRequest } from '@gametime/frontend/api/client.js';
 import NavBar from '@gametime/frontend/components/NavBar.jsx';
 import ToastStack from '@gametime/frontend/components/ToastStack.jsx';
@@ -212,7 +213,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         />
       ) : null}
 
-      {children}
+      <main className={shell.appMain}>{children}</main>
     </GametimeAuthContext.Provider>
   );
 }
