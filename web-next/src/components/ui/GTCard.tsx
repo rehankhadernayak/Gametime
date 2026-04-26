@@ -2,7 +2,6 @@
 
 import { type ReactNode } from "react";
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
-import theme from "@/styles/theme.module.css";
 import styles from "./GTCard.module.css";
 
 export type GTCardProps = {
@@ -34,7 +33,7 @@ export function GTCard({
   const padClass =
     padding === "sm" ? styles.paddingSm : padding === "lg" ? styles.paddingLg : styles.paddingMd;
 
-  const classNames = [styles.card, theme.gtPremiumBorder, glass ? styles.glass : "", padClass, className]
+  const classNames = [styles.card, glass ? styles.glass : "", padClass, className]
     .filter(Boolean)
     .join(" ");
 
