@@ -24,9 +24,18 @@ function readNumber(row: PostgresRow | null | undefined, key: string): number | 
 
 export type ChildGamerHubRealtimeHandlers = {
   /** PendingApproval → Approved | Rejected (Supabase row uses same state strings as API). */
-  onTaskParentDecision: (taskId: string, nextState: typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED) => void;
+  onTaskParentDecision: (
+    taskId: string,
+    nextState: typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED,
+    opts?: { skipConfetti?: boolean },
+  ) => void;
   /** Reward points (RP) increased — fire confetti immediately; caller may suppress duplicate from polling effect. */
   onPointsBalanceIncrease: (nextBalance: number) => void;
+  /**
+   * When true, Approved transitions skip confetti in the handler (toast + refresh still run).
+   * Used after predictive confetti on evidence submit to avoid double bursts within the cooldown window.
+   */
+  shouldSuppressApprovedConfetti?: (taskId: string) => boolean;
 };
 
 /**
@@ -78,9 +87,13 @@ export function useChildGamerHubRealtime(
               prevState === TASK_STATES.PENDING_APPROVAL &&
               (nextState === TASK_STATES.APPROVED || nextState === TASK_STATES.REJECTED)
             ) {
+              const approved = nextState === TASK_STATES.APPROVED;
+              const skipConfetti =
+                approved && handlersRef.current.shouldSuppressApprovedConfetti?.(taskId) === true;
               handlersRef.current.onTaskParentDecision(
                 taskId,
                 nextState as typeof TASK_STATES.APPROVED | typeof TASK_STATES.REJECTED,
+                skipConfetti ? { skipConfetti: true } : undefined,
               );
             }
           },
