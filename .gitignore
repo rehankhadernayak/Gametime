@@ -4,8 +4,10 @@
 *.db
 *.sqlite
 .e2e/
+.e2e-live/
 test-results/
 playwright-report/
+playwright-report-live/
 artifacts/
 .demo-video/
 node_modules/
