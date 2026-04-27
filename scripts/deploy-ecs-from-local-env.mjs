@@ -18,7 +18,10 @@
  *   ECR_REPOSITORY_URI — full repo URI without tag
  *   ECS_CLUSTER, ECS_SERVICE
  *   FRONTEND_ORIGIN — optional; overrides merged env for SSM only
- *   USE_SUDO_DOCKER=1 — prefix docker with sudo
+ *   USE_SUDO_DOCKER=1 — always prefix docker with sudo
+ *   USE_SUDO_DOCKER=0 — never use sudo (default when socket is usable)
+ *   Otherwise: if `docker info` fails with a socket permission error and
+ *   `sudo -n true` succeeds, docker commands run via sudo automatically.
  */
 
 import { readFileSync, existsSync } from "node:fs";
@@ -88,8 +91,31 @@ function loadMergedLocalEnv() {
   return merged;
 }
 
+/** @type {boolean | null} */
+let dockerUseSudoResolved = null;
+
+function shouldUseSudoDocker() {
+  if (dockerUseSudoResolved !== null) return dockerUseSudoResolved;
+  if (process.env.USE_SUDO_DOCKER === "1") return (dockerUseSudoResolved = true);
+  if (process.env.USE_SUDO_DOCKER === "0") return (dockerUseSudoResolved = false);
+
+  const probe = spawnSync("docker", ["info"], { encoding: "utf8" });
+  if (probe.status === 0) return (dockerUseSudoResolved = false);
+
+  const msg = `${probe.stderr || ""}${probe.stdout || ""}`;
+  const socketDenied = /permission denied|dial unix .*docker\.sock/i.test(msg);
+  if (socketDenied) {
+    const sudoOk = spawnSync("sudo", ["-n", "true"], { encoding: "utf8" });
+    if (sudoOk.status === 0) {
+      console.warn("Docker socket not writable for this user; using sudo for docker commands.");
+      return (dockerUseSudoResolved = true);
+    }
+  }
+  return (dockerUseSudoResolved = false);
+}
+
 function dockerCmd(binary, args, opts = {}) {
-  const useSudo = process.env.USE_SUDO_DOCKER === "1";
+  const useSudo = shouldUseSudoDocker();
   const cmd = useSudo ? "sudo" : binary;
   const argv = useSudo ? [binary, ...args] : args;
   return spawnSync(cmd, argv, { encoding: "utf8", ...opts });
@@ -104,7 +130,45 @@ function run(cmd, args, opts = {}) {
   return r;
 }
 
+function dockerInfoProbe(useSudo) {
+  return useSudo
+    ? spawnSync("sudo", ["docker", "info"], { encoding: "utf8" })
+    : spawnSync("docker", ["info"], { encoding: "utf8" });
+}
+
+async function ensureDockerDaemon() {
+  let started = false;
+  for (let i = 0; i < 60; i++) {
+    for (const useSudo of [false, true]) {
+      const r = dockerInfoProbe(useSudo);
+      if (r.status === 0) return;
+    }
+    const err = (() => {
+      const a = dockerInfoProbe(false);
+      return `${a.stderr || ""}${a.stdout || ""}`;
+    })();
+
+    if (
+      !started &&
+      i === 0 &&
+      /Is the docker daemon running|Cannot connect to the Docker daemon|connection refused|no such file or directory.*docker\.sock/i.test(
+        err,
+      )
+    ) {
+      const sudoOk = spawnSync("sudo", ["-n", "true"], { encoding: "utf8" });
+      if (sudoOk.status === 0) {
+        console.warn("Docker daemon not reachable; starting dockerd in the background (sudo)…");
+        spawnSync("sh", ["-c", "sudo dockerd >>/tmp/gametime-dockerd.log 2>&1 &"], { encoding: "utf8" });
+        started = true;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+}
+
 async function main() {
+  await ensureDockerDaemon();
+
   const merged = loadMergedLocalEnv();
 
   /** @type {Record<string, string>} */
