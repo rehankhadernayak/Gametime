@@ -59,7 +59,17 @@ CREATE TABLE IF NOT EXISTS tasks (
   approved_at TEXT,
   rejected_at TEXT,
   reward_minutes INTEGER NOT NULL DEFAULT 0 CHECK (reward_minutes >= 0 AND reward_minutes <= 1440),
-  time_task_status TEXT NOT NULL DEFAULT 'pending' CHECK (time_task_status IN ('pending', 'approved', 'rejected'))
+  time_task_status TEXT NOT NULL DEFAULT 'pending' CHECK (time_task_status IN ('pending', 'approved', 'rejected')),
+  reference_photo_url TEXT
+);
+
+CREATE TABLE IF NOT EXISTS child_streaks (
+  child_id TEXT PRIMARY KEY REFERENCES child_profiles (id) ON DELETE CASCADE,
+  streak_days INTEGER NOT NULL DEFAULT 0 CHECK (streak_days >= 0 AND streak_days <= 10000),
+  last_approval_at TIMESTAMPTZ,
+  bonus_milestones_rewarded TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')::TEXT,
+  updated_at TEXT NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')::TEXT
 );
 
 CREATE TABLE IF NOT EXISTS app_allocations (

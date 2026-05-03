@@ -553,6 +553,16 @@ export function ParentSignUpForm() {
             {isDone && <PasswordStep answers={answers} onCreated={handleAuth} />}
           </div>
 
+          <div className={styles.legalFooterRow}>
+            <Link href="/privacy" className={styles.legalFooterLink}>
+              Privacy Policy
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link href="/terms" className={styles.legalFooterLink}>
+              Terms of Service
+            </Link>
+          </div>
+
           <p className={styles.signupLoginLink}>
             Already have an account? <Link href="/login">Log in</Link>
           </p>

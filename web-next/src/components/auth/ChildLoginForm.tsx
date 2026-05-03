@@ -371,6 +371,15 @@ export function ChildLoginForm() {
                 Use parent login
               </Link>
             </span>
+            <div className={styles.legalFooterRow}>
+              <Link href="/privacy" className={styles.legalFooterLink}>
+                Privacy Policy
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link href="/terms" className={styles.legalFooterLink}>
+                Terms of Service
+              </Link>
+            </div>
           </div>
         </div>
       </div>

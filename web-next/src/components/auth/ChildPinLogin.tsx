@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
 import styles from "@/styles/auth.module.css";
@@ -259,6 +260,16 @@ export function ChildPinLogin({ child, onSuccess, onSwitchUser, token }: ChildPi
             })}
           </div>
         ))}
+      </div>
+
+      <div className={styles.legalFooterRow}>
+        <Link href="/privacy" className={styles.legalFooterLink}>
+          Privacy Policy
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link href="/terms" className={styles.legalFooterLink}>
+          Terms of Service
+        </Link>
       </div>
     </div>
   );
