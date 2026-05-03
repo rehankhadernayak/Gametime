@@ -112,7 +112,7 @@ function isQuestActiveForChildUi(t: TaskRow, serverNowMs: number): boolean {
 }
 
 /** Prefer closest due date, then earliest created time (API returns createdAt). */
-function pickSmartDefaultTaskId(active: TaskRow[], serverNowMs: number): string {
+function pickSmartDefaultTaskId(active: TaskRow[]): string {
   if (active.length === 0) return "";
   const sorted = [...active].sort((a, b) => {
     const dueA = utcMillisFromIso(a.dueDate) ?? Number.POSITIVE_INFINITY;
@@ -692,7 +692,7 @@ export default function ChildDashboardPage() {
                     const keepExisting = Boolean(taskId && activeTasks.some((t) => t.id === taskId));
                     const nextId = keepExisting
                       ? taskId
-                      : pickSmartDefaultTaskId(activeTasks, serverAlignedNowMs(clockOffsetMs));
+                      : pickSmartDefaultTaskId(activeTasks);
                     setTaskId(nextId);
                     if (nextId) focusEvidenceFieldAfterOpenRef.current = true;
                     setEvidenceModalOpen(true);

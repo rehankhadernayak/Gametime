@@ -127,7 +127,7 @@ export function ParentDashboardKinetic({
         <div
           style={{
             background: 'linear-gradient(135deg, var(--neon-red), #ff1a47)',
-            color: var(--stark-white),
+            color: 'var(--stark-white)',
             padding: '0.75rem 1.5rem',
             borderRadius: '20px',
             fontSize: '0.9rem',
@@ -241,7 +241,7 @@ export function ParentDashboardKinetic({
               style={{
                 fontSize: '2rem',
                 fontWeight: 700,
-                color: var(--neon-blue),
+                color: 'var(--neon-blue)',
               }}
             >
               {childProgressData.reduce((sum, c) => sum + (c.RP || 0), 0)}
