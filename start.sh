@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd "$(dirname "$0")"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+. "$ROOT/scripts/load-nvm-if-needed.sh"
+
+cd "$ROOT"
 
 if [ ! -d node_modules ]; then
   npm install
