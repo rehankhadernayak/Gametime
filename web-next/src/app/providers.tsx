@@ -18,7 +18,7 @@ import {
 export type GametimeAuthState = {
   token: string;
   role: string;
-  user: { name?: string; isAdmin?: boolean } | null;
+  user: { id?: string; name?: string; email?: string; isAdmin?: boolean } | null;
 };
 
 type ToastDetail = { type?: string; title?: string; message?: string };
