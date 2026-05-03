@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
-import { GTButton, ParentTheme, EmptyState } from "@/components/ui";
+import { GTButton, GTInput, ParentTheme, EmptyState } from "@/components/ui";
 import { createSupabaseBrowserAuthedClient, getSupabaseChildTableName } from "@/lib/supabase/client";
 import styles from "./inbox.module.css";
 
@@ -22,6 +22,7 @@ type RewardRequestRow = {
   childId: string;
   rewardTitle: string;
   costMinutes: number;
+  rewardType: string;
 };
 
 function readRewardMinutes(row: Record<string, unknown>): number {
@@ -78,6 +79,7 @@ export default function ParentApprovalInboxPage() {
   const [rewardRequests, setRewardRequests] = useState<RewardRequestRow[]>([]);
   const [childNameById, setChildNameById] = useState<Record<string, string>>({});
   const [familyId, setFamilyId] = useState<string | null>(null);
+  const [giftCardCodeByRequestId, setGiftCardCodeByRequestId] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createSupabaseBrowserAuthedClient(auth.token));
 
@@ -165,7 +167,7 @@ export default function ParentApprovalInboxPage() {
     if (nextFamilyId != null) {
       const rewardRes = await supabase
         .from("reward_requests")
-        .select("id, child_id, reward_title, cost_minutes, status")
+        .select("id, child_id, reward_title, cost_minutes, status, reward_type")
         .eq("family_id", nextFamilyId)
         .eq("status", "pending");
 
@@ -193,6 +195,7 @@ export default function ParentApprovalInboxPage() {
       childId: String(r.child_id ?? ""),
       rewardTitle: String(r.reward_title ?? ""),
       costMinutes: readCostMinutes(r),
+      rewardType: String(r.reward_type ?? "Standard"),
     }));
     setRewardRequests(mappedRewards);
     setLoading(false);
@@ -280,16 +283,28 @@ export default function ParentApprovalInboxPage() {
   }, []);
 
   const onApproveReward = useCallback(
-    async (req: RewardRequestRow) => {
+    async (req: RewardRequestRow, giftCardCodeField?: string) => {
       const supabase = supabaseRef.current;
       if (!supabase) {
         toast.error("Supabase is not configured.");
         return;
       }
 
+      const isGiftCard = req.rewardType === "Gift Card";
+      const pasted = (giftCardCodeField ?? "").trim();
+      if (isGiftCard && !pasted) {
+        toast.error("Enter the gift card code before approving.");
+        return;
+      }
+
+      const updatePayload: { status: string; gift_card_code?: string | null } = { status: "approved" };
+      if (isGiftCard) {
+        updatePayload.gift_card_code = pasted;
+      }
+
       const { data: updated, error } = await supabase
         .from("reward_requests")
-        .update({ status: "approved" })
+        .update(updatePayload)
         .eq("id", req.id)
         .eq("status", "pending")
         .select("id")
@@ -301,6 +316,11 @@ export default function ParentApprovalInboxPage() {
         return;
       }
 
+      setGiftCardCodeByRequestId((prev) => {
+        const next = { ...prev };
+        delete next[req.id];
+        return next;
+      });
       dismissReward(req.id);
       toast.success("Reward request approved.");
     },
@@ -319,7 +339,7 @@ export default function ParentApprovalInboxPage() {
 
       const { data: rr, error: fetchErr } = await supabase
         .from("reward_requests")
-        .select("id, status, child_id, cost_minutes")
+        .select("id, status, child_id, cost_minutes, reward_type")
         .eq("id", req.id)
         .maybeSingle();
 
@@ -618,7 +638,29 @@ export default function ParentApprovalInboxPage() {
                               <span>
                                 Paid {rr.costMinutes} min from Time Bank
                               </span>
+                              {rr.rewardType === "Gift Card" ? (
+                                <>
+                                  <span aria-hidden>·</span>
+                                  <span className={styles.typeBadge}>Gift Card</span>
+                                </>
+                              ) : null}
                             </p>
+                            {rr.rewardType === "Gift Card" ? (
+                              <GTInput
+                                id={`gift-code-${rr.id}`}
+                                label="Gift card code"
+                                hint="Paste the code your child will redeem — they’ll see it after you approve."
+                                autoComplete="off"
+                                value={giftCardCodeByRequestId[rr.id] ?? ""}
+                                onChange={(e) =>
+                                  setGiftCardCodeByRequestId((prev) => ({
+                                    ...prev,
+                                    [rr.id]: e.target.value,
+                                  }))
+                                }
+                                placeholder="XXXX-XXXX-XXXX"
+                              />
+                            ) : null}
                             <div className={styles.actions}>
                               <GTButton
                                 type="button"
@@ -626,7 +668,9 @@ export default function ParentApprovalInboxPage() {
                                 size="lg"
                                 fullWidth
                                 className={styles.approveButton}
-                                onClick={() => void onApproveReward(rr)}
+                                onClick={() =>
+                                  void onApproveReward(rr, giftCardCodeByRequestId[rr.id])
+                                }
                               >
                                 Approve
                               </GTButton>

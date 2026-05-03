@@ -211,3 +211,15 @@
   white-space: nowrap;
 }
 
+.typeBadge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--gt-ink-soft);
+  background: var(--gt-bg-soft);
+  border: 0.5px solid var(--gt-line);
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+}
+
