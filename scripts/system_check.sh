@@ -4,11 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-# Load nvm for shells where node/npm are not on PATH.
-if ! command -v npm >/dev/null 2>&1 && [ -s "$HOME/.nvm/nvm.sh" ]; then
-  # shellcheck disable=SC1090
-  . "$HOME/.nvm/nvm.sh"
-fi
+# shellcheck disable=SC1091
+. "$ROOT_DIR/scripts/load-nvm-if-needed.sh"
 
 PASS_COUNT=0
 FAIL_COUNT=0
