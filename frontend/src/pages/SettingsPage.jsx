@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppRouter, useAppSearchParams } from 'gametime-web-nav';
-import { API_BASE, apiRequest, pushDeletionToast } from '../api/client.js';
+import { API_BASE, apiRequest } from '../api/client.js';
 import ChildCreation from './ChildCreation.jsx';
 import ParentTheme from '../components/ParentTheme.jsx';
 import GTCard from '../components/GTCard.jsx';
@@ -46,6 +46,14 @@ function getAgeYears(dateOfBirth) {
 
 function randomFourDigitPin() {
   return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function notifyDeletionSuccess(title, message) {
+  window.dispatchEvent(
+    new CustomEvent('gametime:toast', {
+      detail: { type: 'success', title, message }
+    })
+  );
 }
 
 /* ── Toggle sub-component ───────────────────────────────────────────── */
@@ -229,10 +237,7 @@ export default function SettingsPage({ token, parentName }) {
     try {
       await apiRequest(`/children/${id}`, { method: 'DELETE', token });
       setRemoveChildTarget(null);
-      pushDeletionToast({
-        title: 'Child removed',
-        message: `${name} was removed from your account.`
-      });
+      notifyDeletionSuccess('Child removed', `${name} was removed from your account.`);
       notifyChild(`${name} removed.`);
       await loadChildren();
     } catch (err) {
@@ -272,10 +277,10 @@ export default function SettingsPage({ token, parentName }) {
     setDeleteMsg('');
     try {
       await apiRequest('/auth/account', { method: 'DELETE', token, body: { password: deletePassword } });
-      pushDeletionToast({
-        title: 'Account deleted',
-        message: 'Your Gametime account and family data have been removed.'
-      });
+      notifyDeletionSuccess(
+        'Account deleted',
+        'Your Gametime account and family data have been removed.'
+      );
       // Hard reload to clear all state
       localStorage.clear();
       window.location.href = '/';
