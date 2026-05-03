@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GametimeLink, useAppRouter } from 'gametime-web-nav';
+import { GametimeLink, useAppRouter } from '../shims/nav.vite.jsx';
 import { apiRequest } from '../api/client.js';
 import './auth.css';
 
