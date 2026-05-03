@@ -212,3 +212,9 @@
 **Rule:** In React style objects, always write `'var(--css-variable)'` as a string value.
 
 ---
+
+### 2026-05-03 — Vite must alias `gametime-web-nav` like Next.js
+**What happened:** Standalone `frontend` `vite build` failed with “failed to resolve import gametime-web-nav” because only `web-next/next.config.ts` mapped that package to `nav.next.jsx`.
+**Rule:** Add `resolve.alias` in `frontend/vite.config.js` pointing `gametime-web-nav` → `src/shims/nav.vite.jsx`, mirroring the Next webpack/turbopack aliases.
+
+---
