@@ -61,6 +61,7 @@ export default function ParentLoginScreen({ navigation }) {
           ) : null}
 
           <InputField
+            testID="parent-login-email"
             label="Email"
             value={email}
             onChangeText={setEmail}
@@ -69,6 +70,7 @@ export default function ParentLoginScreen({ navigation }) {
             autoComplete="email"
           />
           <InputField
+            testID="parent-login-password"
             label="Password"
             value={password}
             onChangeText={setPassword}
@@ -77,6 +79,7 @@ export default function ParentLoginScreen({ navigation }) {
           />
 
           <TouchableOpacity
+            testID="parent-login-submit"
             style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
             onPress={submit}
             disabled={loading}

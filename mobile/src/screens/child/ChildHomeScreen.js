@@ -517,7 +517,7 @@ export default function ChildHomeScreen() {
   const unread = notifications.filter((n) => !n.read);
 
   return (
-    <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <Screen testID="child-home-screen" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       {/* Top bar with smooth entry */}
       <MotiView
         style={styles.topBar}

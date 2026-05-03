@@ -230,6 +230,7 @@ export default function ParentHomeScreen() {
 
   return (
     <ScrollView
+      testID="parent-dashboard-screen"
       style={styles.screen}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}

@@ -3,12 +3,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 
-export default function Screen({ children, scroll = true, ...rest }) {
+export default function Screen({ children, scroll = true, testID, ...rest }) {
   const insets = useSafeAreaInsets();
 
   if (scroll) {
     return (
       <ScrollView
+        testID={testID}
         {...rest}
         contentContainerStyle={[
           styles.base,
@@ -25,6 +26,7 @@ export default function Screen({ children, scroll = true, ...rest }) {
 
   return (
     <View
+      testID={testID}
       {...rest}
       style={[
         styles.base,

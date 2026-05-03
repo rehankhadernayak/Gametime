@@ -34,6 +34,7 @@ function PinKey({ label, onPress, variant }) {
   if (variant === 'empty') return <View style={pinStyles.key} />;
   return (
     <TouchableOpacity
+      testID={variant === 'delete' ? 'child-pin-delete' : `child-pin-key-${label}`}
       style={[pinStyles.key, variant === 'delete' && pinStyles.keyDelete]}
       onPress={onPress}
       activeOpacity={0.65}
@@ -153,6 +154,7 @@ export default function ChildLoginScreen() {
           {mode === 'pin' ? (
             <>
               <InputField
+                testID="child-login-parent-email"
                 label="Parent Email"
                 value={parentEmail}
                 onChangeText={setParentEmail}
@@ -161,6 +163,7 @@ export default function ChildLoginScreen() {
                 placeholder="mum@example.com"
               />
               <InputField
+                testID="child-login-child-name"
                 label="Your Name"
                 value={childName}
                 onChangeText={setChildName}
@@ -198,6 +201,7 @@ export default function ChildLoginScreen() {
           )}
 
           <TouchableOpacity
+            testID="child-login-submit"
             style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
             onPress={submit}
             disabled={loading}
