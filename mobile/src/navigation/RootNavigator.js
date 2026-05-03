@@ -24,7 +24,7 @@ import ParentGamingScreen from '../screens/parent/ParentGamingScreen';
 import ParentAiScreen from '../screens/parent/ParentAiScreen';
 import AccountScreen from '../screens/AccountScreen';
 
-import ChildHomeScreen from '../screens/child/ChildHomeScreen';
+import ChildDashboard from '../screens/child/ChildDashboard';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
 import ChildRewardsScreen from '../screens/child/ChildRewardsScreen';
 import ChildGamingScreen from '../screens/child/ChildGamingScreen';
@@ -157,7 +157,7 @@ function ParentStack() {
 // ─── Child bottom tabs ────────────────────────────────────────────────────────
 
 const CHILD_TABS = [
-  { name: 'ChildHome',    component: ChildHomeScreen,    label: 'Home',    icon: 'home' },
+  { name: 'ChildHome',    component: ChildDashboard,    label: 'Home',    icon: 'home' },
   { name: 'ChildTasks',   component: ChildTasksScreen,   label: 'Tasks',   icon: 'checkbox' },
   { name: 'ChildGaming',  component: ChildGamingScreen,  label: 'Gaming',  icon: 'game-controller' },
   { name: 'ChildRewards', component: ChildRewardsScreen, label: 'Rewards', icon: 'gift' },
