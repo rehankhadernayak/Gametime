@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -31,6 +32,7 @@ const MOCK_INITIAL_BANK_MINUTES = 120;
 
 export default function ChildDashboard() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   const [balanceMinutes, setBalanceMinutes] = useState(MOCK_INITIAL_BANK_MINUTES);
   const [draftByAppId, setDraftByAppId] = useState<Record<string, number>>(() =>
@@ -85,6 +87,19 @@ export default function ChildDashboard() {
           Drag a slider to reserve minutes for an app. Your balance updates live before you unlock.
         </Text>
       </View>
+
+      <Pressable
+        onPress={() => navigation.navigate('ChildRewardsStore' as never)}
+        style={({ pressed }) => [styles.storeCard, pressed && styles.storeCardPressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Open reward store"
+      >
+        <View style={styles.storeCardText}>
+          <Text style={styles.storeCardTitle}>Reward store</Text>
+          <Text style={styles.storeCardSub}>Trade Time Bank minutes for perks — parent approves.</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={22} color={TEXT_DARK} style={{ opacity: 0.45 }} />
+      </Pressable>
 
       <View style={styles.sectionHead}>
         <Ionicons name="lock-closed-outline" size={20} color={TEXT_DARK} />
@@ -185,6 +200,44 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: TEXT_DARK,
     opacity: 0.65,
+  },
+  storeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(26,26,30,0.06)',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 16,
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  storeCardPressed: {
+    opacity: 0.92,
+  },
+  storeCardText: {
+    flex: 1,
+    gap: 4,
+  },
+  storeCardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: TEXT_DARK,
+  },
+  storeCardSub: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: TEXT_DARK,
+    opacity: 0.55,
   },
   sectionHead: {
     flexDirection: 'row',
