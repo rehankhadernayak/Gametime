@@ -1,24 +1,41 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import { GTButton, ParentTheme, EmptyState } from "@/components/ui";
+import { createSupabaseBrowserAuthedClient, getSupabaseChildTableName } from "@/lib/supabase/client";
 import styles from "./inbox.module.css";
 
 type PendingTask = {
   id: string;
   title: string;
   rewardMinutes: number;
+  childId: string;
 };
 
-const MOCK_PENDING: PendingTask[] = [
-  { id: "mock-1", title: "Do Math Homework", rewardMinutes: 30 },
-  { id: "mock-2", title: "Clean Room", rewardMinutes: 45 },
-  { id: "mock-3", title: "Practice Piano (20 min)", rewardMinutes: 20 },
-];
+function readRewardMinutes(row: Record<string, unknown>): number {
+  const v = row.reward_minutes;
+  if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.round(v));
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  return 0;
+}
+
+function readTimeBankMinutes(row: Record<string, unknown> | null | undefined): number {
+  const v = row?.time_bank_minutes;
+  if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.round(v));
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  return 0;
+}
 
 function EvidencePlaceholder() {
   return (
@@ -40,30 +57,245 @@ function EvidencePlaceholder() {
 export default function ParentApprovalInboxPage() {
   const router = useRouter();
   const { auth, authHydrated } = useGametimeAuth();
-  const [tasks, setTasks] = useState<PendingTask[]>(MOCK_PENDING);
+  const [tasks, setTasks] = useState<PendingTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabaseRef = useRef(createSupabaseBrowserAuthedClient(auth.token));
+
+  useEffect(() => {
+    supabaseRef.current = createSupabaseBrowserAuthedClient(auth.token);
+  }, [auth.token]);
 
   useEffect(() => {
     if (!authHydrated) return;
     if (auth.role !== "parent") router.replace("/login");
   }, [auth.role, authHydrated, router]);
 
+  const parentId = auth.user?.id?.trim() ?? "";
+  const childTable = getSupabaseChildTableName();
+  const [childIds, setChildIds] = useState<string[]>([]);
+
+  const loadPending = useCallback(async () => {
+    const supabase = supabaseRef.current;
+    if (!supabase || !parentId) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    const { data: children, error: childErr } = await supabase.from(childTable).select("id").eq("parent_id", parentId);
+    if (childErr) {
+      toast.error("Could not load inbox", { description: childErr.message });
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+    const ids = (children ?? []).map((r) => String((r as { id: unknown }).id));
+    setChildIds(ids);
+
+    if (ids.length === 0) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("id, title, reward_minutes, child_id")
+      .eq("time_task_status", "pending")
+      .in("child_id", ids);
+
+    if (error) {
+      toast.error("Could not load inbox", { description: error.message });
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
+    const rows = (data ?? []) as Record<string, unknown>[];
+    const mapped: PendingTask[] = rows.map((r) => ({
+      id: String(r.id),
+      title: String(r.title ?? ""),
+      rewardMinutes: readRewardMinutes(r),
+      childId: String(r.child_id ?? ""),
+    }));
+    setTasks(mapped);
+    setLoading(false);
+  }, [parentId, childTable]);
+
+  useEffect(() => {
+    if (!authHydrated || auth.role !== "parent" || !parentId) return;
+    void loadPending();
+  }, [authHydrated, auth.role, parentId, loadPending]);
+
+  /** Realtime: task inserts/updates for this parent's children refresh the list. */
+  useEffect(() => {
+    if (!authHydrated || auth.role !== "parent" || !parentId) return;
+    const supabase = supabaseRef.current;
+    if (!supabase) return;
+
+    const ids = childIds.filter(Boolean);
+    if (ids.length === 0) return;
+
+    const filter = `child_id=in.(${ids.join(",")})`;
+    let channel: RealtimeChannel | null = null;
+    let cancelled = false;
+    let retryTimer: number | null = null;
+
+    const setup = () => {
+      if (cancelled) return;
+      if (retryTimer != null) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      channel = supabase.channel(`parent-inbox:${parentId}:${[...ids].sort().join(",")}`);
+      channel
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "tasks", filter },
+          () => {
+            void loadPending();
+          },
+        )
+        .subscribe((status) => {
+          if (cancelled) return;
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            void supabase.removeChannel(channel!);
+            channel = null;
+            retryTimer = window.setTimeout(() => {
+              retryTimer = null;
+              if (!cancelled) setup();
+            }, 2000);
+          }
+        });
+    };
+
+    setup();
+
+    return () => {
+      cancelled = true;
+      if (retryTimer != null) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [authHydrated, auth.role, parentId, childIds, loadPending]);
+
   const dismissTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
   const onApprove = useCallback(
-    (id: string) => {
-      dismissTask(id);
+    async (task: PendingTask) => {
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        toast.error("Supabase is not configured.");
+        return;
+      }
+
+      const now = new Date().toISOString();
+
+      const { data: taskRow, error: taskFetchErr } = await supabase
+        .from("tasks")
+        .select("id, child_id, reward_minutes, time_task_status")
+        .eq("id", task.id)
+        .maybeSingle();
+
+      if (taskFetchErr || !taskRow) {
+        toast.error("Could not load task", { description: taskFetchErr?.message });
+        return;
+      }
+
+      const tr = taskRow as Record<string, unknown>;
+      if (tr.time_task_status !== "pending") {
+        toast.message("Task is no longer pending.");
+        dismissTask(task.id);
+        return;
+      }
+
+      const childId = String(tr.child_id ?? "");
+      const rewardMinutes = readRewardMinutes(tr);
+
+      const { data: updatedTask, error: taskUpErr } = await supabase
+        .from("tasks")
+        .update({ time_task_status: "approved", updated_at: now })
+        .eq("id", task.id)
+        .eq("time_task_status", "pending")
+        .select("id")
+        .maybeSingle();
+
+      if (taskUpErr || !updatedTask) {
+        toast.error("Could not approve task", { description: taskUpErr?.message ?? "No rows updated." });
+        void loadPending();
+        return;
+      }
+
+      const { data: childRow, error: childFetchErr } = await supabase
+        .from(childTable)
+        .select("time_bank_minutes")
+        .eq("id", childId)
+        .maybeSingle();
+
+      if (childFetchErr || !childRow) {
+        await supabase
+          .from("tasks")
+          .update({ time_task_status: "pending", updated_at: new Date().toISOString() })
+          .eq("id", task.id)
+          .eq("time_task_status", "approved");
+        toast.error("Could not read child profile", { description: childFetchErr?.message });
+        return;
+      }
+
+      const bank = readTimeBankMinutes(childRow as Record<string, unknown>);
+      const nextBank = Math.min(100000, bank + rewardMinutes);
+
+      const { error: childUpErr } = await supabase
+        .from(childTable)
+        .update({ time_bank_minutes: nextBank, updated_at: now })
+        .eq("id", childId)
+        .eq("time_bank_minutes", bank);
+
+      if (childUpErr) {
+        await supabase
+          .from("tasks")
+          .update({ time_task_status: "pending", updated_at: new Date().toISOString() })
+          .eq("id", task.id)
+          .eq("time_task_status", "approved");
+        toast.error("Could not credit Time Bank", { description: childUpErr.message });
+        void loadPending();
+        return;
+      }
+
+      dismissTask(task.id);
       toast.success("Time added to child bank!", { duration: 3200 });
     },
-    [dismissTask],
+    [childTable, dismissTask, loadPending],
   );
 
   const onReject = useCallback(
-    (id: string) => {
-      dismissTask(id);
+    async (task: PendingTask) => {
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        dismissTask(task.id);
+        return;
+      }
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("tasks")
+        .update({ time_task_status: "rejected", updated_at: now })
+        .eq("id", task.id)
+        .eq("time_task_status", "pending");
+
+      if (error) {
+        toast.error("Could not update task", { description: error.message });
+        void loadPending();
+        return;
+      }
+      dismissTask(task.id);
     },
-    [dismissTask],
+    [dismissTask, loadPending],
   );
 
   const list = useMemo(() => tasks, [tasks]);
@@ -82,7 +314,7 @@ export default function ParentApprovalInboxPage() {
           </p>
         </header>
 
-        {list.length === 0 ? (
+        {!loading && list.length === 0 ? (
           <div className={styles.emptyWrap}>
             <EmptyState
               title="Inbox clear"
@@ -115,7 +347,7 @@ export default function ParentApprovalInboxPage() {
                           size="lg"
                           fullWidth
                           className={styles.approveButton}
-                          onClick={() => onApprove(task.id)}
+                          onClick={() => void onApprove(task)}
                         >
                           Approve
                         </GTButton>
@@ -124,7 +356,7 @@ export default function ParentApprovalInboxPage() {
                           variant="danger"
                           size="lg"
                           fullWidth
-                          onClick={() => onReject(task.id)}
+                          onClick={() => void onReject(task)}
                         >
                           Reject / needs work
                         </GTButton>
