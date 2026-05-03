@@ -32,6 +32,13 @@ $$;
 
 COMMENT ON FUNCTION public.gt_auth_parent_family_id() IS 'family_id for the current JWT if it matches parent_profiles.id.';
 
+-- Must exist before SQL functions reference cp.user_id (Postgres validates columns at CREATE FUNCTION).
+-- Links child_profiles rows to Supabase Auth users for child-scoped RLS.
+ALTER TABLE public.child_profiles
+  ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE REFERENCES auth.users (id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_child_profiles_user_id ON public.child_profiles (user_id);
+
 CREATE OR REPLACE FUNCTION public.gt_auth_child_id()
 RETURNS text
 LANGUAGE sql
@@ -82,12 +89,6 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION public.gt_request_family_invite_code() IS 'Client must send the invite code via x-family-invite-code header for unlinked invite lookup.';
-
--- Link auth.users to child_profiles (set from application after Supabase sign-up / linking).
-ALTER TABLE public.child_profiles
-  ADD COLUMN IF NOT EXISTS user_id UUID UNIQUE REFERENCES auth.users (id) ON DELETE SET NULL;
-
-CREATE INDEX IF NOT EXISTS idx_child_profiles_user_id ON public.child_profiles (user_id);
 
 -- Keep family_id consistent with parent_id on child_profiles (parents drive household membership).
 CREATE OR REPLACE FUNCTION public.gt_sync_child_family_from_parent()
