@@ -127,3 +127,8 @@
   border-radius: 50%;
   animation: parent-dash-spin 0.75s linear infinite;
 }
+
+/* Reviewer demo — hint under Family Overview quick actions */
+.reviewer-demo-hint {
+  margin-top: 0.5rem;
+}

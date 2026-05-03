@@ -15,6 +15,7 @@ import {
   rejectTaskController,
   rejectTaskRequestController,
   reviewSubmissionController,
+  seedReviewDemoController,
   serveEvidenceController,
   updateTaskScheduleController
 } from '../controllers/tasksController.js';
@@ -28,6 +29,7 @@ const completeLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 10 })
 const actionLimiter  = createRateLimiter({ windowMs: 60_000, maxRequests: 30 });
 
 router.post('/create',  requireParentAuth, actionLimiter, createTaskController);
+router.post('/seed-review-demo', requireParentAuth, actionLimiter, seedReviewDemoController);
 router.get('/list',     requireAnyAuth,    listTasksController);
 router.get('/pending',  requireParentAuth, getPendingTasksController);
 router.post('/complete', requireChildAuth, completeLimiter, completeTaskController);

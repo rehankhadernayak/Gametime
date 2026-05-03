@@ -26,6 +26,7 @@ import {
   updateTaskSchedule
 } from '../services/taskService.js';
 import { isLegacyDataUrl, readEvidenceFile } from '../services/evidenceStorageService.js';
+import { seedReviewDemoData } from '../services/demoSeedService.js';
 import { getDb } from '../db/connection.js';
 import { ApiError } from '../utils/errors.js';
 
@@ -34,6 +35,19 @@ export async function createTaskController(req, res, next) {
     const payload = taskCreateSchema.parse(req.body);
     const task = await createTask(req.auth.parentId, payload);
     return res.status(201).json(task);
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /tasks/seed-review-demo — Apple review: populate inbox (parent on allowlist only). */
+export async function seedReviewDemoController(req, res, next) {
+  try {
+    const db = await getDb();
+    const parent = await db.get('SELECT email FROM parent_accounts WHERE id = ?', [req.auth.parentId]);
+    if (!parent?.email) throw new ApiError(403, 'Forbidden');
+    const result = await seedReviewDemoData(req.auth.parentId, parent.email);
+    return res.status(200).json(result);
   } catch (error) {
     next(error);
   }

@@ -18,7 +18,7 @@ import * as FileSystem from 'expo-file-system';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
-import { apiRequest } from '../../api/client';
+import { apiRequest, DEMO_PNG_BASE64, isDemoMode } from '../../api/client';
 import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { getErrorMessage } from '../../utils/format';
@@ -979,6 +979,10 @@ export default function EvidenceSubmitScreen() {
 
   const handleCapture = useCallback(async (source) => {
     try {
+      if (source !== 'library' && captureType === 'photo' && (await isDemoMode())) {
+        setCapturedAsset({ uri: 'demo://evidence', mimeType: 'image/png', demo: true });
+        return;
+      }
       if (source === 'library') {
         const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!perm.granted) {
@@ -1016,6 +1020,12 @@ export default function EvidenceSubmitScreen() {
   }
 
   async function handleUsePhoto() {
+    if (capturedAsset?.demo) {
+      setCoachingResult(null);
+      setCoachingLoading(false);
+      setStep(3);
+      return;
+    }
     // Transition to AI coaching step
     setCoachingResult(null);
     setCoachingLoading(true);
@@ -1083,10 +1093,17 @@ export default function EvidenceSubmitScreen() {
     }, 100);
 
     try {
-      const mime = capturedAsset.mimeType || (captureType === 'video' ? 'video/mp4' : 'image/jpeg');
-      const base64 = await FileSystem.readAsStringAsync(capturedAsset.uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      let mime;
+      let base64;
+      if (capturedAsset?.demo) {
+        mime = 'image/png';
+        base64 = DEMO_PNG_BASE64;
+      } else {
+        mime = capturedAsset.mimeType || (captureType === 'video' ? 'video/mp4' : 'image/jpeg');
+        base64 = await FileSystem.readAsStringAsync(capturedAsset.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
       const evidenceType = mime.startsWith('video/') ? 'Video' : 'Photo';
 
       await apiRequest('/tasks/complete', {

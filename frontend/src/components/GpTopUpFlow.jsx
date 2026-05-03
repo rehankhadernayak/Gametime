@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { apiRequest } from '../api/client.js';
+import { apiRequest, isDemoMode } from '../api/client.js';
 import './GpTopUpFlow.css';
 
 /* ── Quick-amount presets in cents ──────────────────────────────────── */
@@ -326,6 +326,11 @@ export default function GpTopUpFlow({ children, onClose, onSuccess, token }) {
     setSubmitting(true);
     setError(null);
     try {
+      if (isDemoMode()) {
+        onSuccess(resolvedAmount);
+        setSubmitting(false);
+        return;
+      }
       // Backend accepts amountSgd (integer SGD cents converted to dollars)
       const amountSgd = Math.round(resolvedAmount / 100);
       const res = await apiRequest('/stripe/checkout', {

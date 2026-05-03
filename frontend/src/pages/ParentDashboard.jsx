@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutGroup, motion } from 'framer-motion';
 import { useAppRouter } from 'gametime-web-nav';
-import { API_BASE, apiRequest } from '../api/client.js';
+import { API_BASE, apiRequest, isDemoMode, isReviewerDemoParentEmail, setDemoMode } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
 import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
 import FundGiftCardVaultButton from '../components/FundGiftCardVaultButton.jsx';
@@ -210,6 +210,8 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [approveAllBusy, setApproveAllBusy] = useState(false);
   const [stripeAmountSgd, setStripeAmountSgd] = useState(10);
   const [stripeLoading, setStripeLoading] = useState(false);
+  const [parentEmail, setParentEmail] = useState('');
+  const [seedDemoBusy, setSeedDemoBusy] = useState(false);
   const [briefing, setBriefing] = useState(null); // { briefing, stats, actions }
   const [briefingActionResults, setBriefingActionResults] = useState({});
   const [settings, setSettings] = useState({ defaultTaskPoints: 10, requireApprovalNotes: false });
@@ -259,6 +261,10 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   }
 
   async function handleStripeTopUp() {
+    if (isDemoMode()) {
+      notify('Demo mode: Stripe checkout skipped. GP unchanged in this session.', 'success');
+      return;
+    }
     setStripeLoading(true);
     try {
       const { url } = await apiRequest('/stripe/checkout', {
@@ -366,7 +372,21 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
 
   useEffect(() => {
     fetchDashboardData({ silent: false });
-  }, []);
+  }, [token]);
+
+  // Load parent email for reviewer-only UI (Seed demo data)
+  useEffect(() => {
+    let cancelled = false;
+    apiRequest('/auth/me', { token })
+      .then((data) => {
+        if (cancelled || data?.role !== 'parent' || !data?.user?.email) return;
+        setParentEmail(String(data.user.email));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   // Proactive AI briefing - load on mount, fail silently after 3s
   useEffect(() => {
@@ -638,6 +658,27 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     }
   }
 
+  async function handleSeedReviewDemo() {
+    setSeedDemoBusy(true);
+    try {
+      const result = await apiRequest('/tasks/seed-review-demo', { method: 'POST', token });
+      const pinHint =
+        result?.demoChildCreated && result?.demoChildPin
+          ? ` Demo Child PIN: ${result.demoChildPin} (parent email + child name + PIN on child login).`
+          : '';
+      notify(
+        `Demo data ready: two active tasks, one submission awaiting approval, and a Roblox gift card request.${pinHint}`
+      );
+      await loadAll();
+    } catch (err) {
+      notify(err.message || 'Could not seed demo data.', 'error');
+    } finally {
+      setSeedDemoBusy(false);
+    }
+  }
+
+  const showReviewerDemoTools = isReviewerDemoParentEmail(parentEmail);
+
   const sections = [
     {
       id: 'home',
@@ -697,8 +738,26 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 <button type="button" className="secondary-button" onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('family')}>Add Child</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('gaming')}>Set Game Rules</button>
+                {showReviewerDemoTools ? (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => void handleSeedReviewDemo()}
+                    disabled={seedDemoBusy || loading}
+                  >
+                    {seedDemoBusy ? 'Seeding…' : 'Seed demo data'}
+                  </button>
+                ) : null}
               </div>
             </div>
+            {showReviewerDemoTools ? (
+              <p className="helper-text reviewer-demo-hint">
+                Reviewer tools: use “Seed demo data” once after login to fill task requests and approvals.
+                {isDemoMode()
+                  ? ' Demo mode is on (Stripe and optional photo proof are bypassed where supported).'
+                  : ' Add ?demo=1 to the URL or sign in with the configured reviewer email to enable demo mode.'}
+              </p>
+            ) : null}
             {message && (
               <p className={msgKind === 'error' ? 'error' : 'notice'} role={msgKind === 'error' ? 'alert' : undefined}>
                 {message}

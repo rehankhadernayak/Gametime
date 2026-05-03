@@ -99,5 +99,13 @@ export const env = {
   athenaWebhookSecret: process.env.ATHENA_WEBHOOK_SECRET || '',
   athenaTimeoutMs: Number(process.env.ATHENA_TIMEOUT_MS || 15000),
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
-  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || ''
 };
+
+/** Comma-separated parent emails allowed to call POST /tasks/seed-review-demo (Apple review demo inbox). */
+export function getAppleReviewDemoParentEmails() {
+  return (process.env.APPLE_REVIEW_DEMO_PARENT_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}

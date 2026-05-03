@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { API_BASE } from '../api/client.js';
+import { API_BASE, DEMO_EVIDENCE_PNG_DATA_URL, isDemoMode } from '../api/client.js';
 
 export default function TaskCompletionForm({ tasks, onComplete, token }) {
   const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024; // 10 MB - matches backend validation limit
@@ -95,6 +95,7 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
     <div className="panel">
       <h2>Task Completion</h2>
       <p id="completion-help" className="helper-text">
+        {isDemoMode() && 'Reviewer demo mode: you can submit without choosing a file — a sample photo is sent automatically (photo quests only). '}
         {requiredEvidenceType === 'Video' && 'This quest requires a video clip (max 10MB). '}
         {requiredEvidenceType === 'Photo' && 'This quest requires a photo (max 10MB). '}
         {!requiredEvidenceType && 'Upload photo or video evidence (max 10MB) and submit for parent approval.'}
@@ -112,7 +113,9 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
             return;
           }
 
-          if (!evidenceFile) {
+          const useDemoEvidence = isDemoMode() && !evidenceFile;
+
+          if (!evidenceFile && !useDemoEvidence) {
             setFormError('Evidence file is required.');
             return;
           }
@@ -121,28 +124,35 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
           let evidenceMime = null;
           let evidenceType = null;
 
-          const isImage = evidenceFile.type.startsWith('image/');
-          const isVideo = evidenceFile.type.startsWith('video/');
-          const isAllowed = isImage || isVideo;
-          if (!isAllowed) {
-            setFormError('Only image or video evidence is allowed.');
-            return;
-          }
-          if (requiredEvidenceType === 'Photo' && !isImage) {
-            setFormError('This quest requires a photo. Please choose an image file.');
-            return;
-          }
-          if (requiredEvidenceType === 'Video' && !isVideo) {
-            setFormError('This quest requires a video. Please choose a video file.');
-            return;
-          }
-          if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
-            setFormError('Evidence must be 10MB or less.');
-            return;
-          }
+          if (useDemoEvidence) {
+            if (requiredEvidenceType === 'Video') {
+              setFormError('This quest requires a video. Turn off demo mode or upload a short clip.');
+              return;
+            }
+            evidenceData = DEMO_EVIDENCE_PNG_DATA_URL;
+            evidenceMime = 'image/png';
+            evidenceType = 'Photo';
+          } else {
+            const isImage = evidenceFile.type.startsWith('image/');
+            const isVideo = evidenceFile.type.startsWith('video/');
+            const isAllowed = isImage || isVideo;
+            if (!isAllowed) {
+              setFormError('Only image or video evidence is allowed.');
+              return;
+            }
+            if (requiredEvidenceType === 'Photo' && !isImage) {
+              setFormError('This quest requires a photo. Please choose an image file.');
+              return;
+            }
+            if (requiredEvidenceType === 'Video' && !isVideo) {
+              setFormError('This quest requires a video. Please choose a video file.');
+              return;
+            }
+            if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
+              setFormError('Evidence must be 10MB or less.');
+              return;
+            }
 
-          setSubmitting(true);
-          try {
             evidenceData = await toDataUrl(evidenceFile);
             evidenceMime = evidenceFile.type || null;
             evidenceType = evidenceMime?.startsWith('video/') ? 'Video' : 'Photo';
@@ -150,7 +160,10 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
               setFormError(`This quest requires ${requiredEvidenceType.toLowerCase()} proof.`);
               return;
             }
+          }
 
+          setSubmitting(true);
+          try {
             const result = await onComplete({
               taskId,
               evidenceData,
@@ -193,7 +206,7 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
           <input
             type="file"
             accept={fileAccept}
-            required
+            required={!isDemoMode()}
             onChange={(e) => {
               setEvidenceFile(e.target.files?.[0] || null);
             }}
