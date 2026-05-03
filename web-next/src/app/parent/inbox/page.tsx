@@ -278,6 +278,13 @@ export default function ParentApprovalInboxPage() {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const restoreTask = useCallback((task: PendingTask) => {
+    setTasks((prev) => {
+      if (prev.some((t) => t.id === task.id)) return prev;
+      return [task, ...prev];
+    });
+  }, []);
+
   const dismissReward = useCallback((id: string) => {
     setRewardRequests((prev) => prev.filter((r) => r.id !== id));
   }, []);
@@ -419,6 +426,8 @@ export default function ParentApprovalInboxPage() {
         return;
       }
 
+      dismissTask(task.id);
+
       const now = new Date().toISOString();
 
       const { data: taskRow, error: taskFetchErr } = await supabase
@@ -428,6 +437,7 @@ export default function ParentApprovalInboxPage() {
         .maybeSingle();
 
       if (taskFetchErr || !taskRow) {
+        restoreTask(task);
         toast.error("Could not load task", { description: taskFetchErr?.message });
         return;
       }
@@ -435,7 +445,6 @@ export default function ParentApprovalInboxPage() {
       const tr = taskRow as Record<string, unknown>;
       if (tr.time_task_status !== "pending") {
         toast.message("Task is no longer pending.");
-        dismissTask(task.id);
         return;
       }
 
@@ -451,8 +460,8 @@ export default function ParentApprovalInboxPage() {
         .maybeSingle();
 
       if (taskUpErr || !updatedTask) {
+        restoreTask(task);
         toast.error("Could not approve task", { description: taskUpErr?.message ?? "No rows updated." });
-        void loadPending();
         return;
       }
 
@@ -468,6 +477,7 @@ export default function ParentApprovalInboxPage() {
           .update({ time_task_status: "pending", updated_at: new Date().toISOString() })
           .eq("id", task.id)
           .eq("time_task_status", "approved");
+        restoreTask(task);
         toast.error("Could not read child profile", { description: childFetchErr?.message });
         return;
       }
@@ -487,15 +497,14 @@ export default function ParentApprovalInboxPage() {
           .update({ time_task_status: "pending", updated_at: new Date().toISOString() })
           .eq("id", task.id)
           .eq("time_task_status", "approved");
+        restoreTask(task);
         toast.error("Could not credit Time Bank", { description: childUpErr.message });
-        void loadPending();
         return;
       }
 
-      dismissTask(task.id);
       toast.success("Time added to child bank!", { duration: 3200 });
     },
-    [childTable, dismissTask, loadPending],
+    [childTable, dismissTask, restoreTask],
   );
 
   const onReject = useCallback(

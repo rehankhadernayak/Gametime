@@ -117,6 +117,21 @@ export function AuthProvider({ children }) {
     setForceChildFamilyLink(false);
   }
 
+  async function clearLocalGametimeData() {
+    await unregisterPushToken(token);
+    try {
+      if (token) await apiRequest('/auth/logout', { method: 'POST', token });
+    } catch {
+      /* ignore */
+    }
+    await clearToken();
+    await setChildFamilyLinkedFlag(false);
+    setToken('');
+    setRole('guest');
+    setUser(null);
+    setForceChildFamilyLink(false);
+  }
+
   async function logout() {
     // Deregister push token first so the device stops receiving notifications
     // for this session. Pass token explicitly — it gets cleared below.
@@ -173,7 +188,8 @@ export function AuthProvider({ children }) {
     loginWithToken,
     refreshMe,
     markChildFamilyLinked,
-    logout
+    logout,
+    clearLocalGametimeData
   }), [booting, token, role, user, forceChildFamilyLink]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

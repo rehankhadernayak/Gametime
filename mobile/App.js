@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import GametimeRootErrorBoundary from './src/components/GametimeRootErrorBoundary';
 import { navigationRef } from './src/navigation/navigationRef';
 import { colors } from './src/theme/colors';
 
@@ -37,7 +38,9 @@ export default function App() {
       <AuthProvider>
         <NavigationContainer theme={appTheme} ref={navigationRef}>
           <StatusBar style="dark" />
-          <RootNavigator />
+          <GametimeRootErrorBoundary>
+            <RootNavigator />
+          </GametimeRootErrorBoundary>
         </NavigationContainer>
       </AuthProvider>
     </SafeAreaProvider>
