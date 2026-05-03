@@ -839,7 +839,7 @@ function SuccessState({ taskPoints, onBack }) {
           <Text style={successStyles.rpPendingText}>+{taskPoints} RP pending</Text>
         </View>
         <TouchableOpacity style={successStyles.backBtn} onPress={onBack}>
-          <Text style={successStyles.backBtnText}>Back to Tasks</Text>
+          <Text style={successStyles.backBtnText}>Back to Home</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -1120,7 +1120,15 @@ export default function EvidenceSubmitScreen() {
   if (success) {
     return (
       <View style={{ flex: 1, paddingTop: insets.top }}>
-        <SuccessState taskPoints={taskPoints} onBack={() => navigation.goBack()} />
+        <SuccessState
+          taskPoints={taskPoints}
+          onBack={() =>
+            navigation.navigate('ChildTabs', {
+              screen: 'ChildHome',
+              params: { celebrateSubmission: true, celebrateTaskId: taskId },
+            })
+          }
+        />
       </View>
     );
   }

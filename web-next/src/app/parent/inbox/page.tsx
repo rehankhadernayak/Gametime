@@ -8,6 +8,11 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useGametimeAuth } from "@/hooks/useGametimeAuth";
 import { GTButton, GTInput, ParentTheme, EmptyState } from "@/components/ui";
 import { createSupabaseBrowserAuthedClient, getSupabaseChildTableName } from "@/lib/supabase/client";
+import {
+  bonusMinutesForMilestones,
+  computeStreakAfterApproval,
+  parseMilestoneRewarded,
+} from "./streakBonus";
 import styles from "./inbox.module.css";
 
 type PendingTask = {
@@ -15,6 +20,11 @@ type PendingTask = {
   title: string;
   rewardMinutes: number;
   childId: string;
+  requiredEvidenceType: string | null;
+  referencePhotoUrl: string | null;
+  evidenceDataUrl: string | null;
+  evidenceMime: string | null;
+  evidenceNote: string | null;
 };
 
 type RewardRequestRow = {
@@ -55,6 +65,18 @@ function readCostMinutes(row: Record<string, unknown>): number {
   return 0;
 }
 
+function evidenceSrc(evidenceData: string | null, mime: string | null): string | null {
+  if (evidenceData == null || !String(evidenceData).trim()) return null;
+  const s = String(evidenceData);
+  if (s.startsWith("data:")) return s;
+  const m = (mime && String(mime).trim()) || "image/jpeg";
+  return `data:${m};base64,${s}`;
+}
+
+function isPhotoEvidenceTask(task: PendingTask): boolean {
+  return task.requiredEvidenceType === "Photo";
+}
+
 function EvidencePlaceholder() {
   return (
     <div className={styles.evidence} aria-hidden>
@@ -67,8 +89,128 @@ function EvidencePlaceholder() {
           strokeLinejoin="round"
         />
       </svg>
-      <span className={styles.evidenceCaption}>Photo evidence</span>
+      <span className={styles.evidenceCaption}>Tap to view proof</span>
     </div>
+  );
+}
+
+function TaskEvidencePreview({ task, onOpen }: { task: PendingTask; onOpen: () => void }) {
+  const src = evidenceSrc(task.evidenceDataUrl, task.evidenceMime);
+  const isVideo = (task.evidenceMime ?? "").startsWith("video/");
+
+  return (
+    <button type="button" className={styles.evidenceButton} onClick={onOpen}>
+      {src && !isVideo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" className={styles.evidenceThumb} />
+      ) : src && isVideo ? (
+        <video src={src} className={styles.evidenceThumb} muted playsInline />
+      ) : (
+        <EvidencePlaceholder />
+      )}
+    </button>
+  );
+}
+
+function ProofViewerModal({
+  task,
+  childLabel,
+  onClose,
+}: {
+  task: PendingTask;
+  childLabel: string;
+  onClose: () => void;
+}) {
+  const proofSrc = evidenceSrc(task.evidenceDataUrl, task.evidenceMime);
+  const refSrc =
+    task.referencePhotoUrl && String(task.referencePhotoUrl).trim() !== ""
+      ? String(task.referencePhotoUrl)
+      : null;
+  const showCompare = isPhotoEvidenceTask(task) && refSrc != null && proofSrc != null;
+  const proofIsVideo = (task.evidenceMime ?? "").startsWith("video/");
+
+  return (
+    <motion.div
+      className={styles.proofBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="proof-viewer-title"
+      tabIndex={-1}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onClose();
+      }}
+    >
+      <motion.div
+        className={styles.proofPanel}
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 420, damping: 36 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.proofPanelHeader}>
+          <div>
+            <p className={styles.proofEyebrow}>{childLabel}</p>
+            <h2 id="proof-viewer-title" className={styles.proofTitle}>
+              {task.title}
+            </h2>
+          </div>
+          <button type="button" className={styles.proofClose} onClick={onClose} aria-label="Close proof viewer">
+            ✕
+          </button>
+        </div>
+
+        {showCompare ? (
+          <div className={styles.proofCompare}>
+            <figure className={styles.proofFigure}>
+              <figcaption className={styles.proofCaption}>Reference</figcaption>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={refSrc!} alt="Reference from task template" className={styles.proofMedia} />
+            </figure>
+            <figure className={styles.proofFigure}>
+              <figcaption className={styles.proofCaption}>Submitted proof</figcaption>
+              {proofIsVideo ? (
+                <video src={proofSrc!} className={styles.proofMedia} controls playsInline />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={proofSrc!} alt="Child submission" className={styles.proofMedia} />
+              )}
+            </figure>
+          </div>
+        ) : (
+          <div className={styles.proofSingle}>
+            {proofSrc ? (
+              proofIsVideo ? (
+                <video src={proofSrc} className={styles.proofMediaLarge} controls playsInline />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={proofSrc} alt="Submitted proof" className={styles.proofMediaLarge} />
+              )
+            ) : (
+              <p className={styles.proofEmpty}>No photo or video was attached to this submission.</p>
+            )}
+            {refSrc && !showCompare ? (
+              <figure className={styles.proofFigure}>
+                <figcaption className={styles.proofCaption}>Reference</figcaption>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={refSrc} alt="Reference" className={styles.proofMedia} />
+              </figure>
+            ) : null}
+          </div>
+        )}
+
+        {task.evidenceNote ? (
+          <div className={styles.proofNoteBlock}>
+            <p className={styles.proofNoteLabel}>Child note</p>
+            <p className={styles.proofNoteText}>{task.evidenceNote}</p>
+          </div>
+        ) : null}
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -81,6 +223,7 @@ export default function ParentApprovalInboxPage() {
   const [familyId, setFamilyId] = useState<string | null>(null);
   const [giftCardCodeByRequestId, setGiftCardCodeByRequestId] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [proofViewerTask, setProofViewerTask] = useState<PendingTask | null>(null);
   const supabaseRef = useRef(createSupabaseBrowserAuthedClient(auth.token));
 
   useEffect(() => {
@@ -151,9 +294,11 @@ export default function ParentApprovalInboxPage() {
 
     const taskRes = await supabase
       .from("tasks")
-      .select("id, title, reward_minutes, child_id")
-      .eq("time_task_status", "pending")
-      .in("child_id", ids);
+      .select(
+        "id, title, reward_minutes, child_id, state, time_task_status, required_evidence_type, reference_photo_url",
+      )
+      .in("child_id", ids)
+      .or("state.eq.PendingApproval,time_task_status.eq.pending");
 
     if (taskRes.error) {
       toast.error("Could not load inbox", { description: taskRes.error.message });
@@ -161,6 +306,34 @@ export default function ParentApprovalInboxPage() {
       setRewardRequests([]);
       setLoading(false);
       return;
+    }
+
+    const taskRows = (taskRes.data ?? []) as Record<string, unknown>[];
+    const taskIds = taskRows.map((r) => String(r.id)).filter(Boolean);
+
+    const completionByTaskId = new Map<
+      string,
+      { evidence_data: string | null; evidence_mime: string | null; evidence_note: string | null }
+    >();
+
+    if (taskIds.length > 0) {
+      const compRes = await supabase
+        .from("task_completions")
+        .select("task_id, evidence_data, evidence_mime, evidence_note, status")
+        .in("task_id", taskIds)
+        .eq("status", "PendingApproval");
+
+      if (!compRes.error && compRes.data) {
+        for (const row of compRes.data as Record<string, unknown>[]) {
+          const tid = String(row.task_id ?? "");
+          if (!tid) continue;
+          completionByTaskId.set(tid, {
+            evidence_data: row.evidence_data != null ? String(row.evidence_data) : null,
+            evidence_mime: row.evidence_mime != null ? String(row.evidence_mime) : null,
+            evidence_note: row.evidence_note != null ? String(row.evidence_note) : null,
+          });
+        }
+      }
     }
 
     let rewardRows: Record<string, unknown>[] = [];
@@ -181,13 +354,23 @@ export default function ParentApprovalInboxPage() {
       rewardRows = (rewardRes.data ?? []) as Record<string, unknown>[];
     }
 
-    const taskRows = (taskRes.data ?? []) as Record<string, unknown>[];
-    const mappedTasks: PendingTask[] = taskRows.map((r) => ({
-      id: String(r.id),
-      title: String(r.title ?? ""),
-      rewardMinutes: readRewardMinutes(r),
-      childId: String(r.child_id ?? ""),
-    }));
+    const mappedTasks: PendingTask[] = taskRows.map((r) => {
+      const id = String(r.id);
+      const comp = completionByTaskId.get(id);
+      const reqEv = r.required_evidence_type != null ? String(r.required_evidence_type) : null;
+      const refUrl = r.reference_photo_url != null ? String(r.reference_photo_url) : null;
+      return {
+        id,
+        title: String(r.title ?? ""),
+        rewardMinutes: readRewardMinutes(r),
+        childId: String(r.child_id ?? ""),
+        requiredEvidenceType: reqEv && reqEv.trim() !== "" ? reqEv : null,
+        referencePhotoUrl: refUrl && refUrl.trim() !== "" ? refUrl : null,
+        evidenceDataUrl: comp?.evidence_data ?? null,
+        evidenceMime: comp?.evidence_mime ?? null,
+        evidenceNote: comp?.evidence_note ?? null,
+      };
+    });
     setTasks(mappedTasks);
 
     const mappedRewards: RewardRequestRow[] = rewardRows.map((r) => ({
@@ -276,6 +459,7 @@ export default function ParentApprovalInboxPage() {
 
   const dismissTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
+    setProofViewerTask((cur) => (cur?.id === id ? null : cur));
   }, []);
 
   const restoreTask = useCallback((task: PendingTask) => {
@@ -428,11 +612,12 @@ export default function ParentApprovalInboxPage() {
 
       dismissTask(task.id);
 
-      const now = new Date().toISOString();
+      const nowIso = new Date().toISOString();
+      const nowMs = Date.now();
 
       const { data: taskRow, error: taskFetchErr } = await supabase
         .from("tasks")
-        .select("id, child_id, reward_minutes, time_task_status")
+        .select("id, child_id, reward_minutes, time_task_status, state")
         .eq("id", task.id)
         .maybeSingle();
 
@@ -443,7 +628,11 @@ export default function ParentApprovalInboxPage() {
       }
 
       const tr = taskRow as Record<string, unknown>;
-      if (tr.time_task_status !== "pending") {
+      const tts = tr.time_task_status != null ? String(tr.time_task_status) : "";
+      const st = tr.state != null ? String(tr.state) : "";
+      const pendingTime = tts === "pending";
+      const pendingLegacy = st === "PendingApproval";
+      if (!pendingTime && !pendingLegacy) {
         toast.message("Task is no longer pending.");
         return;
       }
@@ -451,17 +640,72 @@ export default function ParentApprovalInboxPage() {
       const childId = String(tr.child_id ?? "");
       const rewardMinutes = readRewardMinutes(tr);
 
-      const { data: updatedTask, error: taskUpErr } = await supabase
-        .from("tasks")
-        .update({ time_task_status: "approved", updated_at: now })
-        .eq("id", task.id)
-        .eq("time_task_status", "pending")
-        .select("id")
+      const { data: streakRow, error: streakErr } = await supabase
+        .from("child_streaks")
+        .select("streak_days, last_approval_at, bonus_milestones_rewarded")
+        .eq("child_id", childId)
         .maybeSingle();
 
-      if (taskUpErr || !updatedTask) {
+      const streakReadable = !streakErr && streakRow != null;
+      const sr = streakReadable ? (streakRow as Record<string, unknown>) : null;
+      const priorStreak = sr && typeof sr.streak_days === "number" ? sr.streak_days : 0;
+      let lastMs: number | null = null;
+      if (sr?.last_approval_at != null && String(sr.last_approval_at).trim() !== "") {
+        const p = Date.parse(String(sr.last_approval_at));
+        lastMs = Number.isFinite(p) ? p : null;
+      }
+      const rewardedStored = sr ? parseMilestoneRewarded(sr.bonus_milestones_rewarded) : [];
+
+      const { nextStreak, newMilestones, clearedRewarded } = computeStreakAfterApproval({
+        nowMs,
+        priorStreakDays: priorStreak,
+        lastApprovalAtMs: lastMs,
+        milestonesAlreadyRewarded: rewardedStored,
+      });
+
+      const rewardedBase = clearedRewarded ? [] : rewardedStored;
+      const mergedRewarded = [...new Set([...rewardedBase, ...newMilestones])].sort((a, b) => a - b);
+
+      const streakBonus = bonusMinutesForMilestones(rewardMinutes, newMilestones);
+      const totalCredit = Math.min(100000, rewardMinutes + streakBonus);
+
+      let approvedOk = false;
+
+      if (pendingTime) {
+        const { data: updatedTask, error: taskUpErr } = await supabase
+          .from("tasks")
+          .update({
+            time_task_status: "approved",
+            state: "Approved",
+            updated_at: nowIso,
+            approved_at: nowIso,
+          })
+          .eq("id", task.id)
+          .eq("time_task_status", "pending")
+          .select("id")
+          .maybeSingle();
+        approvedOk = !taskUpErr && updatedTask != null;
+      }
+
+      if (!approvedOk && pendingLegacy) {
+        const { data: updated2, error: err2 } = await supabase
+          .from("tasks")
+          .update({
+            time_task_status: "approved",
+            state: "Approved",
+            updated_at: nowIso,
+            approved_at: nowIso,
+          })
+          .eq("id", task.id)
+          .eq("state", "PendingApproval")
+          .select("id")
+          .maybeSingle();
+        approvedOk = !err2 && updated2 != null;
+      }
+
+      if (!approvedOk) {
         restoreTask(task);
-        toast.error("Could not approve task", { description: taskUpErr?.message ?? "No rows updated." });
+        toast.error("Could not approve task", { description: "No rows updated — task may have changed." });
         return;
       }
 
@@ -474,37 +718,66 @@ export default function ParentApprovalInboxPage() {
       if (childFetchErr || !childRow) {
         await supabase
           .from("tasks")
-          .update({ time_task_status: "pending", updated_at: new Date().toISOString() })
-          .eq("id", task.id)
-          .eq("time_task_status", "approved");
+          .update({
+            time_task_status: tts,
+            state: st,
+            updated_at: new Date().toISOString(),
+            approved_at: null,
+          })
+          .eq("id", task.id);
         restoreTask(task);
         toast.error("Could not read child profile", { description: childFetchErr?.message });
         return;
       }
 
       const bank = readTimeBankMinutes(childRow as Record<string, unknown>);
-      const nextBank = Math.min(100000, bank + rewardMinutes);
+      const nextBank = Math.min(100000, bank + totalCredit);
 
       const { error: childUpErr } = await supabase
         .from(childTable)
-        .update({ time_bank_minutes: nextBank, updated_at: now })
+        .update({ time_bank_minutes: nextBank, updated_at: nowIso })
         .eq("id", childId)
         .eq("time_bank_minutes", bank);
 
       if (childUpErr) {
         await supabase
           .from("tasks")
-          .update({ time_task_status: "pending", updated_at: new Date().toISOString() })
-          .eq("id", task.id)
-          .eq("time_task_status", "approved");
+          .update({
+            time_task_status: tts,
+            state: st,
+            updated_at: new Date().toISOString(),
+            approved_at: null,
+          })
+          .eq("id", task.id);
         restoreTask(task);
         toast.error("Could not credit Time Bank", { description: childUpErr.message });
         return;
       }
 
-      toast.success("Time added to child bank!", { duration: 3200 });
+      if (!streakErr) {
+        await supabase.from("child_streaks").upsert(
+          {
+            child_id: childId,
+            streak_days: nextStreak,
+            last_approval_at: new Date(nowMs).toISOString(),
+            bonus_milestones_rewarded: JSON.stringify(mergedRewarded),
+            updated_at: nowIso,
+          },
+          { onConflict: "child_id" },
+        );
+      }
+
+      const childName = childNameById[childId] ?? "Your child";
+      if (streakBonus > 0 && newMilestones.length > 0) {
+        toast.success("Bonus minutes — streak reward", {
+          description: `${childName}: +${totalCredit} min total (${rewardMinutes} base + ${streakBonus} bonus at ${newMilestones.join("/")}-day milestones, 10% each).`,
+          duration: 6500,
+        });
+      } else {
+        toast.success(`Time added for ${childName}: +${totalCredit} min`, { duration: 3200 });
+      }
     },
-    [childTable, dismissTask, restoreTask],
+    [childNameById, childTable, dismissTask, restoreTask],
   );
 
   const onReject = useCallback(
@@ -515,11 +788,33 @@ export default function ParentApprovalInboxPage() {
         return;
       }
       const now = new Date().toISOString();
-      const { error } = await supabase
+
+      const { data: taskRow } = await supabase
         .from("tasks")
-        .update({ time_task_status: "rejected", updated_at: now })
+        .select("time_task_status, state")
         .eq("id", task.id)
-        .eq("time_task_status", "pending");
+        .maybeSingle();
+      const tr = (taskRow ?? {}) as Record<string, unknown>;
+      const tts = tr.time_task_status != null ? String(tr.time_task_status) : "";
+      const st = tr.state != null ? String(tr.state) : "";
+
+      let error: Error | null = null;
+      if (tts === "pending") {
+        const res = await supabase
+          .from("tasks")
+          .update({ time_task_status: "rejected", updated_at: now })
+          .eq("id", task.id)
+          .eq("time_task_status", "pending");
+        error = res.error;
+      }
+      if (!error && st === "PendingApproval") {
+        const res = await supabase
+          .from("tasks")
+          .update({ state: "Rejected", rejected_at: now, updated_at: now })
+          .eq("id", task.id)
+          .eq("state", "PendingApproval");
+        if (res.error) error = res.error;
+      }
 
       if (error) {
         toast.error("Could not update task", { description: error.message });
@@ -540,6 +835,17 @@ export default function ParentApprovalInboxPage() {
   return (
     <ParentTheme>
       <div className={styles.shell}>
+        <AnimatePresence>
+          {proofViewerTask ? (
+            <ProofViewerModal
+              key={proofViewerTask.id}
+              task={proofViewerTask}
+              childLabel={childNameById[proofViewerTask.childId] ?? "Child"}
+              onClose={() => setProofViewerTask(null)}
+            />
+          ) : null}
+        </AnimatePresence>
+
         <header>
           <p className={styles.heroEyebrow}>Review queue</p>
           <h1 className={styles.heroTitle}>Approval inbox</h1>
@@ -582,11 +888,20 @@ export default function ParentApprovalInboxPage() {
                       >
                         <article className={styles.card}>
                           <div className={styles.cardBody}>
-                            <div className={styles.cardTop}>
-                              <h3 className={styles.taskTitle}>{task.title}</h3>
-                              <span className={styles.rewardBadge}>+{task.rewardMinutes} mins</span>
-                            </div>
-                            <EvidencePlaceholder />
+                            <button
+                              type="button"
+                              className={styles.cardOpenProof}
+                              onClick={() => setProofViewerTask(task)}
+                            >
+                              <div className={styles.cardTop}>
+                                <h3 className={styles.taskTitle}>{task.title}</h3>
+                                <span className={styles.rewardBadge}>+{task.rewardMinutes} mins</span>
+                              </div>
+                              <p className={styles.metaRow}>
+                                <span className={styles.metaChild}>{childNameById[task.childId] ?? "Child"}</span>
+                              </p>
+                              <TaskEvidencePreview task={task} onOpen={() => setProofViewerTask(task)} />
+                            </button>
                             <div className={styles.actions}>
                               <GTButton
                                 type="button"
@@ -644,9 +959,7 @@ export default function ParentApprovalInboxPage() {
                             <p className={styles.metaRow}>
                               <span className={styles.metaChild}>{childNameById[rr.childId] ?? "Child"}</span>
                               <span aria-hidden>·</span>
-                              <span>
-                                Paid {rr.costMinutes} min from Time Bank
-                              </span>
+                              <span>Paid {rr.costMinutes} min from Time Bank</span>
                               {rr.rewardType === "Gift Card" ? (
                                 <>
                                   <span aria-hidden>·</span>
@@ -677,9 +990,7 @@ export default function ParentApprovalInboxPage() {
                                 size="lg"
                                 fullWidth
                                 className={styles.approveButton}
-                                onClick={() =>
-                                  void onApproveReward(rr, giftCardCodeByRequestId[rr.id])
-                                }
+                                onClick={() => void onApproveReward(rr, giftCardCodeByRequestId[rr.id])}
                               >
                                 Approve
                               </GTButton>
