@@ -11,6 +11,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import ParentLoginScreen from '../screens/ParentLoginScreen';
 import ParentSignupScreen from '../screens/ParentSignupScreen';
 import ChildLoginScreen from '../screens/ChildLoginScreen';
+import LinkFamilyScreen from '../screens/auth/LinkFamilyScreen';
 import ApiSettingsScreen from '../screens/ApiSettingsScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
@@ -61,13 +62,17 @@ function LoadingScreen() {
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-function AuthStack() {
+function AuthStack({ childMustLinkFamily }) {
   return (
-    <AuthStackNav.Navigator>
+    <AuthStackNav.Navigator
+      key={childMustLinkFamily ? 'auth-link-family' : 'auth-default'}
+      initialRouteName={childMustLinkFamily ? 'LinkFamily' : 'Welcome'}
+    >
       <AuthStackNav.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <AuthStackNav.Screen name="ParentLogin" component={ParentLoginScreen} options={{ title: 'Parent Login' }} />
       <AuthStackNav.Screen name="ParentSignup" component={ParentSignupScreen} options={{ title: 'Create Account' }} />
       <AuthStackNav.Screen name="ChildLogin" component={ChildLoginScreen} options={{ title: 'Child Login' }} />
+      <AuthStackNav.Screen name="LinkFamily" component={LinkFamilyScreen} options={{ headerShown: false, title: 'Join family' }} />
       <AuthStackNav.Screen name="ApiSettings" component={ApiSettingsScreen} options={{ title: 'Connection Settings' }} />
       <AuthStackNav.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ title: 'Reset Password' }} />
       <AuthStackNav.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ title: 'Set New Password' }} />
@@ -291,12 +296,12 @@ function ChildStack() {
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function RootNavigator() {
-  const { booting, role } = useAuth();
+  const { booting, role, forceChildFamilyLink } = useAuth();
 
   if (booting) return <LoadingScreen />;
   if (role === 'parent') return <ParentStack />;
-  if (role === 'child') return <ChildStack />;
-  return <AuthStack />;
+  if (role === 'child' && !forceChildFamilyLink) return <ChildStack />;
+  return <AuthStack childMustLinkFamily={role === 'child' && forceChildFamilyLink} />;
 }
 
 const styles = StyleSheet.create({

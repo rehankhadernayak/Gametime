@@ -117,6 +117,7 @@ async function initPostgres(db) {
     'time_bank_minutes',
     'INTEGER NOT NULL DEFAULT 0 CHECK (time_bank_minutes >= 0 AND time_bank_minutes <= 100000)'
   );
+  await ensureColumnPostgres(db, 'child_profiles', 'family_id', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_brand', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_denomination_cents', 'INTEGER');
 }
@@ -275,6 +276,7 @@ async function initSqlite(db) {
     'time_bank_minutes',
     'time_bank_minutes INTEGER NOT NULL DEFAULT 0 CHECK(time_bank_minutes >= 0 AND time_bank_minutes <= 100000)'
   );
+  await ensureColumnSqlite(db, 'child_profiles', 'family_id', 'family_id TEXT');
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS achievements (

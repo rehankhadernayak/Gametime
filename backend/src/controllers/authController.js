@@ -350,7 +350,8 @@ export async function me(req, res, next) {
               giftcard_points_balance as giftcardPointsBalance,
               time_bank_minutes as timeBankMinutes,
               date_of_birth as dateOfBirth,
-              avatar_url as avatarUrl
+              avatar_url as avatarUrl,
+              family_id as familyId
        FROM child_profiles
        WHERE id = ?`,
       [req.auth.childId]
