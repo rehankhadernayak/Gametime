@@ -18,6 +18,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAuth } from '../../context/AuthContext';
 import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/supabase';
+import ParentalGateModal from '../settings/ParentalGateModal';
 import { HAPTIC_PATTERNS } from '../../theme/kinetic-mobile-theme';
 
 /** Kinetic Time Bank palette (cream + ink) */
@@ -59,6 +60,7 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [invalid, setInvalid] = useState(false);
+  const [parentGateOpen, setParentGateOpen] = useState(false);
   const shakeX = useRef(new Animated.Value(0)).current;
 
   const onCodeChange = useCallback((text: string) => {
@@ -87,7 +89,7 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
     HAPTIC_PATTERNS.error();
   }, [runShake]);
 
-  const submit = useCallback(async () => {
+  const runLinkAfterGate = useCallback(async () => {
     if (code.length !== 6) {
       triggerInvalid();
       return;
@@ -148,6 +150,18 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
     }
   }, [childId, code, markChildFamilyLinked, refreshMe, token, triggerInvalid]);
 
+  const submit = useCallback(() => {
+    if (code.length !== 6) {
+      triggerInvalid();
+      return;
+    }
+    setParentGateOpen(true);
+  }, [code.length, triggerInvalid]);
+
+  const onParentGateVerified = useCallback(() => {
+    void runLinkAfterGate();
+  }, [runLinkAfterGate]);
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -185,7 +199,7 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
               style={styles.codeInput}
               selectionColor={INK}
               returnKeyType="done"
-              onSubmitEditing={() => void submit()}
+              onSubmitEditing={submit}
           />
 
           {invalid ? (
@@ -195,7 +209,7 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
           ) : null}
 
           <Pressable
-            onPress={() => void submit()}
+            onPress={submit}
             disabled={busy || code.length !== 6}
             style={({ pressed }) => [
               styles.submit,
@@ -211,6 +225,14 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
           </Pressable>
         </Animated.View>
       </LinearGradient>
+
+      <ParentalGateModal
+        visible={parentGateOpen}
+        title="Link this device to a family?"
+        message="A parent should approve joining a new family. Solve the problem below to continue."
+        onClose={() => setParentGateOpen(false)}
+        onVerified={onParentGateVerified}
+      />
     </KeyboardAvoidingView>
   );
 }

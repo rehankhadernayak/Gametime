@@ -112,6 +112,10 @@ function navigateFromNotification(notification) {
     navigationRef.navigate('ChildTabs', { screen: 'ChildRewards' });
     return;
   }
+  if (type === 'reward_request_approved') {
+    navigationRef.navigate('ChildRewardsStore');
+    return;
+  }
   if (type === 'achievement_unlocked') {
     navigationRef.navigate('ChildTabs', { screen: 'ChildHome' });
     return;

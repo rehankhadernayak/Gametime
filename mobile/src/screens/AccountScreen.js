@@ -15,9 +15,10 @@ import { useAuth } from '../context/AuthContext';
 import { apiRequest, getApiUrl, getSuggestedApiUrl, setApiUrl } from '../api/client';
 import { colors } from '../theme/colors';
 import { getErrorMessage } from '../utils/format';
+import ParentalGateModal from './settings/ParentalGateModal';
 
 export default function AccountScreen() {
-  const { role, user, token, refreshMe, logout } = useAuth();
+  const { role, user, token, refreshMe, logout, clearLocalGametimeData } = useAuth();
   const insets = useSafeAreaInsets();
   const isParent = role === 'parent';
 
@@ -28,6 +29,8 @@ export default function AccountScreen() {
   const [saveBusy, setSaveBusy] = useState(false);
   const [testBusy, setTestBusy] = useState(false);
   const [showConnection, setShowConnection] = useState(false);
+  const [childGateOpen, setChildGateOpen] = useState(false);
+  const [childGateAction, setChildGateAction] = useState(null); // 'signout' | 'delete'
 
   useEffect(() => {
     getApiUrl().then(setApiUrlState).catch(() => {});
@@ -71,10 +74,24 @@ export default function AccountScreen() {
   }
 
   async function handleLogout() {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
-    ]);
+    if (isParent) {
+      Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
+      ]);
+      return;
+    }
+    setChildGateAction('signout');
+    setChildGateOpen(true);
+  }
+
+  function handleChildGateVerified() {
+    if (childGateAction === 'delete') {
+      void clearLocalGametimeData().then(() => showToast('This device’s Gametime data was removed.'));
+    } else {
+      logout();
+    }
+    setChildGateAction(null);
   }
 
   const gradientColors = isParent ? ['#3B5BDB', '#2F4AC0'] : ['#7C3AED', '#6D28D9'];
@@ -209,7 +226,44 @@ export default function AccountScreen() {
           <Text style={styles.signOutIcon}>→</Text>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
+
+        {!isParent ? (
+          <>
+            <Text style={styles.gateHint}>
+              Sign out and “remove data” are protected so little taps don’t log you out by accident.
+            </Text>
+            <TouchableOpacity
+              style={styles.deleteLocalRow}
+              onPress={() => {
+                setChildGateAction('delete');
+                setChildGateOpen(true);
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.deleteLocalIcon}>⌫</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.deleteLocalTitle}>Delete data on this device</Text>
+                <Text style={styles.deleteLocalSub}>Clears your login from this phone or tablet. Your parent still has your account.</Text>
+              </View>
+            </TouchableOpacity>
+          </>
+        ) : null}
       </ScrollView>
+
+      <ParentalGateModal
+        visible={childGateOpen}
+        title={childGateAction === 'delete' ? 'Remove Gametime from this device?' : 'Sign out?'}
+        message={
+          childGateAction === 'delete'
+            ? 'A parent should be nearby. This signs you out and clears saved login on this device only.'
+            : 'Solve the problem below to sign out — ask a parent if you need help.'
+        }
+        onClose={() => {
+          setChildGateOpen(false);
+          setChildGateAction(null);
+        }}
+        onVerified={handleChildGateVerified}
+      />
     </View>
   );
 }
@@ -344,4 +398,24 @@ const styles = StyleSheet.create({
   },
   signOutIcon: { fontSize: 20 },
   signOutText: { color: colors.danger, fontSize: 15, fontWeight: '700' },
+
+  gateHint: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textMuted,
+    paddingHorizontal: 4,
+  },
+  deleteLocalRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 16,
+  },
+  deleteLocalIcon: { fontSize: 20, marginTop: 2 },
+  deleteLocalTitle: { color: colors.text, fontSize: 15, fontWeight: '800', marginBottom: 4 },
+  deleteLocalSub: { color: colors.textMuted, fontSize: 13, lineHeight: 18 },
 });

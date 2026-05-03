@@ -14,6 +14,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 import { useAuth } from '../../context/AuthContext';
+import {
+  createChildSupabaseClient,
+  getSupabaseChildTableName,
+  subscribeRewardApprovedBroadcast,
+} from '../../lib/supabase';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { HAPTIC_PATTERNS } from '../../theme/kinetic-mobile-theme.js';
@@ -201,6 +206,17 @@ export default function ChildRewardsStore() {
       if (retryTimer) clearTimeout(retryTimer);
       if (channel) void supabase.removeChannel(channel);
     };
+  }, [childId, loadClaimedRewards, role, token]);
+
+  /** Edge Function → Realtime broadcast: show local notification when parent approves a reward. */
+  useEffect(() => {
+    if (role !== 'child' || !childId || !token) return;
+    const supabase = supabaseRef.current;
+    if (!supabase) return;
+    const unsub = subscribeRewardApprovedBroadcast(supabase, childId, () => {
+      void loadClaimedRewards();
+    });
+    return unsub;
   }, [childId, loadClaimedRewards, role, token]);
 
   useFocusEffect(

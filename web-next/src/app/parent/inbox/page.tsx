@@ -462,6 +462,13 @@ export default function ParentApprovalInboxPage() {
     setProofViewerTask((cur) => (cur?.id === id ? null : cur));
   }, []);
 
+  const restoreTask = useCallback((task: PendingTask) => {
+    setTasks((prev) => {
+      if (prev.some((t) => t.id === task.id)) return prev;
+      return [task, ...prev];
+    });
+  }, []);
+
   const dismissReward = useCallback((id: string) => {
     setRewardRequests((prev) => prev.filter((r) => r.id !== id));
   }, []);
@@ -603,6 +610,8 @@ export default function ParentApprovalInboxPage() {
         return;
       }
 
+      dismissTask(task.id);
+
       const nowIso = new Date().toISOString();
       const nowMs = Date.now();
 
@@ -613,6 +622,7 @@ export default function ParentApprovalInboxPage() {
         .maybeSingle();
 
       if (taskFetchErr || !taskRow) {
+        restoreTask(task);
         toast.error("Could not load task", { description: taskFetchErr?.message });
         return;
       }
@@ -624,7 +634,6 @@ export default function ParentApprovalInboxPage() {
       const pendingLegacy = st === "PendingApproval";
       if (!pendingTime && !pendingLegacy) {
         toast.message("Task is no longer pending.");
-        dismissTask(task.id);
         return;
       }
 
@@ -695,8 +704,8 @@ export default function ParentApprovalInboxPage() {
       }
 
       if (!approvedOk) {
+        restoreTask(task);
         toast.error("Could not approve task", { description: "No rows updated — task may have changed." });
-        void loadPending();
         return;
       }
 
@@ -716,6 +725,7 @@ export default function ParentApprovalInboxPage() {
             approved_at: null,
           })
           .eq("id", task.id);
+        restoreTask(task);
         toast.error("Could not read child profile", { description: childFetchErr?.message });
         return;
       }
@@ -739,8 +749,8 @@ export default function ParentApprovalInboxPage() {
             approved_at: null,
           })
           .eq("id", task.id);
+        restoreTask(task);
         toast.error("Could not credit Time Bank", { description: childUpErr.message });
-        void loadPending();
         return;
       }
 
@@ -757,8 +767,6 @@ export default function ParentApprovalInboxPage() {
         );
       }
 
-      dismissTask(task.id);
-
       const childName = childNameById[childId] ?? "Your child";
       if (streakBonus > 0 && newMilestones.length > 0) {
         toast.success("Bonus minutes — streak reward", {
@@ -769,7 +777,7 @@ export default function ParentApprovalInboxPage() {
         toast.success(`Time added for ${childName}: +${totalCredit} min`, { duration: 3200 });
       }
     },
-    [childNameById, childTable, dismissTask, loadPending],
+    [childNameById, childTable, dismissTask, restoreTask],
   );
 
   const onReject = useCallback(
