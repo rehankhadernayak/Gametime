@@ -435,6 +435,30 @@
   color: var(--gt-ink-soft);
 }
 
+.legalFooterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--gt-line);
+  font-size: 0.8125rem;
+  color: var(--gt-ink-muted);
+}
+
+.legalFooterLink {
+  font-weight: 600;
+  color: var(--gt-red);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.legalFooterLink:hover {
+  color: var(--gt-red-hover);
+}
+
 .pinHint {
   font-size: 0.85rem;
   color: var(--gt-ink-soft);
