@@ -15,6 +15,7 @@ import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { fmtDateTime, getErrorMessage } from '../../utils/format';
 import { DEFAULT_PARENT_SETTINGS, loadParentSettings } from '../../utils/parentSettings';
+import { normalizeTasksListResponse } from '../../utils/tasksList.js';
 
 // Color-coded AI recommendation badge
 function AiRecommendationBadge({ recommendation, confidence, reason, aiStatus }) {
@@ -202,11 +203,11 @@ export default function ParentApprovalsScreen() {
     if (!isRefresh) setLoading(true);
     setError('');
     try {
-      const [list, savedSettings] = await Promise.all([
+      const [listRaw, savedSettings] = await Promise.all([
         apiRequest('/tasks/list', { token }),
         loadParentSettings()
       ]);
-      setTasks(list);
+      setTasks(normalizeTasksListResponse(listRaw).tasks);
       setParentSettings(savedSettings);
     } catch (e) {
       setError(getErrorMessage(e));

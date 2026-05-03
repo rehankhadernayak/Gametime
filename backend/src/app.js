@@ -17,17 +17,39 @@ import adminRoutes from './routes/adminRoutes.js';
 import { athenaWebhookRawController } from './controllers/giftcardsController.js';
 import { stripeWebhookController } from './controllers/stripeController.js';
 import stripeRouter from './routes/stripeRoutes.js';
+import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
 import { env } from './config/env.js';
+import { httpsVercelAppWildcardConfigured, isHttpsVercelAppOrigin } from './utils/corsOrigins.js';
+
+function isDevTunnelOrigin(origin) {
+  if (process.env.NODE_ENV === 'production') return false;
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== 'https:') return false;
+    const h = u.hostname;
+    return (
+      h.endsWith('.trycloudflare.com') ||
+      h.endsWith('.cfargotunnel.com') ||
+      h.endsWith('.cvm.dev')
+    );
+  } catch {
+    return false;
+  }
+}
 
 export function createApp() {
   const app = express();
+  const allowAllHttpsVercelApp =
+    httpsVercelAppWildcardConfigured(env.frontendOrigins);
   const allowedOrigins = new Set([
-    ...env.frontendOrigins,
+    ...env.frontendOrigins.filter((o) => !/^https:\/\/\*\.vercel\.app\/?$/i.test(String(o).trim())),
+    'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:8081',
+    'http://127.0.0.1:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:8081'
   ]);
@@ -38,6 +60,8 @@ export function createApp() {
       origin(origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedOrigins.has(origin)) return callback(null, true);
+        if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
+        if (isDevTunnelOrigin(origin)) return callback(null, true);
         return callback(new Error(`CORS blocked for origin: ${origin}`));
       },
       credentials: true
@@ -46,6 +70,8 @@ export function createApp() {
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
+  // Production alias (Railway / Stripe Dashboard): same handler as /stripe/webhook
+  app.post('/api/billing/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
   // Body limit is set to 14 MB: accommodates a 10 MB base64 evidence payload
   // (~13.3 MB on the wire) plus JSON envelope overhead, with a small buffer.
   app.use(express.json({ limit: '14mb' }));
@@ -80,6 +106,8 @@ export function createApp() {
   app.use('/achievements', achievementsRoutes);
   app.use('/admin', adminRoutes);
   app.use('/stripe', stripeRouter);
+  app.use('/billing', billingRoutes);
+  app.use('/api/billing', billingRoutes);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

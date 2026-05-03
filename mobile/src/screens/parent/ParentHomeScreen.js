@@ -16,6 +16,7 @@ import { apiRequest } from '../../api/client';
 import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { getErrorMessage } from '../../utils/format';
+import { normalizeTasksListResponse } from '../../utils/tasksList.js';
 
 // ── Metric card ─────────────────────────────────────────────────────────────
 function MetricCard({ label, value, accent, badge }) {
@@ -158,7 +159,7 @@ export default function ParentHomeScreen() {
     else setRefreshing(true);
     setError('');
     try {
-      const [childList, taskList, notificationList, gpSummary] = await Promise.all([
+      const [childList, taskListRaw, notificationList, gpSummary] = await Promise.all([
         apiRequest('/children/list', { token }),
         apiRequest('/tasks/list', { token }),
         apiRequest('/notifications/list', { token }),
@@ -176,7 +177,7 @@ export default function ParentHomeScreen() {
       ]);
 
       setChildren(childList);
-      setTasks(taskList);
+      setTasks(normalizeTasksListResponse(taskListRaw).tasks);
       setNotifications(notificationList);
       setActiveSessions(Array.isArray(sessions) ? sessions.filter((s) => s.status === 'Started') : []);
       setWeeklyMinutes(reports.reduce((sum, r) => sum + (r?.totals?.totalMinutes || 0), 0));
@@ -229,6 +230,7 @@ export default function ParentHomeScreen() {
 
   return (
     <ScrollView
+      testID="parent-dashboard-screen"
       style={styles.screen}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}

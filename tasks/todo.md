@@ -459,3 +459,23 @@ All presets exported for batch application to other 14 mobile screens.
 - [ ] Build & test mobile on TestFlight + Play Store
 - [ ] Submit to App Store & Play Store
 - [ ] Monitor reviews, collect feedback, plan updates
+
+### 2026-04-25 — Launch-readiness bug fix sweep
+
+Audited the entire codebase to surface bugs that would block App Store / Vercel deployment, and confirmed the architecture for linking web + mobile to the shared backend. Output: `LAUNCH_READINESS.md`. Fixes shipped on `cursor/launch-readiness-bugs-842a`.
+
+**Fixes:**
+1. Backend `/auth/me` was missing `isAdmin` for parents — admin nav and `/admin` route silently broke after a hard refresh because `auth.user.isAdmin` came back `undefined` from the session-restore endpoint. Now returned (and coerced to a boolean so JSON consumers don't see SQLite `0/1`).
+2. Vercel deploys could not reach the backend: `vercel.json` injected `VITE_API_URL` while `frontend/src/api/client.js` only read `VITE_API_BASE_URL`. Every deployed build silently fell back to `http://localhost:4000`. Client now reads either name; `vercel.json` rewritten to use `rewrites` for SPA routing + immutable cache headers, with API URL configured per-environment in the Vercel dashboard.
+3. Mobile `client.js` had a hard-coded LAN IP (`192.168.1.140`) as the device default — would have shipped to App Store. Replaced with documented resolution order (`EXPO_PUBLIC_API_URL` from `eas.json` → Expo dev `hostUri` → `localhost:4000`). Also added Expo SDK 54 `Constants.experienceUrl` + `manifest2` fallbacks.
+4. Cross-site cookie support for production: `sameSite=none; secure` when `NODE_ENV=production`, `lax` otherwise. Without this, the httpOnly session cookie could not flow from `frontend.vercel.app` to `api.gametime.app` (Bearer tokens still work; cookies are belt-and-braces).
+5. `docker-compose.yml`: real backend healthcheck (`wget -q -O- /health`) and nginx now waits for `service_healthy` instead of just `started`. Eliminates the cold-start 502s.
+6. `mobile/app.json`: added `runtimeVersion` (`appVersion` policy) + `updates.fallbackToCacheTimeout` block for Expo OTA. Hoisted the loose `_instructions` key into `extra` so Expo's schema check stays clean.
+7. Mobile push deep-link comments referenced `ParentDrawer/ChildDrawer` (removed in earlier refactor) — replaced with `ParentTabs/ChildTabs` to match the actual navigation tree.
+8. Root `.env.example`: documented `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `STRIPE_*`, `NODE_ENV`, and clarified `VITE_API_BASE_URL`/`VITE_API_URL` are interchangeable.
+
+**Lessons recorded:** 3 new entries in `tasks/lessons.md` (auth/me parity, vercel env-key parity, no LAN IPs as defaults).
+
+**Verification:** 79/79 backend tests still passing, frontend builds clean (~170 KB gz), no new linter warnings.
+
+**What to do about the backend:** Deploy `backend/` once to a host with a persistent disk (Railway, Fly, Render, or Lightsail). Web and mobile already share that single API — there's no data-sync layer to build. Full step-by-step in `LAUNCH_READINESS.md`.

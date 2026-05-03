@@ -84,7 +84,7 @@ describe('Task request flow', () => {
       .get('/tasks/list')
       .set('Authorization', `Bearer ${parentToken}`);
     expect(parentTasks.statusCode).toBe(200);
-    const createdTask = parentTasks.body.find((item) => item.id === approve.body.taskId);
+    const createdTask = parentTasks.body.tasks.find((item) => item.id === approve.body.taskId);
     expect(createdTask).toBeTruthy();
     expect(createdTask.state).toBe('Active');
 

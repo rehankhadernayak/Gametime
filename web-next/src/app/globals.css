@@ -1,0 +1,93 @@
+:root {
+  /* Global stacking — toasts > modals > nav / overlays > mobile dock / FAB tier */
+  --z-toast: 1000;
+  --z-modal: 900;
+  --z-nav-overlay: 800;
+  --z-sidebar-bottom-bar: 700;
+
+  --font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
+  --background: #ffffff;
+  --foreground: #171717;
+  /* Light surface tokens (aligned with landing.module.css) */
+  --gt-bg: #ffffff;
+  --gt-bg-soft: #f4f4f5;
+  --gt-ink: #0a0a0a;
+  --gt-ink-soft: #52525b;
+  --gt-line: rgba(0, 0, 0, 0.08);
+  --gt-red: #dc2626;
+  --gt-red-hover: #b91c1c;
+  --gt-glass: rgba(255, 255, 255, 0.55);
+  --gt-glass-border: rgba(0, 0, 0, 0.1);
+}
+
+html {
+  color-scheme: light;
+}
+
+html,
+body {
+  max-width: 100vw;
+  /* Do not set overflow-x: hidden on the document — it breaks
+     position: sticky for the StringTune hero (see landing.module.css). */
+}
+
+.antialiased {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+h1,
+h2,
+h3 {
+  font-family: inherit;
+  letter-spacing: -0.03em;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Sonner — root portal must sit above modals (900) and mobile chrome (≤800) */
+[data-sonner-toaster] {
+  z-index: var(--z-toast) !important;
+}
+
+/* Native form controls — premium baseline (GTInput/GTSelect mirror these in module CSS) */
+input:where(
+    :not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not(
+        [type="button"]
+      ):not([type="submit"]):not([type="reset"]):not([type="image"]):not([type="range"]):not([type="color"])
+  ),
+select,
+textarea {
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+input:where(
+    :not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not(
+        [type="button"]
+      ):not([type="submit"]):not([type="reset"]):not([type="image"]):not([type="range"]):not([type="color"])
+  ):focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: none;
+}

@@ -1,5 +1,13 @@
 import { Router } from 'express';
-import { createChild, deleteChild, listChildren, leaderboard, serveChildAvatar, uploadChildAvatar } from '../controllers/childrenController.js';
+import {
+  createChild,
+  deleteChild,
+  listChildren,
+  leaderboard,
+  serveChildAvatar,
+  updateChildPin,
+  uploadChildAvatar
+} from '../controllers/childrenController.js';
 import { requireAnyAuth, requireParentAuth } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rateLimit.js';
 
@@ -12,6 +20,7 @@ const router = Router();
 router.post('/create',              requireParentAuth, createLimiter, createChild);
 router.get('/list',                 requireParentAuth, listChildren);
 router.get('/leaderboard',          requireParentAuth, readLimiter,  leaderboard);
+router.patch('/:id/pin',            requireParentAuth, createLimiter, updateChildPin);
 router.delete('/:id',               requireParentAuth, createLimiter, deleteChild);
 router.post('/:id/avatar',          requireParentAuth, avatarLimiter, uploadChildAvatar);
 router.get('/:id/avatar',           requireAnyAuth, serveChildAvatar);

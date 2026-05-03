@@ -75,8 +75,8 @@ async function acquireExpoPushToken() {
  *   2. `data.recipientType` — role-based fallback to the home screen
  *
  * Screen names match what's declared in RootNavigator.js.
- * Drawer screens live inside ParentDrawer / ChildDrawer stacks, so we use
- * nested navigation params: navigate('ParentDrawer', { screen: 'ParentApprovals' })
+ * Tab screens live inside ParentTabs / ChildTabs stacks, so we use nested
+ * navigation params: navigate('ParentTabs', { screen: 'ParentApprovals' })
  */
 function navigateFromNotification(notification) {
   if (!navigationRef.isReady()) return;

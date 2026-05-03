@@ -26,6 +26,9 @@ async function signupParent(app, overrides = {}) {
     ...overrides
   });
   expect(signup.statusCode).toBe(201);
+  const setCookie = signup.headers['set-cookie'];
+  expect(Array.isArray(setCookie)).toBe(true);
+  expect(setCookie.some((c) => c.startsWith('user_role=parent'))).toBe(true);
   return signup.body.token;
 }
 
@@ -155,5 +158,47 @@ describe('Authentication', () => {
 
     expect(malformed.statusCode).toBe(400);
     expect(malformed.body.error).toBe('Validation failed');
+  });
+
+  test('child can elevate to parent with correct parent password', async () => {
+    const app = createApp();
+    const parentToken = await signupParent(app, { email: 'elevate-parent@example.com' });
+
+    const younger = await request(app)
+      .post('/children/create')
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({
+        name: 'Elevate Kid',
+        dateOfBirth: dobYearsAgo(8),
+        pin: '4242'
+      });
+    expect(younger.statusCode).toBe(201);
+
+    const pinLogin = await request(app).post('/auth/child-login-pin').send({
+      parentEmail: 'elevate-parent@example.com',
+      childName: 'Elevate Kid',
+      pin: '4242'
+    });
+    expect(pinLogin.statusCode).toBe(200);
+    const childToken = pinLogin.body.token;
+    const cookies = pinLogin.headers['set-cookie'];
+    expect(Array.isArray(cookies)).toBe(true);
+    expect(cookies.some((c) => c.startsWith('user_role=child'))).toBe(true);
+
+    const badElevate = await request(app)
+      .post('/auth/elevate-to-parent')
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({ password: 'WrongPassword' });
+    expect(badElevate.statusCode).toBe(401);
+
+    const elevate = await request(app)
+      .post('/auth/elevate-to-parent')
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({ password: 'Password123' });
+    expect(elevate.statusCode).toBe(200);
+    expect(elevate.body.parent.email).toBe('elevate-parent@example.com');
+    const elevateCookies = elevate.headers['set-cookie'];
+    expect(Array.isArray(elevateCookies)).toBe(true);
+    expect(elevateCookies.some((c) => c.startsWith('user_role=parent'))).toBe(true);
   });
 });

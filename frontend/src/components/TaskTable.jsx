@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
-import { apiRequest } from '../api/client.js';
+import { apiRequest, pushDeletionToast } from '../api/client.js';
 import StatusChip from './StatusChip.jsx';
+import GTConfirmDialog from './GTConfirmDialog.jsx';
+import HoldToConfirmButton from './HoldToConfirmButton.jsx';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -89,6 +91,8 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
   const [error,      setError]      = useState('');
   const [deletingId, setDeletingId] = useState(null);
   const [filters, setFilters]       = useState({ childId: '', state: 'ALL', sortBy: 'recent' });
+  const [confirmTask, setConfirmTask] = useState(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const firstInputRef = useRef(null);
 
   /* ── Derived task list ── */
@@ -104,6 +108,8 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
     return list;
   })();
 
+  const deletableFiltered = filteredTasks.filter((t) => ['Active', 'Draft'].includes(t.state));
+
   /* ── Open new-task inline row ── */
   function openNewRow() {
     setNewRow({
@@ -115,7 +121,8 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
       dueDate: defaultDueDate(),
       category: 'other',
       recurrenceDays: [],
-      templateId: ''
+      templateId: '',
+      requiredEvidenceType: 'Photo'
     });
     setError('');
     setTimeout(() => firstInputRef.current?.focus(), 50);
@@ -184,7 +191,8 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
           gpPoints:      gp,
           dueDate:       new Date(dueTs).toISOString(),
           category:      newRow.category || 'other',
-          recurrenceDays: orderedDays.length > 0 ? orderedDays.join(',') : null
+          recurrenceDays: orderedDays.length > 0 ? orderedDays.join(',') : null,
+          requiredEvidenceType: newRow.requiredEvidenceType === 'Video' ? 'Video' : 'Photo'
         }
       });
       setNewRow(null);
@@ -197,10 +205,14 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
   }
 
   /* ── Delete (cancel) task ── */
-  async function deleteTask(taskId) {
+  async function deleteTask(taskId, taskTitle) {
     setDeletingId(taskId);
     try {
       await apiRequest(`/tasks/${taskId}`, { method: 'DELETE', token });
+      pushDeletionToast({
+        title: 'Quest removed',
+        message: taskTitle ? `"${taskTitle}" was deleted.` : 'The quest was deleted.'
+      });
       await onRefresh();
     } catch {
       /* silent - onRefresh will show latest state */
@@ -209,18 +221,72 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
     }
   }
 
+  function requestDeleteTask(task) {
+    setConfirmTask(task);
+  }
+
+  async function confirmDeleteTask() {
+    if (!confirmTask) return;
+    const { id, title } = confirmTask;
+    try {
+      await deleteTask(id, title);
+      setConfirmTask(null);
+    } catch {
+      setConfirmTask(null);
+    }
+  }
+
+  async function deleteAllDeletableInView() {
+    if (deletableFiltered.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      for (const t of deletableFiltered) {
+        await apiRequest(`/tasks/${t.id}`, { method: 'DELETE', token });
+      }
+      const n = deletableFiltered.length;
+      pushDeletionToast({
+        title: n === 1 ? 'Quest removed' : 'Quests removed',
+        message: n === 1 ? 'One quest was deleted.' : `${n} quests were deleted.`
+      });
+      await onRefresh();
+    } catch {
+      await onRefresh();
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
   return (
     <section className="panel">
+      <GTConfirmDialog
+        open={Boolean(confirmTask)}
+        title="Delete Quest?"
+        onCancel={() => setConfirmTask(null)}
+        onConfirm={confirmDeleteTask}
+        confirmBusy={Boolean(confirmTask && deletingId === confirmTask.id)}
+        confirmLabel="Confirm Delete"
+      />
       <div className="task-table-header panel-top">
         <div>
           <h2>Tasks</h2>
           <p className="section-subtitle">Create and manage tasks for your children.</p>
         </div>
-        {!newRow && (
-          <button type="button" className="secondary-button" onClick={openNewRow}>
-            + Add Task
-          </button>
-        )}
+        <div className="task-table-header-actions">
+          {deletableFiltered.length > 0 && (
+            <HoldToConfirmButton
+              label="Delete all in view"
+              className="task-bulk-delete-hold"
+              disabled={bulkDeleting || Boolean(newRow)}
+              aria-label="Hold to delete all active or draft quests shown in the current filters"
+              onComplete={deleteAllDeletableInView}
+            />
+          )}
+          {!newRow && (
+            <button type="button" className="secondary-button" onClick={openNewRow}>
+              + Add Task
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Filters ── */}
@@ -316,6 +382,23 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
                       <option value="">Select child *</option>
                       {children.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
+                    <div className="task-proof-inline" role="group" aria-label="Proof required">
+                      <span className="task-proof-label">Proof</span>
+                      <button
+                        type="button"
+                        className={`task-proof-chip${newRow.requiredEvidenceType === 'Photo' ? ' active' : ''}`}
+                        onClick={() => setNewRow((p) => ({ ...p, requiredEvidenceType: 'Photo' }))}
+                      >
+                        Photo
+                      </button>
+                      <button
+                        type="button"
+                        className={`task-proof-chip${newRow.requiredEvidenceType === 'Video' ? ' active' : ''}`}
+                        onClick={() => setNewRow((p) => ({ ...p, requiredEvidenceType: 'Video' }))}
+                      >
+                        Video
+                      </button>
+                    </div>
                   </div>
                 </td>
 
@@ -401,6 +484,9 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
                 <td><CategoryBadge category={task.category || 'other'} /></td>
                 <td>
                   <strong className="task-title-cell">{task.title}</strong>
+                  {task.requiredEvidenceType && (
+                    <span className="task-proof-badge">{task.requiredEvidenceType} proof</span>
+                  )}
                   {task.description && (
                     <div className="task-desc-sub">{task.description}</div>
                   )}
@@ -420,7 +506,7 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
                       className="icon-button danger-hover"
                       title="Delete task"
                       aria-label={`Delete task ${task.title}`}
-                      onClick={() => deleteTask(task.id)}
+                      onClick={() => requestDeleteTask(task)}
                       disabled={deletingId === task.id}
                     >
                       ×

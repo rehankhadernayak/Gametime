@@ -31,12 +31,54 @@ function buildRewardSummary({ rpPoints, gpPoints }) {
   return parts.join(', ');
 }
 
+/**
+ * Pessimistic gate for child evidence uplink: only Active (or Rejected + resubmit path) may proceed.
+ * Pending approval is a hard reject (no silent ignore) to block duplicate / scripted submits.
+ */
+function assertEvidenceSubmissionAllowed({ task, existingCompletion }) {
+  if (task.state === TASK_STATES.APPROVED) {
+    throw new ApiError(409, 'This quest is already approved.');
+  }
+  if (task.state === TASK_STATES.PENDING_APPROVAL) {
+    if (existingCompletion?.status === TASK_STATES.PENDING_APPROVAL) {
+      throw new ApiError(409, 'Evidence for this quest is already being reviewed. Please wait for your parent.');
+    }
+    throw new ApiError(409, 'This quest is already submitted for review.');
+  }
+  if (task.state === TASK_STATES.EXPIRED) {
+    throw new ApiError(400, 'Task is expired');
+  }
+  if (task.state === TASK_STATES.CANCELLED) {
+    throw new ApiError(400, 'This quest is no longer available.');
+  }
+  if (task.state === TASK_STATES.DRAFT) {
+    throw new ApiError(400, 'This quest is not active yet.');
+  }
+
+  if (existingCompletion?.status === TASK_STATES.PENDING_APPROVAL) {
+    throw new ApiError(409, 'Evidence for this quest is already being reviewed. Please wait for your parent.');
+  }
+  if (existingCompletion?.status === TASK_STATES.APPROVED) {
+    throw new ApiError(409, 'This quest is already approved.');
+  }
+
+  if (existingCompletion?.status === TASK_STATES.REJECTED) {
+    if (![TASK_STATES.ACTIVE, TASK_STATES.REJECTED].includes(task.state)) {
+      throw new ApiError(400, 'Task is not open for resubmission');
+    }
+  }
+}
+
 export async function createTask(parentId, payload) {
   const db = await getDb();
   ensureDueDateWithinSevenDays(payload.dueDate);
   const title = sanitizeText(payload.title);
   const description = sanitizeText(payload.description);
   const gpPoints = Number(payload.gpPoints || 0);
+  const requiredEvidenceType = payload.requiredEvidenceType ?? null;
+  if (requiredEvidenceType != null && requiredEvidenceType !== 'Photo' && requiredEvidenceType !== 'Video') {
+    throw new ApiError(400, 'Invalid required evidence type');
+  }
 
   if (!title || !description) {
     throw new ApiError(400, 'Task title and description cannot be empty');
@@ -55,8 +97,8 @@ export async function createTask(parentId, payload) {
     const category = payload.category || 'other';
     const recurrenceDays = payload.recurrenceDays || null;
     await db.run(
-      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         payload.childId,
@@ -68,6 +110,7 @@ export async function createTask(parentId, payload) {
         payload.dueDate,
         category,
         recurrenceDays,
+        requiredEvidenceType,
         now,
         now
       ]
@@ -89,10 +132,11 @@ export async function createTask(parentId, payload) {
     throw error;
   }
 
+  const proofHint = requiredEvidenceType ? ` | Proof: ${requiredEvidenceType}` : '';
   await createNotification(
     'Child',
     payload.childId,
-    `New task: ${title}${buildRewardSummary({ rpPoints: payload.points, gpPoints }) ? ` | Reward: ${buildRewardSummary({ rpPoints: payload.points, gpPoints })}` : ''}`
+    `New task: ${title}${buildRewardSummary({ rpPoints: payload.points, gpPoints }) ? ` | Reward: ${buildRewardSummary({ rpPoints: payload.points, gpPoints })}` : ''}${proofHint}`
   );
 
   return { id };
@@ -138,6 +182,7 @@ export async function listTasksForParent(parentId) {
   return db.all(
     `SELECT t.id, t.child_id as childId, c.name as childName, t.title, t.description, t.points, t.gp_points as gpPoints, t.state, t.due_date as dueDate,
             t.category, t.recurrence_days as recurrenceDays,
+            t.required_evidence_type as requiredEvidenceType,
             t.created_at as createdAt, t.updated_at as updatedAt,
             tc.id as completionId,
             CASE WHEN tc.evidence_data IS NOT NULL AND tc.evidence_data != '' THEN 1 ELSE 0 END as hasEvidence,
@@ -189,6 +234,7 @@ export async function listTasksForChild(childId) {
   return db.all(
     `SELECT t.id, t.title, t.description, t.points, t.gp_points as gpPoints, t.state, t.due_date as dueDate,
             t.category, t.recurrence_days as recurrenceDays,
+            t.required_evidence_type as requiredEvidenceType,
             t.created_at as createdAt, t.updated_at as updatedAt,
             tc.id as completionId,
             CASE WHEN tc.evidence_data IS NOT NULL AND tc.evidence_data != '' THEN 1 ELSE 0 END as hasEvidence,
@@ -218,17 +264,14 @@ export async function completeTask(childId, payload) {
     throw new ApiError(400, 'Evidence (photo/video) is required for task completion');
   }
 
+  const requiredType = task.required_evidence_type;
+  if (requiredType && payload.evidenceType !== requiredType) {
+    throw new ApiError(400, `This quest requires ${requiredType} proof. Please upload a ${requiredType.toLowerCase()}.`);
+  }
+
   const existingCompletion = await db.get('SELECT * FROM task_completions WHERE task_id = ? AND child_id = ?', [taskId, childId]);
-  if (existingCompletion && existingCompletion.status !== TASK_STATES.REJECTED) {
-    return { ignored: true, message: 'Completion already submitted' };
-  }
-  if (
-    existingCompletion &&
-    existingCompletion.status === TASK_STATES.REJECTED &&
-    ![TASK_STATES.ACTIVE, TASK_STATES.REJECTED].includes(task.state)
-  ) {
-    return { ignored: true, message: 'Task is not open for resubmission' };
-  }
+
+  assertEvidenceSubmissionAllowed({ task, existingCompletion });
 
   const now = new Date().toISOString();
   const isResubmission = Boolean(existingCompletion);
@@ -253,7 +296,14 @@ export async function completeTask(childId, payload) {
   // ── Phase 1: Main transaction - must succeed atomically ───────────────
   await db.exec('BEGIN');
   try {
-    if (existingCompletion && existingCompletion.status === TASK_STATES.REJECTED) {
+    const taskLocked = await db.get('SELECT * FROM tasks WHERE id = ? AND child_id = ?', [taskId, childId]);
+    if (!taskLocked) {
+      throw new ApiError(404, 'Task not found');
+    }
+    const completionLocked = await db.get('SELECT * FROM task_completions WHERE task_id = ? AND child_id = ?', [taskId, childId]);
+    assertEvidenceSubmissionAllowed({ task: taskLocked, existingCompletion: completionLocked });
+
+    if (completionLocked && completionLocked.status === TASK_STATES.REJECTED) {
       await db.run(
         `UPDATE task_completions
          SET completed_at = ?,
@@ -283,32 +333,42 @@ export async function completeTask(childId, payload) {
           payload.evidenceType ?? null,
           sanitizeText(payload.evidenceNote ?? null),
           now,
-          existingCompletion.id
+          completionLocked.id
         ]
       );
     } else {
-      await db.run(
-        `INSERT INTO task_completions (id, task_id, child_id, completed_at, status, evidence_data, evidence_mime, evidence_type, evidence_note, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          completionIdToUse,
-          taskId,
-          childId,
-          now,
-          TASK_STATES.PENDING_APPROVAL,
-          evidencePath,
-          payload.evidenceMime ?? null,
-          payload.evidenceType ?? null,
-          sanitizeText(payload.evidenceNote ?? null),
-          now,
-          now
-        ]
-      );
+      try {
+        await db.run(
+          `INSERT INTO task_completions (id, task_id, child_id, completed_at, status, evidence_data, evidence_mime, evidence_type, evidence_note, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            completionIdToUse,
+            taskId,
+            childId,
+            now,
+            TASK_STATES.PENDING_APPROVAL,
+            evidencePath,
+            payload.evidenceMime ?? null,
+            payload.evidenceType ?? null,
+            sanitizeText(payload.evidenceNote ?? null),
+            now,
+            now
+          ]
+        );
+      } catch (insertErr) {
+        if (insertErr && insertErr.code === 'SQLITE_CONSTRAINT') {
+          throw new ApiError(
+            409,
+            'Evidence for this quest is already being reviewed. Please wait for your parent.'
+          );
+        }
+        throw insertErr;
+      }
     }
 
     await db.run(
-      'UPDATE tasks SET state = ?, completion_submitted_at = ?, rejected_at = NULL, updated_at = ? WHERE id = ?',
-      [TASK_STATES.PENDING_APPROVAL, now, now, taskId]
+      'UPDATE tasks SET state = ?, completion_submitted_at = ?, rejected_at = NULL, updated_at = ? WHERE id = ? AND child_id = ?',
+      [TASK_STATES.PENDING_APPROVAL, now, now, taskId, childId]
     );
 
     const parent = await db.get('SELECT parent_id FROM child_profiles WHERE id = ?', childId);
@@ -673,8 +733,8 @@ export async function approveTaskRequest(parentId, requestId, payload) {
   await db.exec('BEGIN');
   try {
     await db.run(
-      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'other', NULL, NULL, ?, ?)`,
       [
         taskId,
         request.child_id,

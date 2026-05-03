@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { GametimeLink, useAppRouter, useAppSearchParams } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import './auth.css';
 
@@ -21,8 +21,8 @@ const STRENGTH_META = {
 };
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const searchParams = useAppSearchParams();
+  const router = useAppRouter();
   const token = searchParams.get('token') || '';
 
   const [password, setPassword] = useState('');
@@ -54,7 +54,7 @@ export default function ResetPassword() {
     try {
       await apiRequest('/auth/reset-password', { method: 'POST', body: { token, password } });
       setStatus('done');
-      setTimeout(() => navigate('/login'), 3000);
+      setTimeout(() => router.push('/login'), 3000);
     } catch (e) {
       setError(e.message);
       setStatus('error');
@@ -87,12 +87,12 @@ export default function ResetPassword() {
             <p className="al-success-sub">
               Your password has been changed. Redirecting you to login in a moment…
             </p>
-            <Link to="/login" className="al-back-link">
+            <GametimeLink href="/login" className="al-back-link">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Go to login
-            </Link>
+            </GametimeLink>
           </div>
         ) : (
           /* ── Form state ── */
@@ -104,7 +104,7 @@ export default function ResetPassword() {
             {!token && (
               <p className="al-error" role="alert">
                 Reset token is missing. Please use the link from your email.{' '}
-                <Link to="/forgot-password" className="al-link">Request a new link</Link>
+                <GametimeLink href="/forgot-password" className="al-link">Request a new link</GametimeLink>
               </p>
             )}
 
@@ -218,12 +218,12 @@ export default function ResetPassword() {
             </form>
 
             <div className="al-footer-links">
-              <Link to="/login" className="al-back-link">
+              <GametimeLink href="/login" className="al-back-link">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Back to login
-              </Link>
+              </GametimeLink>
             </div>
           </>
         )}

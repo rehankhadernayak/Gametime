@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -590,7 +590,7 @@ function InsightsPanel({ token }) {
    Main page component
    ───────────────────────────────────────────────────────────────────────── */
 export default function AiWorkspacePage({ token, parentName }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
 
   const [messages,         setMessages]       = useState([]);
   const [streamingText,    setStreamingText]   = useState('');
@@ -941,7 +941,7 @@ export default function AiWorkspacePage({ token, parentName }) {
           <button
             type="button"
             className="aws-back-btn"
-            onClick={() => navigate('/parent/dashboard')}
+            onClick={() => router.push('/parent/dashboard')}
             aria-label="Back to classic dashboard"
           >
             <BackIcon /> Classic view

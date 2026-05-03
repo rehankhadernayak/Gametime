@@ -29,13 +29,15 @@ export default function NotificationBell({ token, role }) {
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState('');
   const rootRef = useRef(null);
+  /** Cookie sessions use placeholder `cookie` in the nav — omit Authorization so httpOnly JWT is used. */
+  const bearerToken = token && token !== 'cookie' ? token : undefined;
 
   async function loadNotifications() {
     if (!token) return;
     setBusy(true);
     setError('');
     try {
-      const list = await apiRequest('/notifications/list', { token });
+      const list = await apiRequest('/notifications/list', { token: bearerToken });
       setNotifications(list);
     } catch (e) {
       setError(e.message || 'Failed to load notifications');
@@ -80,7 +82,7 @@ export default function NotificationBell({ token, role }) {
     try {
       await apiRequest('/notifications/markRead', {
         method: 'POST',
-        token,
+        token: bearerToken,
         body: { notificationIds: unreadIds }
       });
       await loadNotifications();

@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import TaskCompletionForm from './TaskCompletionForm.jsx';
 import DashboardShell from '../components/DashboardShell.jsx';
+import ParentPinGate from '../components/ParentPinGate.jsx';
 import StatusChip from '../components/StatusChip.jsx';
 import MetricIcon from '../components/MetricIcon.jsx';
 import GamingSessionController from '../components/GamingSessionController.jsx';
 import RewardStore from '../components/RewardStore.jsx';
 import { trackEvent } from '../utils/analytics.js';
+import { normalizeTasksListResponse } from '../utils/tasksList.js';
 import ChildAvatar from '../components/ChildAvatar.jsx';
 
 const GAMING_PLATFORMS = ['iOS', 'Windows', 'macOS', 'Web', 'Console', 'Other'];
@@ -85,6 +89,8 @@ function formatGamingDenial(response) {
 }
 
 export default function ChildDashboard({ token }) {
+  const router = useAppRouter();
+  const { showParentChrome } = useAuth();
   const [me, setMe] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [taskRequests, setTaskRequests] = useState([]);
@@ -134,7 +140,7 @@ export default function ChildDashboard({ token }) {
     try {
       const [meRes, taskRes, taskRequestRes, rewardRes, overviewRes, sessionsRes, gamesRes, codesRes, achRes, streakRes] = await Promise.all([
         apiRequest('/auth/me', { token }),
-        apiRequest('/tasks/list', { token }),
+        apiRequest('/tasks/list', { token }).then((r) => normalizeTasksListResponse(r).tasks),
         apiRequest('/tasks/requests', { token }),
         apiRequest('/rewards/list', { token }),
         apiRequest('/gaming/overview', { token }),
@@ -332,8 +338,19 @@ export default function ChildDashboard({ token }) {
               <button type="button" className="secondary-button" onClick={() => goToSection('tasks')}>Complete Task</button>
               <button type="button" className="secondary-button" onClick={() => goToSection('rewards')}>Redeem Reward</button>
               <button type="button" className="secondary-button" onClick={() => goToSection('gaming')}>Start Session</button>
+              {showParentChrome ? (
+                <>
+                  <button type="button" className="secondary-button" onClick={() => router.push('/parent/ai')}>
+                    Parent dashboard
+                  </button>
+                  <button type="button" className="secondary-button" onClick={() => router.push('/parent/dashboard')}>
+                    Parent tasks
+                  </button>
+                </>
+              ) : null}
             </div>
           </div>
+          {!showParentChrome ? <ParentPinGate /> : null}
           {loading && <StatsSkeleton count={7} />}
           {error ? <p className="error" role="alert">{error}</p> : null}
 
@@ -917,5 +934,12 @@ export default function ChildDashboard({ token }) {
     }
   ];
 
-  return <DashboardShell title="Child Dashboard" sections={sections} variant="child" />;
+  return (
+    <DashboardShell
+      title="Child Dashboard"
+      sections={sections}
+      variant="child"
+      dashboardSectionHome="overview"
+    />
+  );
 }

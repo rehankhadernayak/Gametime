@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { StringParallax, StringTune } from '@fiddle-digital/string-tune';
 import App from './App.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 import './styles/app.css';
 
 // Initialize StringTune physics engine (client-side only)
@@ -16,7 +17,9 @@ if (typeof window !== 'undefined') {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

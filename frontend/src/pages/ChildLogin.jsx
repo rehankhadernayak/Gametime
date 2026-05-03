@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { GametimeLink, useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import ChildPinLogin from '../components/ChildPinLogin.jsx';
 import './auth.css';
@@ -9,7 +9,7 @@ function isValidEmail(value) {
 }
 
 export default function ChildLogin({ onAuth }) {
-  const navigate = useNavigate();
+  const router = useAppRouter();
   const [mode, setMode] = useState('email'); // 'email' | 'pin'
   const [emailForm, setEmailForm] = useState({ email: '', password: '' });
   const [pinForm, setPinForm] = useState({ parentEmail: '', childName: '' });
@@ -36,8 +36,8 @@ export default function ChildLogin({ onAuth }) {
           method: 'POST',
           body: { email, password: emailForm.password },
         });
-        onAuth({ token: data.token, role: 'child', user: data.child });
-        navigate('/child/dashboard');
+        await onAuth({ token: data.token, role: 'child', user: data.child });
+        router.push('/child/dashboard');
       } else {
         // PIN mode - step 1: validate inputs, then show numpad for PIN entry
         const parentEmail = pinForm.parentEmail.trim();
@@ -64,9 +64,9 @@ export default function ChildLogin({ onAuth }) {
     }
   }
 
-  function handlePinSuccess(token) {
-    onAuth({ token, role: 'child', user: pinChildProfile });
-    navigate('/child/dashboard');
+  async function handlePinSuccess(token) {
+    await onAuth({ token, role: 'child', user: pinChildProfile });
+    router.push('/child/dashboard');
   }
 
   // Full-screen numpad once child is looked up
@@ -314,7 +314,7 @@ export default function ChildLogin({ onAuth }) {
           <div className="al-footer-links">
             <span className="al-footer-text">
               Parent?{' '}
-              <Link to="/login" className="al-link">Use parent login</Link>
+              <GametimeLink href="/login" className="al-link">Use parent login</GametimeLink>
             </span>
           </div>
         </div>

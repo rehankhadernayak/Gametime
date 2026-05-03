@@ -20,6 +20,7 @@ import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { fmtDateTime, getErrorMessage, sanitizeText } from '../../utils/format';
 import { DEFAULT_PARENT_SETTINGS, loadParentSettings } from '../../utils/parentSettings';
+import { normalizeTasksListResponse } from '../../utils/tasksList.js';
 
 // Status config
 const STATE_CONFIG = {
@@ -66,14 +67,14 @@ export default function ParentTasksScreen() {
   const [activeTab,      setActiveTab]      = useState('All');
 
   const load = useCallback(async () => {
-    const [childList, taskList, requestList, savedSettings] = await Promise.all([
+    const [childList, taskListRaw, requestList, savedSettings] = await Promise.all([
       apiRequest('/children/list', { token }),
       apiRequest('/tasks/list', { token }),
       apiRequest('/tasks/requests', { token }),
       loadParentSettings()
     ]);
     setChildren(childList);
-    setTasks(taskList);
+    setTasks(normalizeTasksListResponse(taskListRaw).tasks);
     setTaskRequests(requestList);
     setParentSettings(savedSettings);
     setForm((prev) => ({

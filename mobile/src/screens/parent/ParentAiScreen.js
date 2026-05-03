@@ -579,7 +579,7 @@ export default function ParentAiScreen() {
   const [tab, setTab] = useState(TAB_CHAT);
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID="parent-app-home">
       <StatusBar barStyle="dark-content" />
 
       {/* AI header — paddingTop accounts for notch / Dynamic Island */}

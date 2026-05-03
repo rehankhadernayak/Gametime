@@ -1,6 +1,7 @@
 import './NavBar.css';
 import NotificationBell from './NotificationBell.jsx';
-import { useNavigate } from 'react-router-dom';
+import { useAppRouter } from 'gametime-web-nav';
+import { useAuth } from '../context/AuthContext.jsx';
 
 /* ── Inline SVGs ────────────────────────────────────────────────────── */
 function SettingsIcon() {
@@ -8,23 +9,6 @@ function SettingsIcon() {
     <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-function SunIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17 4.9 19.1" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <path d="M15.5 3.5A8.5 8.5 0 1 0 20 18 7.3 7.3 0 0 1 15.5 3.5Z" />
     </svg>
   );
 }
@@ -40,8 +24,10 @@ function LogoutIcon() {
 }
 
 /* ── NavBar ─────────────────────────────────────────────────────────── */
-export default function NavBar({ role, token, onLogout, theme, onToggleTheme, isAdmin }) {
-  const navigate = useNavigate();
+export default function NavBar({ role, token, onLogout, isAdmin, showParentChrome = true }) {
+  const router = useAppRouter();
+  const { cookieRole } = useAuth();
+  const effectiveRole = cookieRole || role;
 
   return (
     <nav className="nav" aria-label="Primary navigation">
@@ -58,27 +44,16 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
 
       {/* Right: Actions */}
       <div className="nav-actions">
-        <NotificationBell token={token} role={role} />
+        <NotificationBell token={token} role={effectiveRole} />
 
-        {/* Theme toggle */}
-        <button
-          type="button"
-          className="nav-icon-btn"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          onClick={onToggleTheme}
-        >
-          {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-        </button>
-
-        {/* Settings (parent only) */}
-        {role === 'parent' && (
+        {/* Settings (parent only) — hidden for child sessions until parent gate passes */}
+        {showParentChrome && effectiveRole === 'parent' && (
           <button
             type="button"
             className="nav-icon-btn nav-settings-btn"
             aria-label="Settings"
             title="Settings"
-            onClick={() => navigate('/parent/settings')}
+            onClick={() => router.push('/parent/settings')}
           >
             <SettingsIcon />
           </button>
@@ -87,21 +62,21 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
         <div className="nav-sep" aria-hidden="true" />
 
         {/* Admin badge */}
-        {isAdmin && (
+        {showParentChrome && isAdmin && (
           <button
             type="button"
             className="nav-admin-badge"
             aria-label="Admin dashboard"
             title="Go to Admin"
-            onClick={() => navigate('/admin')}
+            onClick={() => router.push('/admin')}
           >
             Admin
           </button>
         )}
 
         {/* Role pill */}
-        <span className={`nav-role-pill ${role === 'parent' ? 'parent' : 'child'}`}>
-          {role === 'parent' ? 'Parent' : 'Child'}
+        <span className={`nav-role-pill ${effectiveRole === 'parent' ? 'parent' : 'child'}`}>
+          {effectiveRole === 'parent' ? 'Parent' : 'Child'}
         </span>
 
         {/* Logout */}
@@ -112,7 +87,7 @@ export default function NavBar({ role, token, onLogout, theme, onToggleTheme, is
             try {
               await onLogout();
             } finally {
-              navigate('/login', { replace: true });
+              router.replace('/login');
             }
           }}
         >

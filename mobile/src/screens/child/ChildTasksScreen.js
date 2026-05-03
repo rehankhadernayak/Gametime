@@ -18,6 +18,7 @@ import { apiRequest } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { fmtDateTime, getErrorMessage } from '../../utils/format';
+import { normalizeTasksListResponse } from '../../utils/tasksList.js';
 
 const STATUS_TABS = ['All', 'Active', 'Pending', 'Done'];
 
@@ -83,11 +84,11 @@ export default function ChildTasksScreen() {
   const formAnim = useRef(new Animated.Value(0)).current;
 
   const load = useCallback(async () => {
-    const [list, requests] = await Promise.all([
+    const [listRaw, requests] = await Promise.all([
       apiRequest('/tasks/list', { token }),
       apiRequest('/tasks/requests', { token }),
     ]);
-    setTasks(list);
+    setTasks(normalizeTasksListResponse(listRaw).tasks);
     setTaskRequests(requests);
   }, [token]);
 

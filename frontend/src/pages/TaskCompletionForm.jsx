@@ -25,6 +25,9 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
     });
   }
 
+  const selectedTask = tasks.find((t) => t.id === taskId);
+  const requiredEvidenceType = selectedTask?.requiredEvidenceType || null;
+
   // When file changes: build preview URL and trigger AI coaching
   useEffect(() => {
     if (!evidenceFile) {
@@ -39,7 +42,7 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
     setCoaching(null);
 
     // Only call AI coaching for image files and only if we have a taskId + token
-    if (!evidenceFile.type.startsWith('image/') || !taskId || !token) {
+    if (!evidenceFile.type.startsWith('image/') || !taskId || !token || requiredEvidenceType === 'Video') {
       return () => URL.revokeObjectURL(url);
     }
 
@@ -84,12 +87,18 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
     };
   // Re-run when file OR taskId changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [evidenceFile, taskId]);
+  }, [evidenceFile, taskId, requiredEvidenceType, token]);
+
+  const fileAccept = requiredEvidenceType === 'Video' ? 'video/*' : requiredEvidenceType === 'Photo' ? 'image/*' : 'image/*,video/*';
 
   return (
     <div className="panel">
       <h2>Task Completion</h2>
-      <p id="completion-help" className="helper-text">Upload required photo/video evidence (max 10MB) and submit for parent approval.</p>
+      <p id="completion-help" className="helper-text">
+        {requiredEvidenceType === 'Video' && 'This quest requires a video clip (max 10MB). '}
+        {requiredEvidenceType === 'Photo' && 'This quest requires a photo (max 10MB). '}
+        {!requiredEvidenceType && 'Upload photo or video evidence (max 10MB) and submit for parent approval.'}
+      </p>
       <form
         className="inline-form"
         aria-describedby="completion-help"
@@ -112,9 +121,19 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
           let evidenceMime = null;
           let evidenceType = null;
 
-          const isAllowed = evidenceFile.type.startsWith('image/') || evidenceFile.type.startsWith('video/');
+          const isImage = evidenceFile.type.startsWith('image/');
+          const isVideo = evidenceFile.type.startsWith('video/');
+          const isAllowed = isImage || isVideo;
           if (!isAllowed) {
             setFormError('Only image or video evidence is allowed.');
+            return;
+          }
+          if (requiredEvidenceType === 'Photo' && !isImage) {
+            setFormError('This quest requires a photo. Please choose an image file.');
+            return;
+          }
+          if (requiredEvidenceType === 'Video' && !isVideo) {
+            setFormError('This quest requires a video. Please choose a video file.');
             return;
           }
           if (evidenceFile.size > MAX_EVIDENCE_BYTES) {
@@ -127,6 +146,10 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
             evidenceData = await toDataUrl(evidenceFile);
             evidenceMime = evidenceFile.type || null;
             evidenceType = evidenceMime?.startsWith('video/') ? 'Video' : 'Photo';
+            if (requiredEvidenceType && evidenceType !== requiredEvidenceType) {
+              setFormError(`This quest requires ${requiredEvidenceType.toLowerCase()} proof.`);
+              return;
+            }
 
             const result = await onComplete({
               taskId,
@@ -150,7 +173,14 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
       >
         <label>
           Active task
-          <select value={taskId} onChange={(e) => setTaskId(e.target.value)}>
+          <select
+            value={taskId}
+            onChange={(e) => {
+              setTaskId(e.target.value);
+              setEvidenceFile(null);
+              setCoaching(null);
+            }}
+          >
             <option value="">Select active task</option>
             {tasks.filter((task) => task.state === 'Active').map((task) => (
               <option key={task.id} value={task.id}>{task.title}</option>
@@ -162,7 +192,7 @@ export default function TaskCompletionForm({ tasks, onComplete, token }) {
           Evidence file
           <input
             type="file"
-            accept="image/*,video/*"
+            accept={fileAccept}
             required
             onChange={(e) => {
               setEvidenceFile(e.target.files?.[0] || null);

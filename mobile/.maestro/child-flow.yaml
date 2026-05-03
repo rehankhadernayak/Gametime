@@ -1,0 +1,30 @@
+appId: com.gametime.app
+---
+# Child PIN login → child home tab.
+# Set MAESTRO_PARENT_EMAIL, MAESTRO_CHILD_NAME, MAESTRO_CHILD_PIN (4 digits, default 1234).
+- launchApp
+- assertVisible: "I'm a Child"
+- tapOn:
+    id: "welcome-child-login"
+- assertVisible: "Child Login"
+- tapOn:
+    id: "child-login-parent-email"
+- inputText: ${MAESTRO_PARENT_EMAIL}
+- tapOn:
+    id: "child-login-child-name"
+- inputText: ${MAESTRO_CHILD_NAME}
+- tapOn:
+    id: "child-pin-key-1"
+- tapOn:
+    id: "child-pin-key-2"
+- tapOn:
+    id: "child-pin-key-3"
+- tapOn:
+    id: "child-pin-key-4"
+- hideKeyboard
+- tapOn:
+    id: "child-login-submit"
+- extendedWaitUntil:
+    visible:
+      id: "child-home-screen"
+    timeout: 30000

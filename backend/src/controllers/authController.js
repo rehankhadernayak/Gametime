@@ -11,6 +11,7 @@ import { verifyEmailExists } from '../services/emailExistenceService.js';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/emailService.js';
 import { logger } from '../utils/logger.js';
 import {
+  childElevateToParentSchema,
   childLoginSchema,
   childSessionLoginSchema,
   childPinLoginSchema,
@@ -71,13 +72,45 @@ function parseDurationMs(value) {
 const SESSION_DURATION_MS = parseDurationMs(env.jwtExpiresIn);
 
 function cookieOptions() {
+  const isProd = process.env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    sameSite: 'lax',
-    // Only mark Secure in production so that HTTP-only dev setups still work.
-    secure: process.env.NODE_ENV === 'production',
+    // In production the web frontend (vercel.app / custom domain) is served
+    // from a different origin than the API, so the cookie has to be marked
+    // SameSite=None and Secure to be sent on cross-site requests.
+    // Locally (http://localhost) Chrome won't accept SameSite=None+Secure
+    // over plain HTTP, so we keep Lax for dev.
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd,
     maxAge: SESSION_DURATION_MS
   };
+}
+
+/** Non-httpOnly role hint for UI gating (never trust for authorization). */
+function userRoleCookieOptions() {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: false,
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd,
+    maxAge: SESSION_DURATION_MS,
+    path: '/'
+  };
+}
+
+function setUserRoleCookie(res, role) {
+  const value = role === 'parent' || role === 'child' ? role : '';
+  if (!value) return;
+  res.cookie('user_role', value, userRoleCookieOptions());
+}
+
+function clearUserRoleCookie(res) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('user_role', {
+    path: '/',
+    sameSite: isProd ? 'none' : 'lax',
+    secure: isProd
+  });
 }
 
 function getAgeYears(dateOfBirth) {
@@ -105,6 +138,7 @@ async function issueToken(res, payload) {
 
   const token = jwt.sign({ ...payload, sessionId }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
   res.cookie('gametime_token', token, cookieOptions());
+  setUserRoleCookie(res, payload.role);
   return token;
 }
 
@@ -301,9 +335,10 @@ export async function me(req, res, next) {
     const db = await getDb();
     if (req.auth.role === 'parent') {
       const parent = await db.get(
-        'SELECT id, name, email, gp_balance as gpBalance, created_at as createdAt FROM parent_accounts WHERE id = ?',
+        'SELECT id, name, email, gp_balance as gpBalance, is_admin as isAdmin, created_at as createdAt FROM parent_accounts WHERE id = ?',
         [req.auth.parentId]
       );
+      if (parent) parent.isAdmin = Boolean(parent.isAdmin);
       return res.json({ role: 'parent', user: parent });
     }
 
@@ -330,7 +365,64 @@ export async function logout(req, res, next) {
     const db = await getDb();
     await db.run('UPDATE sessions SET revoked = 1 WHERE id = ?', [req.auth.sessionId]);
     res.clearCookie('gametime_token');
+    clearUserRoleCookie(res);
     return res.json({ message: 'Logged out' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /auth/sync-cookies
+ * Refreshes the readable `user_role` cookie from the validated session (JWT in
+ * cookie or Authorization header). Used after legacy localStorage-only upgrades.
+ */
+export async function syncSessionCookies(req, res, next) {
+  try {
+    setUserRoleCookie(res, req.auth.role);
+    return res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /auth/elevate-to-parent
+ * Child proves they know the parent account password; issues a parent JWT for the same household.
+ */
+export async function childElevateToParent(req, res, next) {
+  try {
+    if (req.auth.role !== 'child') {
+      throw new ApiError(403, 'Child session required');
+    }
+    const { password } = childElevateToParentSchema.parse(req.body);
+    const db = await getDb();
+
+    const parent = await db.get(
+      'SELECT id, name, email, password_hash, is_admin as isAdmin FROM parent_accounts WHERE id = ?',
+      [req.auth.parentId]
+    );
+    if (!parent) throw new ApiError(404, 'Parent account not found');
+
+    const matches = await bcrypt.compare(password, parent.password_hash);
+    if (!matches) {
+      throw new ApiError(401, 'Invalid parent password');
+    }
+
+    await db.run('UPDATE sessions SET revoked = 1 WHERE id = ?', [req.auth.sessionId]);
+
+    const isAdmin = Boolean(parent.isAdmin);
+    const token = await issueToken(res, { role: 'parent', parentId: parent.id, isAdmin });
+
+    return res.json({
+      token,
+      parent: {
+        id: parent.id,
+        name: parent.name,
+        email: parent.email,
+        isAdmin
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -389,10 +481,11 @@ export async function resetPassword(req, res, next) {
 
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
+    const nowIso = new Date().toISOString();
     const record = await db.get(
       `SELECT * FROM password_reset_tokens
-       WHERE token_hash = ? AND used_at IS NULL AND expires_at > datetime('now')`,
-      [tokenHash]
+       WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?`,
+      [tokenHash, nowIso]
     );
 
     if (!record) {

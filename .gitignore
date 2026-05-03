@@ -3,12 +3,38 @@
 .env.production
 *.db
 *.sqlite
+.e2e/
+.e2e-live/
+test-results/
+playwright-report/
+playwright-report-live/
+artifacts/
+.demo-video/
 node_modules/
 dist/
 build/
+.next/
+next-env.d.ts
 .expo/
+# Cursor Cloud: bootstrapped Node (scripts/ensure-node-on-path.sh)
+.cursor/runtime/
 .DS_Store
 Gametime-Product-Build-Web.zip
 demo_build/
 .aider*
 .env*
+# Explicit: local secret handover (never commit)
+.env.secrets
+web-next/.env.deployment
+# Copied from ../frontend for Vercel CLI deploys (monorepo sibling not uploaded)
+web-next/frontend/
+!web-next/.env.deployment.example
+
+# Supabase CLI (may contain project ref / local overrides)
+.supabase/
+
+# Terraform (local state; use remote backend in real teams)
+infra/aws/terraform/.terraform/
+infra/aws/terraform/*.tfstate
+infra/aws/terraform/*.tfstate.*
+infra/aws/terraform/terraform.tfvars

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { LayoutGroup, motion } from 'framer-motion';
+import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE, apiRequest } from '../api/client.js';
 import EvidenceReviewPanel from '../components/EvidenceReviewPanel.jsx';
 import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
+import FundGiftCardVaultButton from '../components/FundGiftCardVaultButton.jsx';
 import ChildAvatar from '../components/ChildAvatar.jsx';
+import AssignQuestModal from '../components/AssignQuestModal.jsx';
 
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
@@ -64,7 +67,9 @@ import StatusChip from '../components/StatusChip.jsx';
 import MetricIcon from '../components/MetricIcon.jsx';
 import TaskTable from '../components/TaskTable.jsx';
 import WeeklyPlanTable from '../components/WeeklyPlanTable.jsx';
+import HoldToConfirmButton from '../components/HoldToConfirmButton.jsx';
 import { trackEvent } from '../utils/analytics.js';
+import { normalizeTasksListResponse } from '../utils/tasksList.js';
 import amazonCardImage from '../assets/giftcards/amazon.svg';
 import steamCardImage from '../assets/giftcards/steam.svg';
 import valorantCardImage from '../assets/giftcards/valorant.svg';
@@ -77,6 +82,7 @@ import googleplayCardImage from '../assets/giftcards/googleplay.svg';
 import appleCardImage from '../assets/giftcards/apple.svg';
 import fortniteCardImage from '../assets/giftcards/fortnite.svg';
 import minecraftCardImage from '../assets/giftcards/minecraft.svg';
+import './ParentDashboard.css';
 
 const SETTINGS_KEY = 'gametime_parent_settings';
 const PARENT_GAME_RULE_SUGGESTIONS = [
@@ -94,6 +100,11 @@ const PARENT_REWARD_SUGGESTIONS = [
 
 function sanitizeText(value, max = 1000) {
   return String(value || '').replace(/[<>]/g, '').trim().slice(0, max);
+}
+
+function pushGametimeToast(detail) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('gametime:toast', { detail }));
 }
 
 function parseManualGiftcardCodes(input) {
@@ -135,7 +146,7 @@ function pickGiftcardImage(card) {
 export default function ParentDashboard({ token, onSwitchToChild, parentName }) {
   /* ── Shell navigation ref - lets us drive DashboardShell section changes ── */
   const shellRef = useRef({});
-  const navigate = useNavigate();
+  const router = useAppRouter();
 
 
   const [children, setChildren] = useState([]);
@@ -186,6 +197,8 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [txnDateFrom, setTxnDateFrom] = useState('');
   const [txnDateTo, setTxnDateTo] = useState('');
   const [showTopUp, setShowTopUp] = useState(false);
+  const [showAssignQuest, setShowAssignQuest] = useState(false);
+  const [questModalChildId, setQuestModalChildId] = useState('');
   const [undoAdjustment, setUndoAdjustment] = useState(null);
   const [undoSecondsLeft, setUndoSecondsLeft] = useState(0);
   const [message, setMessage] = useState('');
@@ -194,14 +207,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   const [gamingError, setGamingError] = useState('');
   const [gamingBusy, setGamingBusy] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [approveAllBusy, setApproveAllBusy] = useState(false);
   const [stripeAmountSgd, setStripeAmountSgd] = useState(10);
   const [stripeLoading, setStripeLoading] = useState(false);
   const [briefing, setBriefing] = useState(null); // { briefing, stats, actions }
   const [briefingActionResults, setBriefingActionResults] = useState({});
-  const [settings, setSettings] = useState(() => {
-    const stored = localStorage.getItem(SETTINGS_KEY);
-    return stored ? JSON.parse(stored) : { defaultTaskPoints: 10, requireApprovalNotes: false };
-  });
+  const [settings, setSettings] = useState({ defaultTaskPoints: 10, requireApprovalNotes: false });
+  const [taskDecisionBusy, setTaskDecisionBusy] = useState(() => new Set());
+  const [pointsAdjustSubmitting, setPointsAdjustSubmitting] = useState(false);
 
   async function executeBriefingAction(action, key) {
     try {
@@ -240,6 +253,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     setMsgKind(kind);
   }
 
+  function openAssignQuest(childId = '') {
+    setQuestModalChildId(childId);
+    setShowAssignQuest(true);
+  }
+
   async function handleStripeTopUp() {
     setStripeLoading(true);
     try {
@@ -248,18 +266,18 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
         token,
         body: { amountSgd: stripeAmountSgd }
       });
-      window.location.href = url;
+      if (typeof window !== 'undefined') window.location.href = url;
     } catch (err) {
       notify(err.message || 'Could not start payment. Please try again.', 'error');
       setStripeLoading(false);
     }
   }
 
-  async function loadAll() {
-    setLoading(true);
+  async function fetchDashboardData({ silent = false } = {}) {
+    if (!silent) setLoading(true);
     try {
       const childList = await apiRequest('/children/list', { token });
-      const [taskList, taskRequestList, rewardList, notificationList, inventoryList, gpSummaryRes] = await Promise.all([
+      const [taskListRaw, taskRequestList, rewardList, notificationList, inventoryList, gpSummaryRes] = await Promise.all([
         apiRequest('/tasks/list', { token }),
         apiRequest('/tasks/requests', { token }),
         apiRequest('/rewards/list', { token }),
@@ -300,7 +318,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       const leaderboardRes = await apiRequest('/children/leaderboard', { token }).catch(() => []);
       setChildren(childList);
       setLeaderboard(Array.isArray(leaderboardRes) ? leaderboardRes : []);
-      setTasks(taskList);
+      setTasks(normalizeTasksListResponse(taskListRaw).tasks);
       setTaskRequests(taskRequestList);
       setRewards(rewardList);
       setGiftcardInventory(inventoryList);
@@ -322,12 +340,32 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     } catch (error) {
       notify(error.message, 'error');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
+  async function loadAll() {
+    return fetchDashboardData({ silent: false });
+  }
+
+  async function refreshDashboardSilently() {
+    return fetchDashboardData({ silent: true });
+  }
+
   useEffect(() => {
-    loadAll();
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') setSettings((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDashboardData({ silent: false });
   }, []);
 
   // Proactive AI briefing - load on mount, fail silently after 3s
@@ -343,12 +381,20 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
 
   // Detect Stripe redirect back from checkout
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const topup = params.get('topup');
+    const payment = params.get('payment');
     if (topup === 'success') {
       window.history.replaceState({}, '', '/parent/dashboard');
       notify('Payment successful! Your GP wallet has been topped up.', 'success');
     } else if (topup === 'cancelled') {
+      window.history.replaceState({}, '', '/parent/dashboard');
+      notify('Payment cancelled - no charge was made.', 'error');
+    } else if (payment === 'success') {
+      window.history.replaceState({}, '', '/parent/dashboard');
+      notify('Payment received. We will add your Amazon gift cards to the vault soon.', 'success');
+    } else if (payment === 'cancelled') {
       window.history.replaceState({}, '', '/parent/dashboard');
       notify('Payment cancelled - no charge was made.', 'error');
     }
@@ -480,6 +526,37 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     [giftcardSkus, giftcardPurchaseForm.skuId]
   );
 
+  async function approveAllPendingTasks() {
+    const pending = tasks.filter((t) => t.state === 'PendingApproval');
+    if (pending.length === 0) return;
+    if (settings.requireApprovalNotes) {
+      const missing = pending.some((task) => !sanitizeText(decisionNotes[task.id] || ''));
+      if (missing) {
+        notify('Approval notes are required by settings. Add a note for each task first.', 'error');
+        return;
+      }
+    }
+    setApproveAllBusy(true);
+    try {
+      for (const task of pending) {
+        const note = sanitizeText(decisionNotes[task.id] || '');
+        await apiRequest('/tasks/approve', {
+          method: 'POST',
+          token,
+          body: { taskId: task.id, note: note || null }
+        });
+      }
+      notify(`Approved ${pending.length} task(s).`);
+      trackEvent('task_bulk_approve', { count: pending.length });
+      await loadAll();
+    } catch (error) {
+      notify(error.message || 'Bulk approve failed.', 'error');
+      await loadAll();
+    } finally {
+      setApproveAllBusy(false);
+    }
+  }
+
   async function applyTaskDecision(task, decision) {
     const note = sanitizeText(decisionNotes[task.id] || '');
     if (settings.requireApprovalNotes && !note) {
@@ -487,14 +564,24 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       return;
     }
 
-    const optimisticState = decision === 'approve' ? 'Approved' : 'Active';
-    setTasks((prev) => prev.map((item) => (item.id === task.id ? { ...item, state: optimisticState, parentNote: note || null } : item)));
+    if (decision === 'approve') {
+      setTasks((prev) => prev.filter((item) => item.id !== task.id));
+    } else {
+      setTasks((prev) =>
+        prev.map((item) =>
+          item.id === task.id ? { ...item, state: 'Active', parentNote: note || null } : item
+        )
+      );
+    }
+
+    setTaskDecisionBusy((prev) => new Set(prev).add(task.id));
 
     try {
       await apiRequest(`/tasks/${decision}`, {
         method: 'POST',
         token,
-        body: { taskId: task.id, note: note || null }
+        body: { taskId: task.id, note: note || null },
+        suppressErrorToast: true
       });
       notify(
         decision === 'approve'
@@ -502,11 +589,23 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           : `Task sent back for retry: ${task.title}`
       );
       trackEvent('task_decision', { decision, taskId: task.id, childId: task.childId });
-      await loadAll();
+      void refreshDashboardSilently();
     } catch (error) {
-      notify(error.message, 'error');
+      if (decision === 'approve') {
+        setTasks((prev) => [...prev, { ...task, state: 'PendingApproval' }]);
+      } else {
+        setTasks((prev) =>
+          prev.map((item) => (item.id === task.id ? { ...task, state: 'PendingApproval', parentNote: task.parentNote } : item))
+        );
+      }
+      pushGametimeToast({ type: 'error', title: 'Request failed', message: error.message });
       trackEvent('task_decision_failed', { decision, taskId: task.id, error: error.message });
-      await loadAll();
+    } finally {
+      setTaskDecisionBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
     }
   }
 
@@ -594,7 +693,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 <p className="section-subtitle">Manage RP, GP, tasks, and approvals from one place.</p>
               </div>
               <div className="quick-actions">
-                <button type="button" className="secondary-button" onClick={() => goToSection('tasks')}>Create Task</button>
+                <button type="button" className="secondary-button" onClick={() => openAssignQuest('')}>Assign quest</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('family')}>Add Child</button>
                 <button type="button" className="secondary-button" onClick={() => goToSection('gaming')}>Set Game Rules</button>
@@ -699,88 +798,142 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           </section>
 
           <section className="panel">
-            <h2>Approvals by Child</h2>
+            <div className="panel-top">
+              <h2>Approvals by Child</h2>
+              {tasks.some((t) => t.state === 'PendingApproval') ? (
+                <HoldToConfirmButton
+                  label="Approve all pending"
+                  disabled={approveAllBusy}
+                  aria-label="Hold to approve all tasks that are waiting for approval"
+                  onComplete={approveAllPendingTasks}
+                />
+              ) : null}
+            </div>
             {Object.keys(pendingByChild).length === 0 ? (
               <p>No tasks are waiting for approval.</p>
             ) : (
-              Object.entries(pendingByChild).map(([childName, childTasks]) => (
-                <article key={childName} className="panel subtle-panel">
-                  <h3>{childName}</h3>
-                  <div className="table-wrap">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>Task</th>
-                          <th>AI Advisory</th>
-                          <th>Evidence</th>
-                          <th>Dispute</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {childTasks.map((task) => (
-                          <tr key={task.id}>
-                            <td>
-                              <strong>{task.title}</strong>
-                              <div><StatusChip state={task.state} /></div>
-                            </td>
-                            <td>
-                              <div className="ai-review-box" aria-live="polite">
-                                {!task.aiStatus ? (
-                                  <p className="ai-pending">Analysis pending…</p>
-                                ) : (
-                                  <>
-                                    <p>
-                                      <strong>{task.aiStatus === 'Unavailable' ? 'Local advisory' : 'AI'}:</strong>{' '}
-                                      {task.aiRecommendation || 'NeedsParentReview'}
-                                      {task.aiStatus === 'Unavailable' ? <span className="ai-badge"> (no AI key)</span> : null}
-                                    </p>
-                                    <p><strong>Confidence:</strong> {Number.isFinite(Number(task.aiConfidence)) ? `${Math.round(Number(task.aiConfidence) * 100)}%` : 'N/A'}</p>
-                                    {task.aiReason ? <p className="ai-reason"><strong>Reason:</strong> {task.aiReason}</p> : null}
-                                  </>
-                                )}
+              <LayoutGroup id="parent-pending-approvals">
+                <div className="approvals-by-child-stack">
+                  {Object.entries(pendingByChild).map(([childName, childTasks]) => (
+                    <motion.article
+                      key={childName}
+                      layout
+                      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                      className="panel subtle-panel approval-child-panel"
+                    >
+                      <h3>{childName}</h3>
+                      <div className="approval-task-list">
+                        {childTasks.map((task) => {
+                          const busy = taskDecisionBusy.has(task.id);
+                          return (
+                            <motion.div
+                              key={task.id}
+                              layout
+                              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                              className="approval-task-card"
+                            >
+                              <div className="approval-task-card__title-row">
+                                <strong>{task.title}</strong>
+                                <StatusChip state={task.state} />
                               </div>
-                            </td>
-                            <td>
-                              {task.hasEvidence && task.completionId ? (
-                                <div className="evidence-box">
-                                  <p><strong>Evidence:</strong> {task.evidenceType || 'File'}</p>
-                                  <button
-                                    type="button"
-                                    className="task-review-btn"
-                                    style={{ marginTop: '0.4rem' }}
-                                    onClick={() => setReviewPanel({ taskId: task.id, submissionId: task.completionId })}
-                                  >
-                                    Review Evidence
-                                  </button>
-                                  {task.evidenceNote ? <p><strong>Child note:</strong> {task.evidenceNote}</p> : null}
+                              <div className="approval-task-card__grid">
+                                <div className="approval-task-card__block">
+                                  <h4>AI advisory</h4>
+                                  <div className="ai-review-box" aria-live="polite">
+                                    {!task.aiStatus ? (
+                                      <p className="ai-pending">Analysis pending…</p>
+                                    ) : (
+                                      <>
+                                        <p>
+                                          <strong>{task.aiStatus === 'Unavailable' ? 'Local advisory' : 'AI'}:</strong>{' '}
+                                          {task.aiRecommendation || 'NeedsParentReview'}
+                                          {task.aiStatus === 'Unavailable' ? <span className="ai-badge"> (no AI key)</span> : null}
+                                        </p>
+                                        <p>
+                                          <strong>Confidence:</strong>{' '}
+                                          {Number.isFinite(Number(task.aiConfidence))
+                                            ? `${Math.round(Number(task.aiConfidence) * 100)}%`
+                                            : 'N/A'}
+                                        </p>
+                                        {task.aiReason ? (
+                                          <p className="ai-reason">
+                                            <strong>Reason:</strong> {task.aiReason}
+                                          </p>
+                                        ) : null}
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                              ) : 'No evidence'}
-                            </td>
-                            <td>
-                              {task.disputed ? <p className="dispute-note"><strong>Dispute:</strong> {task.disputeNote}</p> : 'None'}
-                            </td>
-                            <td>
-                              <div className="inline-form">
+                                <div className="approval-task-card__block">
+                                  <h4>Evidence & dispute</h4>
+                                  {task.hasEvidence && task.completionId ? (
+                                    <div className="evidence-box">
+                                      <p>
+                                        <strong>Evidence:</strong> {task.evidenceType || 'File'}
+                                      </p>
+                                      <button
+                                        type="button"
+                                        className="task-review-btn"
+                                        onClick={() => setReviewPanel({ taskId: task.id, submissionId: task.completionId })}
+                                      >
+                                        Review Evidence
+                                      </button>
+                                      {task.evidenceNote ? (
+                                        <p>
+                                          <strong>Child note:</strong> {task.evidenceNote}
+                                        </p>
+                                      ) : null}
+                                    </div>
+                                  ) : (
+                                    <p>No evidence</p>
+                                  )}
+                                  {task.disputed ? (
+                                    <p className="dispute-note approval-dispute-gap">
+                                      <strong>Dispute:</strong> {task.disputeNote}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="approval-task-card__actions">
                                 <label>
                                   Approval note
                                   <input
                                     maxLength={200}
                                     value={decisionNotes[task.id] || ''}
-                                    onChange={(e) => setDecisionNotes((prev) => ({ ...prev, [task.id]: e.target.value }))}
+                                    onChange={(e) =>
+                                      setDecisionNotes((prev) => ({ ...prev, [task.id]: e.target.value }))
+                                    }
                                   />
                                 </label>
-                                <button type="button" onClick={() => applyTaskDecision(task, 'approve')}>Approve</button>
-                                <button type="button" onClick={() => applyTaskDecision(task, 'reject')}>Reject</button>
+                                <button
+                                  type="button"
+                                  className={`approval-action-btn${busy ? ' approval-action-btn--busy' : ''}`}
+                                  onClick={() => applyTaskDecision(task, 'approve')}
+                                  disabled={busy}
+                                  aria-busy={busy}
+                                >
+                                  {busy ? <span className="approval-btn-spinner" aria-hidden="true" /> : null}
+                                  Approve
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`approval-action-btn${busy ? ' approval-action-btn--busy' : ''}`}
+                                  onClick={() => applyTaskDecision(task, 'reject')}
+                                  disabled={busy}
+                                  aria-busy={busy}
+                                >
+                                  {busy ? <span className="approval-btn-spinner" aria-hidden="true" /> : null}
+                                  Reject
+                                </button>
                               </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </article>
-              ))
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </motion.article>
+                  ))}
+                </div>
+              </LayoutGroup>
             )}
           </section>
 
@@ -1164,7 +1317,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               <button
                 type="button"
                 className="family-settings-redirect-btn"
-                onClick={() => navigate('/parent/settings?tab=children')}
+                onClick={() => router.push('/parent/settings?tab=children')}
               >
                 Open Settings
               </button>
@@ -1181,6 +1334,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                       <th>RP</th>
                       <th>GP</th>
                       <th>Login</th>
+                      <th>Quest</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -1217,6 +1371,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                           {child.hasPasswordLogin && child.hasPinLogin ? ' + ' : ''}
                           {child.hasPinLogin ? 'PIN enabled' : ''}
                           {!child.hasPasswordLogin && !child.hasPinLogin ? 'No child login yet' : ''}
+                        </td>
+                        <td className="table-actions">
+                          <button type="button" className="secondary-button small" onClick={() => openAssignQuest(child.id)}>
+                            Assign quest
+                          </button>
                         </td>
                         <td className="table-actions">
                           <button type="button" onClick={() => onSwitchToChild(child.id)}>Open Child View</button>
@@ -1381,19 +1540,58 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                   return;
                 }
 
+                const childBefore = children.find((c) => c.id === payload.childId);
+                const childName = childBefore?.name || 'Child';
+                const prevBalance = Number(childBefore?.pointsBalance ?? 0);
+                const optimisticBalance = prevBalance + payload.points;
+
+                setChildren((prev) =>
+                  prev.map((c) =>
+                    c.id === payload.childId ? { ...c, pointsBalance: optimisticBalance } : c
+                  )
+                );
+
+                pushGametimeToast({
+                  type: 'success',
+                  title: payload.points > 0 ? 'Points sent' : 'Points adjusted',
+                  message:
+                    payload.points > 0
+                      ? `Sent +${payload.points} RP to ${childName}`
+                      : `${payload.points} RP for ${childName}`
+                });
+
+                setUndoAdjustment({
+                  childId: payload.childId,
+                  points: payload.points * -1,
+                  note: `Undo: ${payload.note}`
+                });
+                setPointsAdjustSubmitting(true);
+
                 try {
-                  await apiRequest('/points/adjust', { method: 'POST', token, body: payload });
-                  notify(`Points updated: ${payload.points > 0 ? '+' : ''}${payload.points}`);
-                  setUndoAdjustment({
-                    childId: payload.childId,
-                    points: payload.points * -1,
-                    note: `Undo: ${payload.note}`
+                  const res = await apiRequest('/points/adjust', {
+                    method: 'POST',
+                    token,
+                    body: payload,
+                    suppressErrorToast: true
                   });
+                  const serverBalance =
+                    res && typeof res.newBalance === 'number' ? res.newBalance : optimisticBalance;
+                  setChildren((prev) =>
+                    prev.map((c) => (c.id === payload.childId ? { ...c, pointsBalance: serverBalance } : c))
+                  );
                   trackEvent('points_adjusted', payload);
-                  await loadAll();
+                  void refreshDashboardSilently();
                 } catch (error) {
-                  notify(error.message, 'error');
+                  setChildren((prev) =>
+                    prev.map((c) =>
+                      c.id === payload.childId ? { ...c, pointsBalance: prevBalance } : c
+                    )
+                  );
+                  setUndoAdjustment(null);
+                  pushGametimeToast({ type: 'error', title: 'Request failed', message: error.message });
                   trackEvent('points_adjust_failed', { childId: payload.childId, error: error.message });
+                } finally {
+                  setPointsAdjustSubmitting(false);
                 }
               }}
             >
@@ -1416,7 +1614,15 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 Reason
                 <input value={pointsForm.note} onChange={(e) => setPointsForm({ ...pointsForm, note: e.target.value })} />
               </label>
-              <button type="submit">Adjust</button>
+              <button
+                type="submit"
+                className={pointsAdjustSubmitting ? 'points-adjust-submit points-adjust-submit--busy' : 'points-adjust-submit'}
+                disabled={pointsAdjustSubmitting}
+                aria-busy={pointsAdjustSubmitting}
+              >
+                {pointsAdjustSubmitting ? <span className="approval-btn-spinner" aria-hidden="true" /> : null}
+                Adjust
+              </button>
             </form>
             {undoAdjustment ? (
               <div className="undo-bar">
@@ -1433,7 +1639,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                       notify('Points adjustment was undone.');
                       setUndoAdjustment(null);
                       trackEvent('points_adjust_undone', { childId: undoAdjustment.childId });
-                      await loadAll();
+                      await refreshDashboardSilently();
                     } catch (error) {
                       notify(error.message, 'error');
                       trackEvent('points_adjust_undo_failed', { error: error.message });
@@ -1480,12 +1686,23 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       id: 'tasks',
       label: 'Tasks',
       content: (
-        <TaskTable
-          token={token}
-          tasks={tasks}
-          children={children}
-          onRefresh={loadAll}
-        />
+        <>
+          <div className="panel panel-top task-quest-launch">
+            <div>
+              <h2 className="task-quest-launch-title">Assign a New Quest</h2>
+              <p className="section-subtitle">Launch a guided quest with RP, due date, and required proof type.</p>
+            </div>
+            <button type="button" className="primary-button" onClick={() => openAssignQuest('')}>
+              Open quest creator
+            </button>
+          </div>
+          <TaskTable
+            token={token}
+            tasks={tasks}
+            children={children}
+            onRefresh={loadAll}
+          />
+        </>
       )
     },
     {
@@ -1513,6 +1730,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 <p>Set GP bonuses on tasks. Children earn GP and spend it to claim codes.</p>
               </div>
             </div>
+          </section>
+
+          <section className="panel">
+            <h2>Amazon gift card vault</h2>
+            <p className="helper-text">
+              Fund the vault so we can stock Amazon codes for your family. This checkout is separate from GP wallet top-ups.
+            </p>
+            <FundGiftCardVaultButton token={token} onError={(msg) => notify(msg, 'error')} />
           </section>
 
           {/* ── Section 1: Add gift card codes ────────────────────────────── */}
@@ -1997,6 +2222,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
         sections={sections}
         variant="parent"
         controlRef={shellRef}
+        settingsHref="/parent/settings"
       />
       {reviewPanel && (
         <EvidenceReviewPanel
@@ -2006,7 +2232,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           onClose={() => setReviewPanel(null)}
           onReviewed={(_decision, _taskId) => {
             setReviewPanel(null);
-            loadAll();
+            void refreshDashboardSilently();
           }}
         />
       )}
@@ -2018,6 +2244,20 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           onSuccess={() => {
             setShowTopUp(false);
             loadAll();
+          }}
+        />
+      )}
+      {showAssignQuest && (
+        <AssignQuestModal
+          token={token}
+          children={children}
+          defaultChildId={questModalChildId}
+          onClose={() => setShowAssignQuest(false)}
+          onCreated={() => {
+            setShowAssignQuest(false);
+            notify('Quest assigned.');
+            loadAll();
+            shellRef.current?.jumpToSection?.('tasks');
           }}
         />
       )}
