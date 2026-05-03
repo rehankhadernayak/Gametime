@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   Image,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -51,7 +52,7 @@ const initialForm = { name: '', dateOfBirth: '', email: '', password: '', pin: '
 
 export default function ParentChildrenScreen() {
   const navigation = useNavigation();
-  const { token, loginWithToken } = useAuth();
+  const { token, loginWithToken, logout } = useAuth();
   const [children, setChildren]             = useState([]);
   const [uploadingChildId, setUploadingChildId] = useState(null);
   const [apiBase, setApiBase]               = useState('');
@@ -63,6 +64,10 @@ export default function ParentChildrenScreen() {
   const [showSettings, setShowSettings]     = useState(false);
   const [form, setForm]                     = useState(initialForm);
   const [parentSettings, setParentSettings] = useState(DEFAULT_PARENT_SETTINGS);
+  const [deleteGateOpen, setDeleteGateOpen] = useState(false);
+  const [deletePasswordOpen, setDeletePasswordOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const loadChildren = useCallback(async () => {
     const list = await apiRequest('/children/list', { token });
@@ -148,6 +153,21 @@ export default function ParentChildrenScreen() {
     finally { setLoading(false); }
   }
 
+  async function confirmDeleteFamilyAccount() {
+    setDeleteBusy(true);
+    setError('');
+    try {
+      await apiRequest('/auth/account', { method: 'DELETE', token, body: { password: deletePassword } });
+      setDeletePasswordOpen(false);
+      setDeletePassword('');
+      await logout();
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
   async function saveSettings() {
     setMessage(''); setError('');
     const points = Number(parentSettings.defaultTaskPoints);
@@ -169,6 +189,97 @@ export default function ParentChildrenScreen() {
       showsVerticalScrollIndicator={false}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
     >
+      <Modal
+        visible={deleteGateOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !deleteBusy && setDeleteGateOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Delete your family account?</Text>
+            <Text style={styles.modalBody}>
+              This action is permanent. It will remove every child profile, all task history, and unused playtime
+              minutes for your household.
+            </Text>
+            <Text style={styles.modalCompliance}>
+              All data will be removed from our servers within 24 hours to comply with privacy regulations.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnGhost]}
+                onPress={() => setDeleteGateOpen(false)}
+                disabled={deleteBusy}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalBtnGhostText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnDanger]}
+                onPress={() => {
+                  setDeleteGateOpen(false);
+                  setDeletePassword('');
+                  setDeletePasswordOpen(true);
+                }}
+                disabled={deleteBusy}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalBtnDangerText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deletePasswordOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !deleteBusy && setDeletePasswordOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Confirm deletion</Text>
+            <Text style={styles.modalBody}>
+              Enter your parent account password to permanently delete your family account.
+            </Text>
+            <InputField
+              label="Password"
+              value={deletePassword}
+              onChangeText={setDeletePassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <Text style={styles.modalCompliance}>
+              All data will be removed from our servers within 24 hours to comply with privacy regulations.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnGhost]}
+                onPress={() => {
+                  if (deleteBusy) return;
+                  setDeletePasswordOpen(false);
+                  setDeletePassword('');
+                }}
+                disabled={deleteBusy}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalBtnGhostText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnDanger, deleteBusy && styles.modalBtnDisabled]}
+                onPress={confirmDeleteFamilyAccount}
+                disabled={deleteBusy || !deletePassword.trim()}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalBtnDangerText}>{deleteBusy ? 'Deleting…' : 'Delete forever'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── Header ── */}
       <View style={styles.header}>
         <View>
@@ -304,6 +415,27 @@ export default function ParentChildrenScreen() {
           })}
         </View>
       )}
+
+      <View style={styles.safetyCard}>
+        <Text style={styles.safetyTitle}>Safety and Privacy</Text>
+        <Text style={styles.safetyDesc}>
+          Permanently delete your Gametime household: all child profiles, task history, and unused playtime minutes.
+        </Text>
+        <Text style={styles.safetyCompliance}>
+          All data will be removed from our servers within 24 hours to comply with privacy regulations.
+        </Text>
+        <TouchableOpacity
+          style={styles.deleteFamilyBtn}
+          onPress={() => {
+            setError('');
+            setMessage('');
+            setDeleteGateOpen(true);
+          }}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.deleteFamilyBtnText}>Delete My Family Account</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* ── Parent Settings (collapsible) ── */}
       <TouchableOpacity
@@ -517,5 +649,61 @@ const styles = StyleSheet.create({
   },
   toggleBtnActive: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
   toggleBtnText: { fontWeight: '600', color: colors.textMuted, fontSize: 13 },
-  toggleBtnTextActive: { color: colors.primary }
+  toggleBtnTextActive: { color: colors.primary },
+
+  safetyCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm
+  },
+  safetyTitle: { fontSize: 17, fontWeight: '900', color: colors.text },
+  safetyDesc: { fontSize: 13, color: colors.textSecondary, lineHeight: 19 },
+  safetyCompliance: { fontSize: 12, color: colors.textMuted, lineHeight: 17 },
+  deleteFamilyBtn: {
+    marginTop: spacing.xs,
+    paddingVertical: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.errorSurface,
+    borderWidth: 1.5,
+    borderColor: colors.error,
+    alignItems: 'center'
+  },
+  deleteFamilyBtnText: { color: colors.error, fontWeight: '800', fontSize: 14 },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 18, 35, 0.55)',
+    justifyContent: 'center',
+    padding: spacing.lg
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border
+  },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: colors.text },
+  modalBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
+  modalCompliance: { fontSize: 12, color: colors.textMuted, lineHeight: 17, marginTop: spacing.xs },
+  modalActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: radius.lg,
+    alignItems: 'center'
+  },
+  modalBtnGhost: {
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface2
+  },
+  modalBtnGhostText: { fontWeight: '700', color: colors.textSecondary, fontSize: 14 },
+  modalBtnDanger: { backgroundColor: colors.error },
+  modalBtnDangerText: { fontWeight: '800', color: '#fff', fontSize: 14 },
+  modalBtnDisabled: { opacity: 0.55 }
 });

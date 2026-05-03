@@ -20,6 +20,9 @@ function IconBell() {
 function IconShield() {
   return <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 }
+function IconLock() {
+  return <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+}
 function IconSliders() {
   return <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>;
 }
@@ -84,6 +87,7 @@ const CATEGORIES = [
   { id: 'appearance',  label: 'Appearance',        Icon: IconPaint },
   { id: 'notifications', label: 'Notifications',   Icon: IconBell },
   { id: 'security',    label: 'Account & Security', Icon: IconShield },
+  { id: 'privacy',     label: 'Safety & Privacy',  Icon: IconLock },
   { id: 'preferences', label: 'Preferences',        Icon: IconSliders }
 ];
 
@@ -126,8 +130,8 @@ export default function SettingsPage({ token, parentName }) {
   const [pwdMsg,  setPwdMsg]  = useState('');
   const [pwdBusy, setPwdBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteAccountGate, setShowDeleteAccountGate] = useState(false);
+  const [showDeletePasswordForm, setShowDeletePasswordForm] = useState(false);
   const [removeChildTarget, setRemoveChildTarget] = useState(null);
   const [removeChildBusy, setRemoveChildBusy] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
@@ -160,6 +164,11 @@ export default function SettingsPage({ token, parentName }) {
 
   /* ── Load children on mount ── */
   useEffect(() => { loadChildren(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && CATEGORIES.some((c) => c.id === tab)) setActiveTab(tab);
+  }, [searchParams]);
 
   /* ── Persist font size to CSS var + localStorage ── */
   useEffect(() => {
@@ -597,8 +606,18 @@ export default function SettingsPage({ token, parentName }) {
           </div>
           <span className="settings-badge coming-soon">Coming soon</span>
         </div>
+      </div>
+    );
+  }
 
-        {/* PDPA Data Export */}
+  function renderPrivacy() {
+    return (
+      <div className="settings-section">
+        <div className="settings-section-head">
+          <h2>Safety and Privacy</h2>
+          <p className="settings-section-sub">Download your data or permanently remove your household from Gametime.</p>
+        </div>
+
         <div className="settings-panel">
           <h3>Download My Data</h3>
           <p className="settings-panel-desc">
@@ -615,25 +634,32 @@ export default function SettingsPage({ token, parentName }) {
           </button>
         </div>
 
-        {/* Danger Zone - Delete Account */}
         <div className="settings-panel settings-danger-zone">
-          <h3>Delete Account</h3>
+          <h3>Delete My Family Account</h3>
           <p className="settings-panel-desc">
-            Permanently delete your Gametime account and all associated data - children, tasks, rewards, and
-            points. <strong>This cannot be undone.</strong>
+            Permanently delete your Gametime household. This removes every child profile, all task and
+            approval history, rewards, balances, and unused playtime minutes for your family.
+            <strong> This cannot be undone.</strong>
           </p>
-          {!showDeleteConfirm ? (
+          <p className="settings-panel-desc settings-compliance-notice" role="note">
+            All data will be removed from our servers within 24 hours to comply with privacy regulations.
+          </p>
+          {!showDeletePasswordForm ? (
             <button
               type="button"
               className="settings-danger-btn"
-              onClick={() => { setShowDeleteAccountGate(true); setDeleteMsg(''); setDeletePassword(''); }}
+              onClick={() => {
+                setShowDeleteAccountGate(true);
+                setDeleteMsg('');
+                setDeletePassword('');
+              }}
             >
-              Delete My Account
+              Delete My Family Account
             </button>
           ) : (
             <form onSubmit={handleDeleteAccount} className="settings-form">
               <p className="settings-danger-warning">
-                Enter your password to confirm. All family data will be permanently erased.
+                Enter your password to confirm. Your entire family account will be permanently erased.
               </p>
               <label className="settings-form-label">
                 Your password
@@ -652,12 +678,16 @@ export default function SettingsPage({ token, parentName }) {
                 <button
                   type="button"
                   className="settings-action-btn"
-                  onClick={() => { setShowDeleteConfirm(false); setDeleteMsg(''); }}
+                  onClick={() => {
+                    setShowDeletePasswordForm(false);
+                    setDeleteMsg('');
+                    setDeletePassword('');
+                  }}
                 >
                   Cancel
                 </button>
                 <button type="submit" className="settings-danger-btn" disabled={deleteBusy}>
-                  {deleteBusy ? 'Deleting…' : 'Permanently Delete Account'}
+                  {deleteBusy ? 'Deleting…' : 'Permanently Delete Family Account'}
                 </button>
               </div>
             </form>
@@ -730,6 +760,7 @@ export default function SettingsPage({ token, parentName }) {
       case 'appearance':    return renderAppearance();
       case 'notifications': return renderNotifications();
       case 'security':      return renderSecurity();
+      case 'privacy':       return renderPrivacy();
       case 'preferences':   return renderPreferences();
       default:              return null;
     }
@@ -749,14 +780,17 @@ export default function SettingsPage({ token, parentName }) {
       />
       <GTConfirmDialog
         open={showDeleteAccountGate}
-        title="Delete Account?"
-        description="This action cannot be undone. All associated progress will be lost."
+        title="Delete your family account?"
+        description={
+          'This action is permanent. It will remove every child profile, all task history, and unused playtime minutes for your household. '
+          + 'All data will be removed from our servers within 24 hours to comply with privacy regulations.'
+        }
         cancelLabel="Cancel"
         confirmLabel="Continue"
         onCancel={() => setShowDeleteAccountGate(false)}
         onConfirm={() => {
           setShowDeleteAccountGate(false);
-          setShowDeleteConfirm(true);
+          setShowDeletePasswordForm(true);
           setDeleteMsg('');
           setDeletePassword('');
         }}

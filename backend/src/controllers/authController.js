@@ -11,6 +11,13 @@ import { verifyEmailExists } from '../services/emailExistenceService.js';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../services/emailService.js';
 import { logger } from '../utils/logger.js';
 import {
+  deleteSingleParentAccount,
+  pgDeleteFamilyCascade,
+  pgGetFamilyIdForParent,
+  pgHasFamiliesModel,
+  pgResolveParentTable
+} from '../services/accountDeletionService.js';
+import {
   childElevateToParentSchema,
   childLoginSchema,
   childSessionLoginSchema,
@@ -598,7 +605,8 @@ export async function exportData(req, res, next) {
 
 /**
  * DELETE /auth/account
- * Permanently deletes the parent's account (and all children via CASCADE).
+ * Permanently deletes the signed-in parent's household. On Postgres with the `families` model,
+ * deletes the whole family (co-parent + children). Otherwise deletes the single parent row (SQLite).
  * Requires password confirmation in the request body.
  */
 export async function deleteAccount(req, res, next) {
@@ -611,19 +619,32 @@ export async function deleteAccount(req, res, next) {
       throw new ApiError(400, 'Password confirmation is required to delete your account.');
     }
 
-    const parent = await db.get('SELECT password_hash FROM parent_accounts WHERE id = ?', [parentId]);
+    const isPg = Boolean(env.databaseUrl);
+    const parentTable = isPg ? await pgResolveParentTable(db) : 'parent_accounts';
+    const parent = await db.get(`SELECT password_hash FROM ${parentTable} WHERE id = ?`, [parentId]);
     if (!parent) throw new ApiError(404, 'Account not found');
 
     const matches = await bcrypt.compare(password, parent.password_hash);
     if (!matches) throw new ApiError(403, 'Incorrect password. Account not deleted.');
 
-    // Revoke all sessions first, then delete the account (CASCADE handles the rest)
-    await db.run('UPDATE sessions SET revoked = 1 WHERE parent_id = ?', [parentId]);
-    await db.run('DELETE FROM parent_accounts WHERE id = ?', [parentId]);
+    if (isPg && (await pgHasFamiliesModel(db))) {
+      const familyId = await pgGetFamilyIdForParent(db, parentTable, parentId);
+      if (familyId) {
+        await pgDeleteFamilyCascade(db, familyId, parentTable);
+      } else {
+        await deleteSingleParentAccount(db, parentId, parentTable);
+      }
+    } else {
+      await deleteSingleParentAccount(db, parentId, 'parent_accounts');
+    }
 
     res.clearCookie('gametime_token');
-    logger.info({ parentId }, 'Account deleted');
-    return res.json({ message: 'Account permanently deleted.' });
+    clearUserRoleCookie(res);
+    return res.json({
+      message: 'Account permanently deleted.',
+      dataRemovalNotice:
+        'All data will be removed from our servers within 24 hours to comply with privacy regulations.'
+    });
   } catch (error) {
     next(error);
   }

@@ -197,6 +197,7 @@ describe('PDPA — Data export and account deletion', () => {
       .set('Authorization', `Bearer ${throwawayToken}`)
       .send({ password: 'DeletePass123' });
     expect(del.statusCode).toBe(200);
+    expect(del.body.dataRemovalNotice).toContain('24 hours');
 
     const meRes = await request(app)
       .get('/auth/me')
