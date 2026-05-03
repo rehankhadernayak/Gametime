@@ -8,14 +8,16 @@ import {
   Text,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { HAPTIC_PATTERNS } from '../../theme/kinetic-mobile-theme.js';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/supabase';
 
 /** Matches ChildDashboard (Time Bank) kinetic cream theme. */
 const TIME_BANK_CREAM = '#F9F9F4';
@@ -94,6 +96,11 @@ function readGiftCardCode(row: Record<string, unknown>): string | null {
   return s !== '' ? s : null;
 }
 
+function obscureCode(code: string): string {
+  const len = Math.min(Math.max(code.length, 8), 24);
+  return '●'.repeat(len);
+}
+
 export default function ChildRewardsStore() {
   const insets = useSafeAreaInsets();
   const { user, refreshMe, token, role } = useAuth();
@@ -110,13 +117,13 @@ export default function ChildRewardsStore() {
   const timeBankMinutes = useMemo(() => readTimeBankMinutes(user as Record<string, unknown>), [user]);
 
   const [claimedRewards, setClaimedRewards] = useState<ClaimedReward[]>([]);
+  const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
 
   const loadClaimedRewards = useCallback(async () => {
     if (role !== 'child' || !childId || !token) return;
     const supabase = supabaseRef.current;
     if (!supabase) return;
 
-    const childTable = getSupabaseChildTableName();
     const { data, error } = await supabase
       .from('reward_requests')
       .select('id, reward_title, cost_minutes, gift_card_code, reward_type, created_at')
@@ -202,6 +209,21 @@ export default function ChildRewardsStore() {
       void loadClaimedRewards();
     }, [refreshMe, loadClaimedRewards])
   );
+
+  const toggleReveal = useCallback((id: string) => {
+    HAPTIC_PATTERNS.success();
+    setRevealedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const copyCode = useCallback(async (code: string) => {
+    try {
+      await Clipboard.setStringAsync(code);
+      HAPTIC_PATTERNS.success();
+      Alert.alert('Copied', 'Gift card code copied to clipboard.');
+    } catch {
+      Alert.alert('Copy failed', 'Could not copy to clipboard.');
+    }
+  }, []);
 
   const onBuy = useCallback(
     async (reward: PurchasableReward) => {
@@ -361,32 +383,64 @@ export default function ChildRewardsStore() {
       })}
 
       <View style={[styles.sectionRow, styles.claimedSectionTop]}>
-        <Text style={styles.sectionTitle}>Claimed rewards</Text>
+        <Text style={styles.sectionTitle}>My Claimed Rewards</Text>
       </View>
 
       {claimedRewards.length === 0 ? (
-        <Text style={styles.claimedEmpty}>When a parent approves a purchase, it shows up here.</Text>
+        <Text style={styles.claimedEmpty}>
+          When a parent approves a purchase (status approved), it shows up here.
+        </Text>
       ) : (
-        claimedRewards.map((cr) => (
-          <View key={cr.id} style={styles.rewardCard}>
-            <View style={styles.rewardTop}>
-              <View style={styles.rewardTextCol}>
-                <Text style={styles.rewardTitle}>{cr.rewardTitle}</Text>
-                <Text style={styles.rewardDesc}>Paid {cr.costMinutes} min</Text>
+        claimedRewards.map((cr) => {
+          const code = cr.giftCardCode?.trim() ?? '';
+          const hasCode = code.length > 0;
+          const revealed = revealedIds[cr.id] ?? false;
+
+          return (
+            <View key={cr.id} style={styles.rewardCard}>
+              <View style={styles.rewardTop}>
+                <View style={styles.rewardTextCol}>
+                  <Text style={styles.rewardTitle}>{cr.rewardTitle}</Text>
+                  <Text style={styles.rewardDesc}>Paid {cr.costMinutes} min</Text>
+                </View>
               </View>
+              {cr.rewardType === 'Gift Card' && hasCode ? (
+                <>
+                  <Text style={styles.codeSectionLabel}>Gift card code</Text>
+                  <Pressable
+                    onPress={() => toggleReveal(cr.id)}
+                    style={({ pressed }) => [styles.revealShell, pressed && styles.revealPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={revealed ? 'Hide gift card code' : 'Tap to reveal gift card code'}
+                  >
+                    <Text
+                      style={[styles.codeRevealText, !revealed && styles.codeRevealTextHidden]}
+                      selectable={revealed}
+                      numberOfLines={1}
+                    >
+                      {revealed ? code : obscureCode(code)}
+                    </Text>
+                    {!revealed ? (
+                      <Text style={styles.revealHint}>Tap to reveal</Text>
+                    ) : null}
+                  </Pressable>
+                  {revealed ? (
+                    <Pressable
+                      onPress={() => void copyCode(code)}
+                      style={({ pressed }) => [styles.copyBtn, pressed && styles.copyBtnPressed]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Copy gift card code"
+                    >
+                      <Text style={styles.copyBtnText}>Copy</Text>
+                    </Pressable>
+                  ) : null}
+                </>
+              ) : cr.rewardType === 'Gift Card' ? (
+                <Text style={styles.codePending}>Your parent will add the code here once it&apos;s ready.</Text>
+              ) : null}
             </View>
-            {cr.rewardType === 'Gift Card' && cr.giftCardCode ? (
-              <View style={styles.codeBox}>
-                <Text style={styles.codeLabel}>Your code</Text>
-                <Text style={styles.codeValue} selectable>
-                  {cr.giftCardCode}
-                </Text>
-              </View>
-            ) : cr.rewardType === 'Gift Card' ? (
-              <Text style={styles.codePending}>Your parent will add the code here once it&apos;s ready.</Text>
-            ) : null}
-          </View>
-        ))
+          );
+        })
       )}
     </ScrollView>
   );
@@ -548,27 +602,61 @@ const styles = StyleSheet.create({
     color: TEXT_DARK,
     opacity: 0.5,
   },
-  codeBox: {
-    borderRadius: 12,
-    padding: spacing.md,
-    backgroundColor: 'rgba(124, 91, 255, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(124, 91, 255, 0.2)',
-    gap: spacing.xs,
-  },
-  codeLabel: {
+  codeSectionLabel: {
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
     textTransform: 'uppercase',
     color: TEXT_DARK,
-    opacity: 0.5,
+    opacity: 0.45,
   },
-  codeValue: {
-    fontSize: 17,
-    fontWeight: '800',
+  revealShell: {
+    borderRadius: 12,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    backgroundColor: 'rgba(26, 26, 30, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 91, 255, 0.18)',
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  revealPressed: {
+    opacity: 0.92,
+  },
+  codeRevealText: {
+    fontSize: 16,
+    fontWeight: '700',
     letterSpacing: 0.5,
     color: TEXT_DARK,
+    fontVariant: ['tabular-nums'],
+  },
+  codeRevealTextHidden: {
+    letterSpacing: 2,
+    opacity: 0.85,
+  },
+  revealHint: {
+    marginTop: spacing.xs,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primaryDark,
+    opacity: 0.9,
+  },
+  copyBtn: {
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: 'rgba(124, 91, 255, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 91, 255, 0.35)',
+  },
+  copyBtnPressed: {
+    opacity: 0.88,
+  },
+  copyBtnText: {
+    color: colors.primaryDark,
+    fontWeight: '800',
+    fontSize: 15,
   },
   codePending: {
     fontSize: 13,

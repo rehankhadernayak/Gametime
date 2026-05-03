@@ -9,6 +9,7 @@
     "db:init": "node -e \"import('./src/db/init.js').then(m => m.initDb())\"",
     "db:reset": "node src/db/reset.js",
     "db:backup": "node scripts/backup.js",
+    "seed:mock-gift": "node scripts/seed-mock-reward-request.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
