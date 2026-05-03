@@ -14,7 +14,7 @@ const siteOrigin = new URL(siteUrl);
 const defaultDescription =
   "Screen time, earned. Singapore family app for chores, homework, and gaming rewards.";
 
-const ogImage = "/gametime-icon.svg";
+const ogImage = "/icon-512.png";
 
 /**
  * Centralized SEO and PWA metadata. Import into the root `layout.tsx` (and optionally
@@ -53,9 +53,9 @@ export const baseMetadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/icon.png", sizes: "1024x1024", type: "image/png" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-      { url: "/gametime-icon.svg", type: "image/svg+xml" },
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },

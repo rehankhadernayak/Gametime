@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F9F9F4"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -27,7 +27,7 @@
       "package": "com.gametime.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#7C3AED"
+        "backgroundColor": "#FFFFFF"
       }
     },
     "plugins": [
