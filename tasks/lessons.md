@@ -224,3 +224,9 @@
 **Rule:** Keep `api/client.js` focused on HTTP; dispatch `gametime:toast` from the calling page/component (or a tiny `toast.js` util) instead of adding exports to the API client for success-only UI.
 
 ---
+
+### 2026-05-03 — Postgres SQL functions: columns must exist before CREATE FUNCTION
+**What happened:** Supabase migration preview failed with `column cp.user_id does not exist` because `gt_auth_child_id()` referenced `child_profiles.user_id` before `ALTER TABLE ... ADD COLUMN user_id` ran (PostgreSQL validates column references when creating SQL-language functions).
+**Rule:** In migrations, run `ALTER TABLE` to add columns **before** any `CREATE OR REPLACE FUNCTION` whose body references those columns.
+
+---
