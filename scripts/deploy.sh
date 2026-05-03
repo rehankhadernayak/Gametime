@@ -2,6 +2,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck disable=SC1091
+. "$REPO_ROOT/scripts/load-nvm-if-needed.sh"
 
 echo "==> [1/4] Pulling latest code..."
 git -C "$REPO_ROOT" pull
