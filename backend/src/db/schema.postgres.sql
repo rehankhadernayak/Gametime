@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS child_profiles (
   avatar_url TEXT,
   current_streak_days INTEGER NOT NULL DEFAULT 0,
   last_completion_date TEXT,
+  time_bank_minutes INTEGER NOT NULL DEFAULT 0 CHECK (time_bank_minutes >= 0 AND time_bank_minutes <= 100000),
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
@@ -55,8 +56,22 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at TEXT NOT NULL,
   completion_submitted_at TEXT,
   approved_at TEXT,
-  rejected_at TEXT
+  rejected_at TEXT,
+  reward_minutes INTEGER NOT NULL DEFAULT 0 CHECK (reward_minutes >= 0 AND reward_minutes <= 1440),
+  time_task_status TEXT NOT NULL DEFAULT 'pending' CHECK (time_task_status IN ('pending', 'approved', 'rejected'))
 );
+
+CREATE TABLE IF NOT EXISTS app_allocations (
+  id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
+  child_id TEXT NOT NULL REFERENCES child_profiles (id) ON DELETE CASCADE,
+  app_name TEXT NOT NULL,
+  allocated_minutes INTEGER NOT NULL CHECK (allocated_minutes > 0 AND allocated_minutes <= 10080),
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired')),
+  created_at TEXT NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')::TEXT,
+  updated_at TEXT NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')::TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_app_allocations_child_status ON app_allocations (child_id, status);
 
 CREATE TABLE IF NOT EXISTS task_requests (
   id TEXT PRIMARY KEY,
