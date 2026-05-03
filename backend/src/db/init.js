@@ -111,6 +111,12 @@ async function initPostgres(db) {
   await ensureColumnPostgres(db, 'parent_accounts', 'is_admin', 'INTEGER NOT NULL DEFAULT 0');
   await ensureColumnPostgres(db, 'child_profiles', 'current_streak_days', 'INTEGER NOT NULL DEFAULT 0');
   await ensureColumnPostgres(db, 'child_profiles', 'last_completion_date', 'TEXT');
+  await ensureColumnPostgres(
+    db,
+    'child_profiles',
+    'time_bank_minutes',
+    'INTEGER NOT NULL DEFAULT 0 CHECK (time_bank_minutes >= 0 AND time_bank_minutes <= 100000)'
+  );
   await ensureColumnPostgres(db, 'rewards', 'giftcard_brand', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_denomination_cents', 'INTEGER');
 }
@@ -263,6 +269,12 @@ async function initSqlite(db) {
   await ensureColumnSqlite(db, 'parent_accounts', 'is_admin', 'is_admin INTEGER NOT NULL DEFAULT 0');
   await ensureColumnSqlite(db, 'child_profiles', 'current_streak_days', 'current_streak_days INTEGER NOT NULL DEFAULT 0');
   await ensureColumnSqlite(db, 'child_profiles', 'last_completion_date', 'last_completion_date TEXT');
+  await ensureColumnSqlite(
+    db,
+    'child_profiles',
+    'time_bank_minutes',
+    'time_bank_minutes INTEGER NOT NULL DEFAULT 0 CHECK(time_bank_minutes >= 0 AND time_bank_minutes <= 100000)'
+  );
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS achievements (

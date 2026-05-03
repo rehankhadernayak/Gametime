@@ -28,6 +28,7 @@ import AccountScreen from '../screens/AccountScreen';
 import ChildDashboard from '../screens/child/ChildDashboard';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
 import ChildRewardsScreen from '../screens/child/ChildRewardsScreen';
+import ChildRewardsStore from '../screens/child/ChildRewardsStore';
 import ChildGamingScreen from '../screens/child/ChildGamingScreen';
 import ChildAiScreen from '../screens/child/ChildAiScreen';
 import ChildNotificationsScreen from '../screens/child/ChildNotificationsScreen';
@@ -35,6 +36,10 @@ import EvidenceSubmitScreen from '../screens/child/EvidenceSubmitScreen';
 import TaskProofScreen from '../screens/child/TaskProofScreen';
 
 import ParentNotificationsScreen from '../screens/parent/ParentNotificationsScreen';
+
+/** Child reward store header — matches ChildDashboard Time Bank cream theme */
+const TIME_BANK_CREAM = '#F9F9F4';
+const TEXT_DARK_CHILD_NAV = '#1A1A1E';
 
 // Navigators
 const AuthStackNav = createNativeStackNavigator();
@@ -266,6 +271,18 @@ function ChildStack() {
         name="TaskProof"
         component={TaskProofScreen}
         options={{ headerShown: false }}
+      />
+      <ChildStackNav.Screen
+        name="ChildRewardsStore"
+        component={ChildRewardsStore}
+        options={{
+          headerShown: true,
+          title: 'Reward store',
+          headerStyle: { backgroundColor: TIME_BANK_CREAM },
+          headerTitleStyle: { color: TEXT_DARK_CHILD_NAV, fontWeight: '800' },
+          headerTintColor: colors.primaryDark,
+          headerShadowVisible: false,
+        }}
       />
     </ChildStackNav.Navigator>
   );
