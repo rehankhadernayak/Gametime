@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS child_profiles (
   current_streak_days INTEGER NOT NULL DEFAULT 0,
   last_completion_date TEXT,
   time_bank_minutes INTEGER NOT NULL DEFAULT 0 CHECK (time_bank_minutes >= 0 AND time_bank_minutes <= 100000),
+  daily_spend_limit INTEGER NOT NULL DEFAULT 0 CHECK (daily_spend_limit >= 0 AND daily_spend_limit <= 10080),
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );

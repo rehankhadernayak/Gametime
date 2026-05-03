@@ -117,6 +117,12 @@ async function initPostgres(db) {
     'time_bank_minutes',
     'INTEGER NOT NULL DEFAULT 0 CHECK (time_bank_minutes >= 0 AND time_bank_minutes <= 100000)'
   );
+  await ensureColumnPostgres(
+    db,
+    'child_profiles',
+    'daily_spend_limit',
+    'INTEGER NOT NULL DEFAULT 0 CHECK (daily_spend_limit >= 0 AND daily_spend_limit <= 10080)'
+  );
   await ensureColumnPostgres(db, 'child_profiles', 'family_id', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_brand', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_denomination_cents', 'INTEGER');
@@ -275,6 +281,12 @@ async function initSqlite(db) {
     'child_profiles',
     'time_bank_minutes',
     'time_bank_minutes INTEGER NOT NULL DEFAULT 0 CHECK(time_bank_minutes >= 0 AND time_bank_minutes <= 100000)'
+  );
+  await ensureColumnSqlite(
+    db,
+    'child_profiles',
+    'daily_spend_limit',
+    'daily_spend_limit INTEGER NOT NULL DEFAULT 0 CHECK(daily_spend_limit >= 0 AND daily_spend_limit <= 10080)'
   );
   await ensureColumnSqlite(db, 'child_profiles', 'family_id', 'family_id TEXT');
 

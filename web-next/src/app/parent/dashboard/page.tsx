@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import {
   EmptyState,
 } from "@/components/ui";
 import { normalizeTasksListResponse } from "@/lib/tasksList";
+import { createSupabaseBrowserAuthedClient, getSupabaseChildTableName } from "@/lib/supabase/client";
 import styles from "./dashboard.module.css";
 
 const SETTINGS_KEY = "gametime_parent_settings";
@@ -66,11 +67,116 @@ type RewardRow = {
   quantityLimit?: number | null;
 };
 
+type FamilyActivityRow = {
+  id: string;
+  description: string;
+  actionType: string;
+  amount: number;
+  createdAt: string;
+};
+
 function sanitizeText(value: unknown, max = 1000): string {
   return String(value ?? "")
     .replace(/[<>]/g, "")
     .trim()
     .slice(0, max);
+}
+
+function readIntCol(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.round(value);
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.round(n) : 0;
+  }
+  return 0;
+}
+
+/** Monday 00:00 UTC through following Monday 00:00 UTC (exclusive end) for `created_at` text compare. */
+function utcWeekRangeIsoStrings(now = new Date()): { start: string; endExclusive: string } {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const dow = d.getUTCDay();
+  const daysFromMonday = dow === 0 ? 6 : dow - 1;
+  d.setUTCDate(d.getUTCDate() - daysFromMonday);
+  const start = d.toISOString();
+  const nextMonday = new Date(d.getTime() + 7 * 86400000);
+  return { start, endExclusive: nextMonday.toISOString() };
+}
+
+function formatActivityTime(iso: string): string {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return "";
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(t));
+}
+
+function activityDotClass(actionType: string): string {
+  if (actionType === "Earned") return styles.activityDotEarned;
+  if (actionType === "Spent") return styles.activityDotSpent;
+  if (actionType === "Unlocked") return styles.activityDotUnlocked;
+  return styles.activityDot;
+}
+
+function WeekMinutesBarChart({ earned, spent }: { earned: number; spent: number }) {
+  const w = 280;
+  const h = 120;
+  const pad = { top: 8, right: 12, bottom: 28, left: 12 };
+  const innerW = w - pad.left - pad.right;
+  const innerH = h - pad.top - pad.bottom;
+  const maxVal = Math.max(earned, spent, 1);
+  const barW = (innerW - 24) / 2;
+  const xEarn = pad.left + 8;
+  const xSpent = pad.left + 16 + barW;
+  const earnH = (earned / maxVal) * innerH;
+  const spendH = (spent / maxVal) * innerH;
+  const yEarn = pad.top + innerH - earnH;
+  const ySpent = pad.top + innerH - spendH;
+
+  return (
+    <svg
+      className={styles.miniChart}
+      viewBox={`0 0 ${w} ${h}`}
+      role="img"
+      aria-label={`Bar chart: ${earned} minutes earned and ${spent} minutes spent this week`}
+    >
+      <rect x={0} y={0} width={w} height={h} fill="transparent" />
+      <line
+        x1={pad.left}
+        y1={pad.top + innerH}
+        x2={w - pad.right}
+        y2={pad.top + innerH}
+        stroke="var(--gt-border-hairline)"
+        strokeWidth={1}
+      />
+      <rect
+        x={xEarn}
+        y={yEarn}
+        width={barW}
+        height={Math.max(earnH, 2)}
+        rx={4}
+        fill="var(--gt-green)"
+        opacity={0.85}
+      />
+      <rect
+        x={xSpent}
+        y={ySpent}
+        width={barW}
+        height={Math.max(spendH, 2)}
+        rx={4}
+        fill="var(--gt-amber)"
+        opacity={0.9}
+      />
+      <text x={xEarn + barW / 2} y={h - 8} textAnchor="middle" fontSize={11} fill="var(--gt-ink-muted)">
+        Earned
+      </text>
+      <text x={xSpent + barW / 2} y={h - 8} textAnchor="middle" fontSize={11} fill="var(--gt-ink-muted)">
+        Spent
+      </text>
+    </svg>
+  );
 }
 
 function taskStatusBadge(state: string): { label: string; tone: "warning" | "neutral" | "success" | "info" } {
@@ -174,7 +280,107 @@ function ParentDashboardInner() {
     points: "10",
     note: "Manual adjustment",
   });
+  const [familyActivity, setFamilyActivity] = useState<FamilyActivityRow[]>([]);
+  const [weekEarnedMinutes, setWeekEarnedMinutes] = useState(0);
+  const [weekSpentMinutes, setWeekSpentMinutes] = useState(0);
+  const [economyLoading, setEconomyLoading] = useState(false);
+  const [economyError, setEconomyError] = useState<string | null>(null);
+  const supabaseRef = useRef(createSupabaseBrowserAuthedClient(""));
   const token = auth.token;
+
+  useEffect(() => {
+    supabaseRef.current = createSupabaseBrowserAuthedClient(token ?? "");
+  }, [token]);
+
+  const loadFamilyEconomy = useCallback(async () => {
+    if (!token || auth.role !== "parent") return;
+    const supabase = supabaseRef.current;
+    if (!supabase) {
+      setEconomyError(null);
+      setFamilyActivity([]);
+      setWeekEarnedMinutes(0);
+      setWeekSpentMinutes(0);
+      return;
+    }
+
+    const parentId = auth.user?.id?.trim() ?? "";
+    if (!parentId) return;
+
+    setEconomyLoading(true);
+    setEconomyError(null);
+    try {
+      const childTable = getSupabaseChildTableName();
+      const { data: children, error: cErr } = await supabase
+        .from(childTable)
+        .select("family_id")
+        .eq("parent_id", parentId)
+        .limit(1);
+      if (cErr) throw new Error(cErr.message);
+
+      const fidRow = children?.[0] as { family_id?: unknown } | undefined;
+      const familyId =
+        typeof fidRow?.family_id === "string" && fidRow.family_id.trim() !== ""
+          ? fidRow.family_id.trim()
+          : null;
+
+      if (!familyId) {
+        setFamilyActivity([]);
+        setWeekEarnedMinutes(0);
+        setWeekSpentMinutes(0);
+        return;
+      }
+
+      const { start: wStart, endExclusive: wEndEx } = utcWeekRangeIsoStrings();
+
+      const [feedRes, weekRes] = await Promise.all([
+        supabase
+          .from("family_activity_logs")
+          .select("id, description, action_type, amount, created_at")
+          .eq("family_id", familyId)
+          .order("created_at", { ascending: false })
+          .limit(60),
+        supabase
+          .from("family_activity_logs")
+          .select("action_type, amount")
+          .eq("family_id", familyId)
+          .gte("created_at", wStart)
+          .lt("created_at", wEndEx),
+      ]);
+
+      if (feedRes.error) throw new Error(feedRes.error.message);
+      if (weekRes.error) throw new Error(weekRes.error.message);
+
+      const feedRows = (feedRes.data ?? []) as Record<string, unknown>[];
+      setFamilyActivity(
+        feedRows.map((r) => ({
+          id: String(r.id ?? ""),
+          description: sanitizeText(r.description, 500),
+          actionType: String(r.action_type ?? ""),
+          amount: readIntCol(r.amount),
+          createdAt: String(r.created_at ?? ""),
+        })),
+      );
+
+      let earned = 0;
+      let spent = 0;
+      for (const r of (weekRes.data ?? []) as Record<string, unknown>[]) {
+        const at = String(r.action_type ?? "");
+        const amt = readIntCol(r.amount);
+        if (at === "Earned") earned += Math.max(0, amt);
+        else spent += Math.abs(amt);
+      }
+      setWeekEarnedMinutes(earned);
+      setWeekSpentMinutes(spent);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Could not load family activity.";
+      setEconomyError(msg);
+      setFamilyActivity([]);
+      setWeekEarnedMinutes(0);
+      setWeekSpentMinutes(0);
+    } finally {
+      setEconomyLoading(false);
+    }
+  }, [token, auth.role, auth.user?.id]);
 
   const loadDashboard = useCallback(
     async (opts?: { showSpinner?: boolean }) => {
@@ -246,6 +452,19 @@ function ParentDashboardInner() {
     }, POLL_MS);
     return () => window.clearInterval(id);
   }, [auth.role, token, loadDashboard]);
+
+  useEffect(() => {
+    if (auth.role !== "parent" || !token) return;
+    void loadFamilyEconomy();
+  }, [auth.role, token, loadFamilyEconomy]);
+
+  useEffect(() => {
+    if (auth.role !== "parent" || !token) return;
+    const id = window.setInterval(() => {
+      void loadFamilyEconomy();
+    }, POLL_MS);
+    return () => window.clearInterval(id);
+  }, [auth.role, token, loadFamilyEconomy]);
 
   useEffect(() => {
     const topup = searchParams.get("topup");
@@ -450,6 +669,67 @@ function ParentDashboardInner() {
             <motion.div className={styles.mainRow} variants={itemSlide}>
               <div className={styles.mainFeed}>
                 <div className={styles.feedStack}>
+                  <GTCard
+                    title="Family economy"
+                    description="This week’s screen-time minutes and a live feed of earns, spends, and app unlocks."
+                  >
+                    {economyError ? (
+                      <p className={styles.emptyHint} role="alert">
+                        {economyError}
+                      </p>
+                    ) : null}
+                    {!economyError && economyLoading && familyActivity.length === 0 ? (
+                      <p className={styles.emptyHint}>Loading family activity…</p>
+                    ) : null}
+                    {!economyError &&
+                    !economyLoading &&
+                    familyActivity.length === 0 &&
+                    weekEarnedMinutes === 0 &&
+                    weekSpentMinutes === 0 ? (
+                      <p className={styles.emptyHint}>
+                        No activity logged yet. Approve time tasks in Inbox or wait for children to unlock apps — events
+                        will appear here automatically.
+                      </p>
+                    ) : null}
+
+                    {(weekEarnedMinutes > 0 || weekSpentMinutes > 0 || familyActivity.length > 0) && !economyError ? (
+                      <>
+                        <div className={styles.economyChartBlock}>
+                          <p className={styles.economyChartCaption}>This week (UTC Mon–Sun)</p>
+                          <WeekMinutesBarChart earned={weekEarnedMinutes} spent={weekSpentMinutes} />
+                          <div className={styles.miniChartLegend} aria-hidden>
+                            <span>
+                              <span className={styles.legendSwatch} style={{ background: "var(--gt-green)" }} />
+                              Earned: {weekEarnedMinutes.toLocaleString()} min
+                            </span>
+                            <span>
+                              <span className={styles.legendSwatch} style={{ background: "var(--gt-amber)" }} />
+                              Spent: {weekSpentMinutes.toLocaleString()} min
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className={styles.subsectionLabel}>Family activity</p>
+                        {familyActivity.length === 0 ? (
+                          <p className={styles.emptyHint}>No recent rows in the log.</p>
+                        ) : (
+                          <ul className={styles.activityFeed} aria-label="Family activity feed">
+                            {familyActivity.map((row) => (
+                              <li key={row.id} className={styles.activityRow}>
+                                <span
+                                  className={`${styles.activityDot} ${activityDotClass(row.actionType)}`}
+                                  aria-hidden
+                                />
+                                <span className={styles.activityText}>{row.description}</span>
+                                <span className={styles.activityMeta}>{formatActivityTime(row.createdAt)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : null}
+                  </GTCard>
+
                   <GTCard
                     title="Pending approvals"
                     description="Chores waiting for your decision. Approve to award points, or reject to send back for retry."
