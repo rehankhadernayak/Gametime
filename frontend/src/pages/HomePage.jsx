@@ -1,9 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import MasterController from '../components/HeroAssets/MasterController';
+import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+import HeroGlassmorphicCard from '../components/HeroAssets/HeroGlassmorphicCard';
 import { ParallaxDivider } from '../components/ParallaxDivider';
+import { initializeHeroPinning } from '../components/HeroAssets/HeroPinningAnimation';
+import LayoutLanding from '../layouts/LayoutLanding';
 import './HomePage.css';
 import '../styles/kinetic-landing-hero.css';
+import '../styles/hero-glassmorphic.css';
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* ── Inline SVG Icons ───────────────────────────────────────────────────── */
 function IconAI() {
@@ -260,67 +267,260 @@ export default function HomePage({ auth }) {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  return (
-    <div className="hp-root">
-      {/* ── 1. Navigation ───────────────────────────────────────── */}
-      <NavBar auth={auth} />
+  // Refs for ScrollTrigger pinning (strict implementation)
+  const pinWrapperRef = useRef(null);
+  const glassCardWrapperRef = useRef(null);
+  const textHeadingRef = useRef(null);
 
-      <main role="main">
-        {/* ── 2. Kinetic Hero with MasterController ─────────────── */}
-        <section className="landing-hero" aria-labelledby="hero-main-heading">
-          <div className="hero-content">
-            <div className="hero-controller-wrapper">
-              <MasterController autoScroll speed={1} />
+  // Initialize hero pinning on mount
+  useEffect(() => {
+    if (
+      pinWrapperRef.current &&
+      glassCardWrapperRef.current &&
+      textHeadingRef.current
+    ) {
+      initializeHeroPinning(
+        pinWrapperRef.current,
+        glassCardWrapperRef.current,
+        textHeadingRef.current
+      );
+    }
+  }, []);
+
+  // Initialize bento grid parallax animations
+  useEffect(() => {
+    const bentoSection = document.querySelector('.hp-features-bento');
+    const bgText = document.querySelector('.massive-bg-text');
+    const bentoCards = document.querySelectorAll('.bento-card');
+
+    if (!bentoSection) return;
+
+    // Horizontal parallax background text animation
+    if (bgText) {
+      gsap.from(bgText, {
+        scrollTrigger: {
+          trigger: bentoSection,
+          start: 'top center',
+          end: 'bottom center',
+          scrub: 1,
+        },
+        x: '10%',
+        ease: 'power1.out',
+      });
+      
+      gsap.to(bgText, {
+        scrollTrigger: {
+          trigger: bentoSection,
+          start: 'top center',
+          end: 'bottom center',
+          scrub: 1,
+        },
+        x: '-50%',
+        ease: 'power1.out',
+      });
+    }
+
+    // Vertical parallax for each card based on data-speed
+    bentoCards.forEach((card) => {
+      const speed = parseFloat(card.dataset.speed) || 1;
+      
+      gsap.to(card, {
+        y: 100 * (speed - 1), // Multiply speed factor by base distance
+        scrollTrigger: {
+          trigger: bentoSection,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1,
+          markers: false,
+        },
+        ease: 'power1.out',
+      });
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => {
+        if (trigger.trigger === bentoSection || trigger.trigger === bgText || bentoCards.includes(trigger.trigger)) {
+          trigger.kill();
+        }
+      });
+    };
+  }, []);
+
+  return (
+    <LayoutLanding>
+      <div className="hp-root">
+        {/* ── 1. Navigation ───────────────────────────────────────── */}
+        <NavBar auth={auth} />
+
+        <main role="main">
+          {/* ── 2. HERO: Full-Viewport Immersive Sequence (300vh Pinned) ─────────────── */}
+          <div
+            ref={pinWrapperRef}
+            className="hero-pin-wrapper"
+            style={{
+              width: '100vw',
+              height: '100vh',
+              overflow: 'hidden',
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* Background: Massive Parallax Text "GAMETIME" */}
+            <div
+              string="parallax"
+              string-parallax="0.8"
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: '15vw',
+                fontWeight: 900,
+                color: 'rgba(255, 255, 255, 0.05)',
+                whiteSpace: 'nowrap',
+                zIndex: 0,
+                willChange: 'transform',
+                letterSpacing: '-0.05em',
+                pointerEvents: 'none',
+              }}
+              aria-hidden="true"
+            >
+              GAMETIME
             </div>
 
-            <h1 id="hero-main-heading" className="hero-heading">
-              Screen time,<br /><span>earned.</span>
-            </h1>
+            {/* Centerpiece: Controller Visual */}
+            <div
+              ref={glassCardWrapperRef}
+              style={{
+                position: 'absolute',
+                zIndex: 2,
+                width: '100%',
+                maxWidth: '800px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                willChange: 'transform, opacity, scale',
+              }}
+            >
+              <HeroGlassmorphicCard />
+            </div>
 
-            <p className="hero-subheading">
-              Gametime helps Singapore families turn gaming into a reward kids
-              actually work for. Set quests, review evidence with AI, and let
-              children redeem real gift cards.
-            </p>
+            {/* Flying Text: "Screen Time" (from LEFT) */}
+            <div
+              string="parallax"
+              string-parallax="0.85"
+              style={{
+                position: 'absolute',
+                top: '20%',
+                left: '-20%',
+                zIndex: 1,
+                willChange: 'transform, filter, opacity',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 'clamp(2rem, 8vw, 4.5rem)',
+                  fontWeight: 800,
+                  color: 'rgba(61, 217, 255, 0.9)',
+                  margin: 0,
+                  whiteSpace: 'nowrap',
+                  textShadow: '0 0 30px rgba(61, 217, 255, 0.5)',
+                }}
+              >
+                Screen Time
+              </h2>
+            </div>
 
-            <div className="hero-cta-group">
-              {auth.token ? (
-                <button
-                  onClick={() =>
-                    navigate(
-                      auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'
-                    )
-                  }
-                  className="hero-cta-primary"
-                >
-                  Go to Dashboard
-                </button>
-              ) : (
-                <>
+            {/* Flying Text: "Earned" (from RIGHT) */}
+            <div
+              string="parallax"
+              string-parallax="-0.85"
+              style={{
+                position: 'absolute',
+                bottom: '20%',
+                right: '-20%',
+                zIndex: 1,
+                willChange: 'transform, filter, opacity',
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: 'clamp(2rem, 8vw, 4.5rem)',
+                  fontWeight: 800,
+                  color: 'rgba(221, 100, 255, 0.9)',
+                  margin: 0,
+                  whiteSpace: 'nowrap',
+                  textShadow: '0 0 30px rgba(221, 100, 255, 0.5)',
+                }}
+              >
+                Earned.
+              </h2>
+            </div>
+
+            {/* Secondary Content: Description + CTA (Blur Reveal) */}
+            <div
+              ref={textHeadingRef}
+              style={{
+                position: 'absolute',
+                bottom: '60px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                textAlign: 'center',
+                zIndex: 3,
+                maxWidth: '600px',
+                padding: '0 40px',
+                filter: 'blur(40px)',
+                opacity: 0,
+                scale: 1.5,
+                willChange: 'filter, opacity, transform',
+              }}
+            >
+              <p
+                style={{
+                  fontSize: '1.1rem',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  marginBottom: '1.5rem',
+                  lineHeight: 1.6,
+                }}
+              >
+                Gametime helps Singapore families turn gaming into a reward kids
+                actually work for. Set quests, review evidence with AI, and let
+                children redeem real gift cards.
+              </p>
+
+              <div className="hero-cta-group" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                {auth.token ? (
                   <button
-                    onClick={() => navigate('/signup')}
+                    onClick={() =>
+                      navigate(
+                        auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'
+                      )
+                    }
                     className="hero-cta-primary"
                   >
-                    Get Started Free
+                    Go to Dashboard
                   </button>
-                  <button
-                    onClick={() => setShowOnboarding(true)}
-                    className="hero-cta-secondary"
-                  >
-                    See How It Works
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Scroll indicator */}
-            <div className="hero-scroll-indicator">
-              <div className="scroll-dot" />
-              <div className="scroll-dot" />
-              <div className="scroll-dot" />
+                ) : (
+                  <>
+                    <button
+                      onClick={() => navigate('/signup')}
+                      className="hero-cta-primary"
+                    >
+                      Get Started Free
+                    </button>
+                    <button
+                      onClick={() => setShowOnboarding(true)}
+                      className="hero-cta-secondary"
+                    >
+                      See How It Works
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </section>
 
         {/* ── 3. Parallax Divider ─────────────────────────────────── */}
         <ParallaxDivider
@@ -382,9 +582,37 @@ export default function HomePage({ auth }) {
           </div>
         </section>
 
-        {/* ── 6. Features Grid ────────────────────────────────────── */}
-        <section className="hp-features" aria-labelledby="hp-features-heading">
-          <div className="hp-section-inner">
+        {/* ── 6. Features Grid (Bento Layout with Parallax) ─────────– */}
+        <section 
+          className="hp-features-bento"
+          aria-labelledby="hp-features-heading"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            padding: '5rem 0',
+            background: 'linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.02) 100%)',
+          }}
+        >
+          {/* Massive Background Parallax Text */}
+          <div
+            className="massive-bg-text"
+            style={{
+              position: 'absolute',
+              top: '20%',
+              left: 0,
+              fontSize: '15vw',
+              fontWeight: 800,
+              color: 'rgba(255, 255, 255, 0.05)',
+              whiteSpace: 'nowrap',
+              zIndex: 0,
+              willChange: 'transform',
+              letterSpacing: '-0.05em',
+            }}
+          >
+            EARN YOUR TIME
+          </div>
+
+          <div className="hp-section-inner" style={{ position: 'relative', zIndex: 1 }}>
             <div className="hp-section-header">
               <div className="hp-section-kicker">Features</div>
               <h2 id="hp-features-heading" className="hp-section-h2">
@@ -392,14 +620,126 @@ export default function HomePage({ auth }) {
               </h2>
             </div>
 
-            <div className="hp-features-grid">
-              {FEATURES.map((f) => (
-                <article key={f.title} className={`hp-feature-card hp-feature-card--${f.color}`}>
-                  <div className="hp-feature-icon">{f.icon}</div>
-                  <h3 className="hp-feature-title">{f.title}</h3>
-                  <p className="hp-feature-desc">{f.description}</p>
-                </article>
-              ))}
+            {/* 12-Column Asymmetrical Bento Grid */}
+            <div
+              className="bento-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(12, 1fr)',
+                gap: '24px',
+                position: 'relative',
+                zIndex: 1,
+              }}
+            >
+              {/* Card 1: Set Quests (5 columns) */}
+              <article
+                className="bento-card"
+                data-speed="0.8"
+                style={{
+                  gridColumn: 'span 5',
+                  padding: '2rem',
+                  borderRadius: '16px',
+                  background: 'rgba(61, 217, 255, 0.08)',
+                  border: '1px solid rgba(61, 217, 255, 0.2)',
+                  backdropFilter: 'blur(12px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  willChange: 'transform',
+                  transition: 'all 300ms ease',
+                }}
+              >
+                <div style={{ fontSize: '2.5rem' }}>📋</div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: 'var(--stark-white)' }}>
+                  Set Quests
+                </h3>
+                <p style={{ fontSize: '0.95rem', color: 'rgba(255, 255, 255, 0.7)', margin: 0, lineHeight: 1.6 }}>
+                  Parents create tasks - clean your room, finish homework, read for 20 minutes - each worth a set number of RP points.
+                </p>
+              </article>
+
+              {/* Card 2: Kids Submit Proof (7 columns) */}
+              <article
+                className="bento-card"
+                data-speed="1.2"
+                style={{
+                  gridColumn: 'span 7',
+                  padding: '2rem',
+                  borderRadius: '16px',
+                  background: 'rgba(221, 100, 255, 0.08)',
+                  border: '1px solid rgba(221, 100, 255, 0.2)',
+                  backdropFilter: 'blur(12px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  willChange: 'transform',
+                  transition: 'all 300ms ease',
+                  marginTop: '-40px',
+                }}
+              >
+                <div style={{ fontSize: '2.5rem' }}>📸</div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: 'var(--stark-white)' }}>
+                  Kids Submit Proof
+                </h3>
+                <p style={{ fontSize: '0.95rem', color: 'rgba(255, 255, 255, 0.7)', margin: 0, lineHeight: 1.6 }}>
+                  Children complete the quest and upload a photo or short video as evidence directly from the app.
+                </p>
+              </article>
+
+              {/* Card 3: AI Reviews, Parent Approves (8 columns) */}
+              <article
+                className="bento-card"
+                data-speed="1.5"
+                style={{
+                  gridColumn: 'span 8',
+                  padding: '2rem',
+                  borderRadius: '16px',
+                  background: 'rgba(61, 157, 255, 0.08)',
+                  border: '1px solid rgba(61, 157, 255, 0.2)',
+                  backdropFilter: 'blur(12px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  willChange: 'transform',
+                  transition: 'all 300ms ease',
+                }}
+              >
+                <div style={{ fontSize: '2.5rem' }}>🤖</div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: 'var(--stark-white)' }}>
+                  AI Reviews, Parent Approves
+                </h3>
+                <p style={{ fontSize: '0.95rem', color: 'rgba(255, 255, 255, 0.7)', margin: 0, lineHeight: 1.6 }}>
+                  Claude Vision analyses the evidence for completeness. Parent gets a smart summary and one-tap approve - child earns their RP.
+                </p>
+              </article>
+
+              {/* Card 4: Real Rewards (4 columns) */}
+              <article
+                className="bento-card"
+                data-speed="0.9"
+                style={{
+                  gridColumn: 'span 4',
+                  padding: '2rem',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, rgba(124, 91, 255, 0.1), rgba(61, 217, 255, 0.05))',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(12px)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem',
+                  willChange: 'transform',
+                  transition: 'all 300ms ease',
+                  marginTop: '-40px',
+                }}
+              >
+                <div style={{ fontSize: '2.5rem' }}>🎁</div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: 'var(--stark-white)' }}>
+                  Real Rewards
+                </h3>
+                <p style={{ fontSize: '0.95rem', color: 'rgba(255, 255, 255, 0.7)', margin: 0, lineHeight: 1.6 }}>
+                  Kids redeem GP for actual gift cards - Roblox, Steam, Razer Gold - delivered instantly.
+                </p>
+              </article>
             </div>
           </div>
         </section>
@@ -462,6 +802,7 @@ export default function HomePage({ auth }) {
           </div>
         </footer>
       </main>
-    </div>
+      </div>
+    </LayoutLanding>
   );
 }

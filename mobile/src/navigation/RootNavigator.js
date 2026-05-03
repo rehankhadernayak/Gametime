@@ -22,6 +22,7 @@ import ParentApprovalsScreen from '../screens/parent/ParentApprovalsScreen';
 import ParentRewardsScreen from '../screens/parent/ParentRewardsScreen';
 import ParentGamingScreen from '../screens/parent/ParentGamingScreen';
 import ParentAiScreen from '../screens/parent/ParentAiScreen';
+import ParentMobileKinetic from '../screens/ParentMobileKinetic';
 import AccountScreen from '../screens/AccountScreen';
 
 import ChildHomeScreen from '../screens/child/ChildHomeScreen';
@@ -149,6 +150,11 @@ function ParentStack() {
         name="Account"
         component={AccountScreen}
         options={{ headerShown: true, title: 'Account', headerStyle: { backgroundColor: colors.surface }, headerTitleStyle: { color: colors.text, fontWeight: '700' }, headerTintColor: colors.primaryDark }}
+      />
+      <ParentStackNav.Screen
+        name="ParentMobileKinetic"
+        component={ParentMobileKinetic}
+        options={{ headerShown: true, title: 'Kinetic Dashboard', headerStyle: { backgroundColor: colors.surface }, headerTitleStyle: { color: colors.text, fontWeight: '700' }, headerTintColor: colors.primaryDark }}
       />
     </ParentStackNav.Navigator>
   );

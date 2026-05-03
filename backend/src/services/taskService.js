@@ -155,6 +155,34 @@ export async function listTasksForParent(parentId) {
   );
 }
 
+/**
+ * Get pending task completions for parent approval
+ * Returns tasks with status = 'PendingApproval' that are awaiting parent review
+ */
+export async function getPendingTasksForParent(parentId) {
+  const db = await getDb();
+  return db.all(
+    `SELECT 
+       t.id, t.child_id as childId, c.name as childName, t.title, t.description, 
+       t.points as rpValue, t.gp_points as gpPoints, t.category,
+       tc.id as completionId, tc.status,
+       CASE WHEN tc.evidence_data IS NOT NULL AND tc.evidence_data != '' THEN 1 ELSE 0 END as hasEvidence,
+       tc.evidence_mime as evidenceMime, tc.evidence_type as evidenceType,
+       tc.evidence_note as evidenceNote,
+       tc.ai_recommendation as aiRecommendation, tc.ai_confidence as aiConfidence, 
+       tc.ai_reason as aiReason, tc.ai_model as aiModel, tc.ai_analyzed_at as aiAnalyzedAt,
+       tc.ai_status as aiStatus,
+       tc.dispute_note as disputeNote, tc.disputed as disputed,
+       tc.created_at as submittedAt, tc.updated_at as updatedAt
+     FROM task_completions tc
+     JOIN tasks t ON t.id = tc.task_id
+     JOIN child_profiles c ON c.id = tc.child_id
+     WHERE c.parent_id = ? AND tc.status = 'PendingApproval'
+     ORDER BY tc.created_at ASC`,
+    [parentId]
+  );
+}
+
 export async function listTasksForChild(childId) {
   // Expiry is handled by background job only - not inline on read paths.
   const db = await getDb();

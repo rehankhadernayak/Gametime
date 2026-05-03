@@ -1,0 +1,256 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Hero Glass Card Styles
+   High-fidelity glassmorphic UI with neon gradients and kinetic effects
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hero-pin-wrapper {
+  min-height: 100vh; /* Ensure enough space for pinning */
+  position: relative;
+}
+
+.hero-glass-card {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  will-change: transform, opacity;
+}
+
+/* ── Glassmorphic Background ──────────────────────────────────────────────── */
+.glass-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+/* ── Content Container ────────────────────────────────────────────────────── */
+.glass-content {
+  position: relative;
+  padding: 32px 28px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Header Section ──────────────────────────────────────────────────────── */
+.glass-header {
+  will-change: transform, opacity;
+}
+
+.glass-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #F6F8FF;
+  margin: 0 0 4px 0;
+}
+
+.glass-subtitle {
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* ── Quest Pills ─────────────────────────────────────────────────────────── */
+.glass-quests {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  will-change: transform, opacity;
+}
+
+.quest-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 200ms ease;
+  will-change: transform, opacity;
+  cursor: pointer;
+}
+
+.quest-pill:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateX(4px);
+}
+
+/* Quest pill neon gradients */
+.quest-pill--cyan {
+  border-color: rgba(61, 217, 255, 0.3);
+  background: linear-gradient(135deg, 
+    rgba(61, 217, 255, 0.08) 0%, 
+    rgba(61, 217, 255, 0.02) 100%);
+}
+
+.quest-pill--cyan::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(61, 217, 255, 0.15) 0%, 
+    transparent 100%);
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.quest-pill--cyan:hover::after {
+  opacity: 0.5;
+}
+
+.quest-pill--purple {
+  border-color: rgba(221, 100, 255, 0.3);
+  background: linear-gradient(135deg, 
+    rgba(221, 100, 255, 0.08) 0%, 
+    rgba(221, 100, 255, 0.02) 100%);
+}
+
+.quest-pill--blue {
+  border-color: rgba(61, 157, 255, 0.3);
+  background: linear-gradient(135deg, 
+    rgba(61, 157, 255, 0.08) 0%, 
+    rgba(61, 157, 255, 0.02) 100%);
+}
+
+.quest-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: rgba(61, 217, 255, 0.15);
+  color: #3DD9FF;
+  flex-shrink: 0;
+}
+
+.quest-pill--purple .quest-icon {
+  background: rgba(221, 100, 255, 0.15);
+  color: #DD64FF;
+}
+
+.quest-pill--blue .quest-icon {
+  background: rgba(61, 157, 255, 0.15);
+  color: #3D9DFF;
+}
+
+.quest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.quest-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #F6F8FF;
+}
+
+.quest-reward {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Progress Bar ────────────────────────────────────────────────────────── */
+.glass-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  will-change: transform, opacity;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.progress-percent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3DD9FF, #3D9DFF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.progress-bar-wrapper {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3DD9FF, #3D9DFF);
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(61, 217, 255, 0.4);
+  will-change: width;
+}
+
+/* ── Mobile Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .glass-content {
+    padding: 24px 20px;
+    gap: 20px;
+  }
+
+  .glass-title {
+    font-size: 1.2rem;
+  }
+
+  .quest-pill {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .quest-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+  }
+
+  .quest-title {
+    font-size: 0.9rem;
+  }
+
+  .quest-reward {
+    font-size: 0.75rem;
+  }
+}

@@ -8,6 +8,7 @@ import {
   createTaskController,
   deleteTaskController,
   disputeTaskController,
+  getPendingTasksController,
   getSubmissionController,
   listTaskRequestsController,
   listTasksController,
@@ -28,6 +29,7 @@ const actionLimiter  = createRateLimiter({ windowMs: 60_000, maxRequests: 30 });
 
 router.post('/create',  requireParentAuth, actionLimiter, createTaskController);
 router.get('/list',     requireAnyAuth,    listTasksController);
+router.get('/pending',  requireParentAuth, getPendingTasksController);
 router.post('/complete', requireChildAuth, completeLimiter, completeTaskController);
 router.post('/dispute',  requireChildAuth, actionLimiter,   disputeTaskController);
 router.post('/approve',  requireParentAuth, actionLimiter,  approveTaskController);

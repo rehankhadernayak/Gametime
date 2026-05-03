@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@fiddle-digital/string-tune": "^1.1.55"
+  }
+}

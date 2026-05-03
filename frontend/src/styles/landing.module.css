@@ -1,0 +1,146 @@
+/* landing.module.css */
+/* Avant-Garde, Immersive Landing Experience */
+/* Full-viewport composition with textured 3D depth layers */
+/* StringTune physics engine integration */
+
+.landingWrapper {
+  width: 100vw;
+  min-height: 100vh;
+  height: auto;
+  background: #000a1a;
+  color: #f6f8ff;
+  position: relative;
+  overflow-x: hidden;
+  z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEXTURE LAYERS - Parallax Depth Stack
+   Each layer moves at different speeds for 3D effect
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.textureLayerBase {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 30% 60%, rgba(124, 91, 255, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 70% 40%, rgba(61, 217, 255, 0.1) 0%, transparent 50%),
+              #000a1a;
+  z-index: 0;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.textureLayerNoise {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: 
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 0px,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.01) 0px,
+      rgba(255, 255, 255, 0.01) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  z-index: 1;
+  will-change: transform;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.textureLayerAccent {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(ellipse at center, rgba(61, 157, 255, 0.08) 0%, transparent 70%);
+  z-index: 2;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTENT LAYER - Hero + Sections
+   Sits on top of textured layers, receives StringTune physics
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.contentLayer {
+  position: relative;
+  width: 100vw;
+  height: auto;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FULL-VIEWPORT HERO SECTION
+   No standard grid, 100vw × 100vh, center-stage composition
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* Hero section will be positioned absolutely within content layer */
+/* See HomePage.jsx for implementation */
+
+/* StringTune Physics Optimizations */
+.landingWrapper [string-parallax],
+.landingWrapper [data-string-parallax] {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.landingWrapper [string="parallax"],
+.landingWrapper [data-string="parallax"] {
+  will-change: filter, transform, opacity;
+}
+
+/* Prevent layout shift from StringTune animations */
+.landingWrapper section {
+  position: relative;
+  z-index: auto;
+}
+
+/* Reset potentially conflicting styles */
+.landingWrapper * {
+  box-sizing: border-box;
+}
+
+.landingWrapper h1,
+.landingWrapper h2,
+.landingWrapper h3,
+.landingWrapper h4,
+.landingWrapper p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1024px) {
+  .textureLayerBase,
+  .textureLayerNoise,
+  .textureLayerAccent {
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+/* Disable pointer events on texture layers */
+@supports (pointer-events: none) {
+  .textureLayerBase,
+  .textureLayerNoise,
+  .textureLayerAccent {
+    pointer-events: none;
+  }
+}

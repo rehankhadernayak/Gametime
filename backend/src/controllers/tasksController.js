@@ -16,6 +16,7 @@ import {
   createTaskRequest,
   deleteTask,
   disputeTask,
+  getPendingTasksForParent,
   listTaskRequestsForChild,
   listTaskRequestsForParent,
   listTasksForChild,
@@ -45,6 +46,15 @@ export async function listTasksController(req, res, next) {
     }
 
     return res.json(await listTasksForChild(req.auth.childId));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getPendingTasksController(req, res, next) {
+  try {
+    // Parent-only endpoint - get tasks pending their approval
+    return res.json(await getPendingTasksForParent(req.auth.parentId));
   } catch (error) {
     next(error);
   }
