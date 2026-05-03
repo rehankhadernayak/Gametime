@@ -218,3 +218,9 @@
 **Rule:** Add `resolve.alias` in `frontend/vite.config.js` pointing `gametime-web-nav` → `src/shims/nav.vite.jsx`, mirroring the Next webpack/turbopack aliases.
 
 ---
+
+### 2026-05-03 — Do not import UI-only toast helpers from `api/client.js`
+**What happened:** The build reported `pushDeletionToast` was not exported from `client.js` when `TaskTable.jsx` imported it — plausible when `web-next/frontend` is a stale copy of `../frontend` until deploy sync runs.
+**Rule:** Keep `api/client.js` focused on HTTP; dispatch `gametime:toast` from the calling page/component (or a tiny `toast.js` util) instead of adding exports to the API client for success-only UI.
+
+---
