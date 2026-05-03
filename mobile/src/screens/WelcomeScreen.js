@@ -64,7 +64,12 @@ export default function WelcomeScreen({ navigation }) {
         </View>
 
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation.navigate('ParentLogin')} activeOpacity={0.88}>
+          <TouchableOpacity
+            testID="welcome-parent-login"
+            style={styles.primaryBtn}
+            onPress={() => navigation.navigate('ParentLogin')}
+            activeOpacity={0.88}
+          >
             <Text style={styles.primaryBtnText}>Parent Login</Text>
           </TouchableOpacity>
 
@@ -72,7 +77,12 @@ export default function WelcomeScreen({ navigation }) {
             <Text style={styles.secondaryBtnText}>Create Parent Account</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.outlineBtn} onPress={() => navigation.navigate('ChildLogin')} activeOpacity={0.88}>
+          <TouchableOpacity
+            testID="welcome-child-login"
+            style={styles.outlineBtn}
+            onPress={() => navigation.navigate('ChildLogin')}
+            activeOpacity={0.88}
+          >
             <Text style={styles.outlineBtnText}>I'm a Child →</Text>
           </TouchableOpacity>
         </View>

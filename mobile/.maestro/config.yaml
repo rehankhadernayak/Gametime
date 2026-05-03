@@ -1,0 +1,8 @@
+# Default env for Maestro (`maestro test .maestro/` picks this up when present).
+# Override any value in your shell before running tests.
+env:
+  MAESTRO_PARENT_EMAIL: "parent+e2e@example.com"
+  MAESTRO_PARENT_PASSWORD: "E2E_Parent_Password_1!"
+  MAESTRO_CHILD_NAME: "E2E Child"
+  # PIN keypad taps below assume four digits 1-2-3-4; change taps if you use another PIN.
+  MAESTRO_CHILD_PIN: "1234"

@@ -1,0 +1,22 @@
+appId: com.gametime.app
+---
+# Parent email/password login → post-auth home (default tab: Gametime AI).
+# Requires a reachable API (device/simulator): set EXPO_PUBLIC_API_URL at build time,
+# configure Api Settings in-app, or run against a host the app can reach.
+- launchApp
+- tapOn:
+    id: "welcome-parent-login"
+- assertVisible: "Welcome back"
+- tapOn:
+    id: "parent-login-email"
+- inputText: ${MAESTRO_PARENT_EMAIL}
+- tapOn:
+    id: "parent-login-password"
+- inputText: ${MAESTRO_PARENT_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "parent-login-submit"
+- extendedWaitUntil:
+    visible:
+      id: "parent-app-home"
+    timeout: 30000
