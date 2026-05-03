@@ -17,6 +17,12 @@ type PendingTask = {
   childId: string;
 };
 
+type PendingGiftRequest = {
+  id: string;
+  rewardTitle: string;
+  childId: string;
+};
+
 function readRewardMinutes(row: Record<string, unknown>): number {
   const v = row.reward_minutes;
   if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.round(v));
@@ -58,6 +64,8 @@ export default function ParentApprovalInboxPage() {
   const router = useRouter();
   const { auth, authHydrated } = useGametimeAuth();
   const [tasks, setTasks] = useState<PendingTask[]>([]);
+  const [giftRequests, setGiftRequests] = useState<PendingGiftRequest[]>([]);
+  const [giftDraftById, setGiftDraftById] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createSupabaseBrowserAuthedClient(auth.token));
 
@@ -78,6 +86,7 @@ export default function ParentApprovalInboxPage() {
     const supabase = supabaseRef.current;
     if (!supabase || !parentId) {
       setTasks([]);
+      setGiftRequests([]);
       setLoading(false);
       return;
     }
@@ -88,6 +97,7 @@ export default function ParentApprovalInboxPage() {
     if (childErr) {
       toast.error("Could not load inbox", { description: childErr.message });
       setTasks([]);
+      setGiftRequests([]);
       setLoading(false);
       return;
     }
@@ -96,24 +106,54 @@ export default function ParentApprovalInboxPage() {
 
     if (ids.length === 0) {
       setTasks([]);
+      setGiftRequests([]);
       setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("id, title, reward_minutes, child_id")
-      .eq("time_task_status", "pending")
-      .in("child_id", ids);
+    const [taskRes, giftRes] = await Promise.all([
+      supabase
+        .from("tasks")
+        .select("id, title, reward_minutes, child_id")
+        .eq("time_task_status", "pending")
+        .in("child_id", ids),
+      supabase
+        .from("reward_requests")
+        .select("id, reward_title, child_id")
+        .eq("status", "pending")
+        .in("child_id", ids),
+    ]);
 
-    if (error) {
-      toast.error("Could not load inbox", { description: error.message });
+    if (taskRes.error) {
+      toast.error("Could not load inbox", { description: taskRes.error.message });
       setTasks([]);
+      setGiftRequests([]);
       setLoading(false);
       return;
     }
 
-    const rows = (data ?? []) as Record<string, unknown>[];
+    if (giftRes.error) {
+      const msg = giftRes.error.message ?? "";
+      const missing =
+        msg.includes("reward_requests") ||
+        msg.includes("schema cache") ||
+        msg.toLowerCase().includes("does not exist");
+      if (!missing) {
+        toast.error("Could not load gift requests", { description: giftRes.error.message });
+      }
+      setGiftRequests([]);
+    } else {
+      const grows = (giftRes.data ?? []) as Record<string, unknown>[];
+      setGiftRequests(
+        grows.map((r) => ({
+          id: String(r.id),
+          rewardTitle: String(r.reward_title ?? ""),
+          childId: String(r.child_id ?? ""),
+        })),
+      );
+    }
+
+    const rows = (taskRes.data ?? []) as Record<string, unknown>[];
     const mapped: PendingTask[] = rows.map((r) => ({
       id: String(r.id),
       title: String(r.title ?? ""),
@@ -158,6 +198,13 @@ export default function ParentApprovalInboxPage() {
             void loadPending();
           },
         )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "reward_requests", filter },
+          () => {
+            void loadPending();
+          },
+        )
         .subscribe((status) => {
           if (cancelled) return;
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
@@ -182,6 +229,74 @@ export default function ParentApprovalInboxPage() {
       if (channel) void supabase.removeChannel(channel);
     };
   }, [authHydrated, auth.role, parentId, childIds, loadPending]);
+
+  const dismissGift = useCallback((id: string) => {
+    setGiftRequests((prev) => prev.filter((g) => g.id !== id));
+    setGiftDraftById((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  const onApproveGift = useCallback(
+    async (req: PendingGiftRequest) => {
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        toast.error("Supabase is not configured.");
+        return;
+      }
+
+      const code = (giftDraftById[req.id] ?? "").trim();
+      if (!code) {
+        toast.error("Enter the gift card code", { description: "Paste or type the code before approving." });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      const { data: updated, error } = await supabase
+        .from("reward_requests")
+        .update({ status: "approved", gift_card_code: code, updated_at: now })
+        .eq("id", req.id)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+
+      if (error || !updated) {
+        toast.error("Could not save gift card", { description: error?.message ?? "No rows updated." });
+        void loadPending();
+        return;
+      }
+
+      dismissGift(req.id);
+      toast.success("Gift card saved — your child can reveal it in the app.", { duration: 3400 });
+    },
+    [dismissGift, giftDraftById, loadPending],
+  );
+
+  const onRejectGift = useCallback(
+    async (req: PendingGiftRequest) => {
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        dismissGift(req.id);
+        return;
+      }
+      const now = new Date().toISOString();
+      const { error } = await supabase
+        .from("reward_requests")
+        .update({ status: "rejected", updated_at: now })
+        .eq("id", req.id)
+        .eq("status", "pending");
+
+      if (error) {
+        toast.error("Could not update request", { description: error.message });
+        void loadPending();
+        return;
+      }
+      dismissGift(req.id);
+    },
+    [dismissGift, loadPending],
+  );
 
   const dismissTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
@@ -299,6 +414,8 @@ export default function ParentApprovalInboxPage() {
   );
 
   const list = useMemo(() => tasks, [tasks]);
+  const gifts = useMemo(() => giftRequests, [giftRequests]);
+  const inboxEmpty = !loading && list.length === 0 && gifts.length === 0;
 
   if (!authHydrated || auth.role !== "parent") return null;
 
@@ -310,20 +427,78 @@ export default function ParentApprovalInboxPage() {
           <h1 className={styles.heroTitle}>Approval inbox</h1>
           <p className={styles.heroSub}>
             Pending chores with photo evidence. Approve to add reward time to your child&apos;s bank, or send back for
-            another try.
+            another try. Gift card requests appear here too — enter the code when you approve.
           </p>
         </header>
 
-        {!loading && list.length === 0 ? (
+        {inboxEmpty ? (
           <div className={styles.emptyWrap}>
             <EmptyState
               title="Inbox clear"
-              description="No tasks are waiting for approval right now."
+              description="No tasks or gift cards are waiting for approval right now."
             />
           </div>
         ) : (
-          <ul className={styles.feed} aria-label="Pending tasks">
+          <ul className={styles.feed} aria-label="Pending approvals">
             <AnimatePresence initial={false}>
+              {gifts.map((req) => (
+                <motion.li
+                  key={`gift-${req.id}`}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -12 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                >
+                  <article className={styles.card}>
+                    <div className={styles.cardBody}>
+                      <div className={styles.cardTop}>
+                        <h2 className={styles.taskTitle}>{req.rewardTitle}</h2>
+                        <span className={styles.giftBadge}>Gift card</span>
+                      </div>
+                      <p className={styles.giftHint}>
+                        Enter the code from your retailer or voucher email. Your child will tap to reveal it after you
+                        approve.
+                      </p>
+                      <div className={styles.codeField}>
+                        <label className={styles.codeLabel} htmlFor={`gift-code-${req.id}`}>
+                          Gift card code
+                        </label>
+                        <input
+                          id={`gift-code-${req.id}`}
+                          className={styles.codeInput}
+                          type="text"
+                          autoComplete="off"
+                          spellCheck={false}
+                          placeholder="Paste code here"
+                          value={giftDraftById[req.id] ?? ""}
+                          onChange={(e) =>
+                            setGiftDraftById((prev) => ({
+                              ...prev,
+                              [req.id]: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className={styles.actions}>
+                        <GTButton
+                          type="button"
+                          variant="primary"
+                          size="lg"
+                          fullWidth
+                          className={styles.approveButton}
+                          onClick={() => void onApproveGift(req)}
+                        >
+                          Approve &amp; save code
+                        </GTButton>
+                        <GTButton type="button" variant="danger" size="lg" fullWidth onClick={() => void onRejectGift(req)}>
+                          Reject
+                        </GTButton>
+                      </div>
+                    </div>
+                  </article>
+                </motion.li>
+              ))}
               {list.map((task) => (
                 <motion.li
                   key={task.id}

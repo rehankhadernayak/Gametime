@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   Pressable,
@@ -8,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -15,6 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { HAPTIC_PATTERNS } from '../../theme/kinetic-mobile-theme.js';
+import { createChildSupabaseClient } from '../../lib/supabase';
 
 /** Matches ChildDashboard (Time Bank) kinetic cream theme. */
 const TIME_BANK_CREAM = '#F9F9F4';
@@ -25,6 +28,13 @@ type PurchasableReward = {
   title: string;
   costMinutes: number;
   description?: string;
+};
+
+type ClaimedRewardRow = {
+  id: string;
+  reward_title: string;
+  gift_card_code: string | null;
+  status: string;
 };
 
 const MOCK_PURCHASABLE: PurchasableReward[] = [
@@ -64,17 +74,82 @@ function readTimeBankMinutes(user: Record<string, unknown> | null | undefined): 
   return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
 }
 
+function obscureCode(code: string): string {
+  const len = Math.min(Math.max(code.length, 8), 24);
+  return '●'.repeat(len);
+}
+
 export default function ChildRewardsStore() {
   const insets = useSafeAreaInsets();
-  const { user, refreshMe } = useAuth();
+  const { token, role, user, refreshMe } = useAuth();
+  const childId =
+    user && typeof user === 'object' && 'id' in user && typeof (user as { id?: unknown }).id === 'string'
+      ? (user as { id: string }).id
+      : '';
 
   const timeBankMinutes = useMemo(() => readTimeBankMinutes(user as Record<string, unknown>), [user]);
+
+  const supabaseRef = useRef(createChildSupabaseClient(token));
+  useEffect(() => {
+    supabaseRef.current = createChildSupabaseClient(token);
+  }, [token]);
+
+  const supabaseConfigured = Boolean(
+    process.env.EXPO_PUBLIC_SUPABASE_URL?.trim() && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim()
+  );
+
+  const [claimed, setClaimed] = useState<ClaimedRewardRow[]>([]);
+  const [claimedLoading, setClaimedLoading] = useState(false);
+  const [revealedIds, setRevealedIds] = useState<Record<string, boolean>>({});
+
+  const loadClaimed = useCallback(async () => {
+    if (role !== 'child' || !childId || !token) {
+      setClaimed([]);
+      return;
+    }
+    const supabase = supabaseRef.current;
+    if (!supabase) {
+      setClaimed([]);
+      return;
+    }
+    setClaimedLoading(true);
+    const { data, error } = await supabase
+      .from('reward_requests')
+      .select('id, reward_title, gift_card_code, status')
+      .eq('child_id', childId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      setClaimed([]);
+      setClaimedLoading(false);
+      return;
+    }
+    setClaimed((data ?? []) as ClaimedRewardRow[]);
+    setClaimedLoading(false);
+  }, [role, childId, token]);
 
   useFocusEffect(
     useCallback(() => {
       void refreshMe();
-    }, [refreshMe])
+      void loadClaimed();
+    }, [refreshMe, loadClaimed])
   );
+
+  const toggleReveal = useCallback((id: string) => {
+    HAPTIC_PATTERNS.success();
+    setRevealedIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const copyCode = useCallback(async (code: string) => {
+    try {
+      await Clipboard.setStringAsync(code);
+      HAPTIC_PATTERNS.success();
+      Alert.alert('Copied', 'Gift card code copied to clipboard.');
+    } catch {
+      Alert.alert('Copy failed', 'Could not copy to clipboard.');
+    }
+  }, []);
 
   const onBuy = (reward: PurchasableReward) => {
     if (timeBankMinutes < reward.costMinutes) return;
@@ -103,6 +178,63 @@ export default function ChildRewardsStore() {
           Spend your saved minutes on special perks. Your parent will confirm each request.
         </Text>
       </View>
+
+      <View style={styles.sectionRow}>
+        <Text style={styles.sectionTitle}>My Claimed Rewards</Text>
+      </View>
+
+      {!supabaseConfigured ? (
+        <Text style={styles.hintMuted}>Connect Supabase in app config to load claimed rewards.</Text>
+      ) : claimedLoading ? (
+        <ActivityIndicator color={colors.primary} accessibilityLabel="Loading claimed rewards" />
+      ) : claimed.length === 0 ? (
+        <Text style={styles.hintMuted}>No approved rewards yet. When your parent approves a gift card, it shows up here.</Text>
+      ) : (
+        claimed.map((row) => {
+          const code = row.gift_card_code?.trim() ?? '';
+          const hasCode = code.length > 0;
+          const revealed = revealedIds[row.id] ?? false;
+          return (
+            <View key={row.id} style={styles.claimedCard}>
+              <Text style={styles.rewardTitle}>{row.reward_title}</Text>
+              <Text style={styles.claimedLabel}>Gift card code</Text>
+              {hasCode ? (
+                <>
+                  <Pressable
+                    onPress={() => toggleReveal(row.id)}
+                    style={({ pressed }) => [styles.revealShell, pressed && styles.revealPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel={revealed ? 'Hide gift card code' : 'Tap to reveal gift card code'}
+                  >
+                    <Text
+                      style={[styles.codeText, !revealed && styles.codeTextHidden]}
+                      selectable={revealed}
+                      numberOfLines={1}
+                    >
+                      {revealed ? code : obscureCode(code)}
+                    </Text>
+                    {!revealed ? (
+                      <Text style={styles.revealHint}>Tap to reveal</Text>
+                    ) : null}
+                  </Pressable>
+                  {revealed ? (
+                    <Pressable
+                      onPress={() => void copyCode(code)}
+                      style={({ pressed }) => [styles.copyBtn, pressed && styles.copyBtnPressed]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Copy gift card code"
+                    >
+                      <Text style={styles.copyBtnText}>Copy</Text>
+                    </Pressable>
+                  ) : null}
+                </>
+              ) : (
+                <Text style={styles.hintMuted}>Your parent hasn&apos;t added the code yet.</Text>
+              )}
+            </View>
+          );
+        })
+      )}
 
       <View style={styles.sectionRow}>
         <Text style={styles.sectionTitle}>Purchasable rewards</Text>
@@ -205,6 +337,76 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: TEXT_DARK,
+  },
+  hintMuted: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: TEXT_DARK,
+    opacity: 0.5,
+  },
+  claimedCard: {
+    borderRadius: 16,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    ...glassCard,
+  },
+  claimedLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: TEXT_DARK,
+    opacity: 0.45,
+    marginTop: spacing.xs,
+  },
+  revealShell: {
+    borderRadius: 12,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    backgroundColor: 'rgba(26, 26, 30, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 91, 255, 0.18)',
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  revealPressed: {
+    opacity: 0.92,
+  },
+  codeText: {
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: TEXT_DARK,
+    fontVariant: ['tabular-nums'],
+  },
+  codeTextHidden: {
+    letterSpacing: 2,
+    opacity: 0.85,
+  },
+  revealHint: {
+    marginTop: spacing.xs,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.primaryDark,
+    opacity: 0.9,
+  },
+  copyBtn: {
+    marginTop: spacing.sm,
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: 'rgba(124, 91, 255, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 91, 255, 0.35)',
+  },
+  copyBtnPressed: {
+    opacity: 0.88,
+  },
+  copyBtnText: {
+    color: colors.primaryDark,
+    fontWeight: '800',
+    fontSize: 15,
   },
   rewardCard: {
     borderRadius: 16,
