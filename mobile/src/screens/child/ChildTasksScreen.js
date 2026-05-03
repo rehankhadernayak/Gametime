@@ -340,7 +340,7 @@ export default function ChildTasksScreen() {
                 {task.state === 'Active' ? (
                   <TouchableOpacity
                     style={styles.proofBtn}
-                    onPress={() => navigation.navigate('EvidenceSubmit', {
+                    onPress={() => navigation.navigate('TaskProof', {
                       taskId: task.id,
                       taskTitle: task.title,
                       taskPoints: task.points,
