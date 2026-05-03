@@ -1,13 +1,13 @@
 {
+  "$schema": "https://raw.githubusercontent.com/expo/eas-cli/main/packages/eas-json/schema/eas.schema.json",
   "cli": {
-    "version": ">= 14.0.0",
+    "version": ">= 10.0.0",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "emulatorManagedByEas": false,
       "ios": { "simulator": true },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://localhost:4000"
@@ -38,7 +38,8 @@
         "gradleCommand": ":app:bundleRelease"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.gametime.app"
+        "EXPO_PUBLIC_API_URL": "https://api.gametime.app",
+        "EXPO_PUBLIC_REVIEWER_DEMO": "true"
       }
     }
   },
@@ -47,8 +48,7 @@
       "ios": {
         "appleId": "your-apple-id@example.com",
         "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID",
-        "appleAppSpecificPassword": "YOUR_APP_SPECIFIC_PASSWORD"
+        "appleTeamId": "YOUR_APPLE_TEAM_ID"
       },
       "android": {
         "serviceAccountKeyPath": "./android-service-account.json",
