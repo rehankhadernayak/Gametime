@@ -32,6 +32,7 @@ import ChildGamingScreen from '../screens/child/ChildGamingScreen';
 import ChildAiScreen from '../screens/child/ChildAiScreen';
 import ChildNotificationsScreen from '../screens/child/ChildNotificationsScreen';
 import EvidenceSubmitScreen from '../screens/child/EvidenceSubmitScreen';
+import TaskProofScreen from '../screens/child/TaskProofScreen';
 
 import ParentNotificationsScreen from '../screens/parent/ParentNotificationsScreen';
 
@@ -259,6 +260,11 @@ function ChildStack() {
       <ChildStackNav.Screen
         name="EvidenceSubmit"
         component={EvidenceSubmitScreen}
+        options={{ headerShown: false }}
+      />
+      <ChildStackNav.Screen
+        name="TaskProof"
+        component={TaskProofScreen}
         options={{ headerShown: false }}
       />
     </ChildStackNav.Navigator>
