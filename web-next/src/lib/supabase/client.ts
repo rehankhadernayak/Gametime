@@ -27,3 +27,18 @@ export function getSupabaseBrowserClient(): SupabaseClient | null {
 export function getSupabaseChildTableName(): string {
   return process.env.NEXT_PUBLIC_SUPABASE_CHILD_TABLE?.trim() || "child_profiles";
 }
+
+/**
+ * Authenticated browser client (parent JWT). Not singleton — create per token / page.
+ */
+export function createSupabaseBrowserAuthedClient(accessToken: string): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  if (!url || !key) return null;
+
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    realtime: { params: { eventsPerSecond: 10 } },
+  });
+}
