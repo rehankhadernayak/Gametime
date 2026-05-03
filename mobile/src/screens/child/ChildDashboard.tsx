@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -10,9 +11,12 @@ import {
 import Slider from '@react-native-community/slider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
+import { useAuth } from '../../context/AuthContext';
+import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/supabase';
 
 /** Light cream surface — Time Bank hero (brand brief). */
 const TIME_BANK_CREAM = '#F9F9F4';
@@ -26,16 +30,32 @@ const MOCK_LOCKED_APPS: LockedApp[] = [
   { id: 'minecraft', name: 'Minecraft' },
 ];
 
-/** Mock starting balance until Supabase wiring lands. */
-const MOCK_INITIAL_BANK_MINUTES = 120;
+function readTimeBankMinutes(row: Record<string, unknown> | null | undefined): number {
+  const v = row?.time_bank_minutes;
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.max(0, Math.round(v));
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  return 0;
+}
 
 export default function ChildDashboard() {
   const insets = useSafeAreaInsets();
+  const { token, role, user } = useAuth();
+  const childId = user && typeof user === 'object' && 'id' in user && typeof (user as { id?: unknown }).id === 'string'
+    ? (user as { id: string }).id
+    : '';
 
-  const [balanceMinutes, setBalanceMinutes] = useState(MOCK_INITIAL_BANK_MINUTES);
+  const [balanceMinutes, setBalanceMinutes] = useState(0);
   const [draftByAppId, setDraftByAppId] = useState<Record<string, number>>(() =>
     Object.fromEntries(MOCK_LOCKED_APPS.map((a) => [a.id, 0]))
   );
+
+  const supabaseRef = useRef(createChildSupabaseClient(token));
+  useEffect(() => {
+    supabaseRef.current = createChildSupabaseClient(token);
+  }, [token]);
 
   const totalDraft = useMemo(
     () =>
@@ -43,7 +63,6 @@ export default function ChildDashboard() {
     [draftByAppId]
   );
 
-  /** Minutes still free while sliders reserve draft amounts (live header). */
   const availableMinutes = Math.max(0, balanceMinutes - totalDraft);
 
   const setDraftForApp = useCallback((appId: string, value: number) => {
@@ -56,14 +75,143 @@ export default function ChildDashboard() {
     });
   }, [balanceMinutes]);
 
-  const handleUnlock = useCallback((app: LockedApp) => {
-    const minutes = draftByAppId[app.id] ?? 0;
-    if (minutes <= 0) return;
+  /** Load balance + subscribe to parent top-ups (time_bank_minutes). */
+  useEffect(() => {
+    if (role !== 'child' || !childId || !token) return;
 
-    setBalanceMinutes((b) => Math.max(0, b - minutes));
-    setDraftByAppId((prev) => ({ ...prev, [app.id]: 0 }));
-    // Allocation persistence → app_allocations / Edge Function later.
-  }, [draftByAppId]);
+    const supabase = supabaseRef.current;
+    if (!supabase) return;
+
+    const childTable = getSupabaseChildTableName();
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function loadBalance() {
+      const { data, error } = await supabase
+        .from(childTable)
+        .select('time_bank_minutes')
+        .eq('id', childId)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) return;
+      setBalanceMinutes(readTimeBankMinutes(data as Record<string, unknown>));
+    }
+
+    void loadBalance();
+
+    const setupChannel = () => {
+      if (cancelled) return;
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      channel = supabase.channel(`child-time-bank:${childId}`);
+      channel
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: childTable, filter: `id=eq.${childId}` },
+          (payload) => {
+            const next = readTimeBankMinutes(payload.new as Record<string, unknown>);
+            setBalanceMinutes(next);
+          }
+        )
+        .subscribe((status) => {
+          if (cancelled) return;
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            void supabase.removeChannel(channel!);
+            channel = null;
+            retryTimer = setTimeout(() => {
+              retryTimer = null;
+              if (!cancelled) setupChannel();
+            }, 2000);
+          }
+        });
+    };
+
+    setupChannel();
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [role, childId, token]);
+
+  const handleUnlock = useCallback(
+    async (app: LockedApp) => {
+      const minutes = draftByAppId[app.id] ?? 0;
+      if (minutes <= 0 || role !== 'child' || !childId) return;
+
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        Alert.alert('Unavailable', 'Supabase is not configured on this build.');
+        return;
+      }
+
+      const childTable = getSupabaseChildTableName();
+      const now = new Date().toISOString();
+
+      const { data: profile, error: fetchErr } = await supabase
+        .from(childTable)
+        .select('time_bank_minutes')
+        .eq('id', childId)
+        .maybeSingle();
+
+      if (fetchErr) {
+        Alert.alert('Could not read Time Bank', fetchErr.message);
+        return;
+      }
+
+      const bank = readTimeBankMinutes(profile as Record<string, unknown>);
+      if (minutes > bank) {
+        Alert.alert('Not enough minutes', 'Your balance changed. Try again.');
+        setBalanceMinutes(bank);
+        return;
+      }
+
+      const { data: updatedRow, error: decErr } = await supabase
+        .from(childTable)
+        .update({ time_bank_minutes: bank - minutes, updated_at: now })
+        .eq('id', childId)
+        .eq('time_bank_minutes', bank)
+        .select('time_bank_minutes')
+        .maybeSingle();
+
+      if (decErr || !updatedRow) {
+        const { data: fresh } = await supabase
+          .from(childTable)
+          .select('time_bank_minutes')
+          .eq('id', childId)
+          .maybeSingle();
+        if (fresh) setBalanceMinutes(readTimeBankMinutes(fresh as Record<string, unknown>));
+        Alert.alert('Balance updated', 'Your Time Bank changed. Adjust the slider and try again.');
+        return;
+      }
+
+      const { error: insErr } = await supabase.from('app_allocations').insert({
+        child_id: childId,
+        app_name: app.name,
+        allocated_minutes: minutes,
+        status: 'active',
+        created_at: now,
+        updated_at: now,
+      });
+
+      if (insErr) {
+        await supabase
+          .from(childTable)
+          .update({ time_bank_minutes: bank, updated_at: new Date().toISOString() })
+          .eq('id', childId);
+        Alert.alert('Could not save unlock', insErr.message);
+        return;
+      }
+
+      setBalanceMinutes(bank - minutes);
+      setDraftByAppId((prev) => ({ ...prev, [app.id]: 0 }));
+    },
+    [draftByAppId, role, childId]
+  );
 
   return (
     <ScrollView
@@ -122,7 +270,7 @@ export default function ChildDashboard() {
                 Max {maxForSlider} min (your Time Bank)
               </Text>
               <Pressable
-                onPress={() => handleUnlock(app)}
+                onPress={() => void handleUnlock(app)}
                 disabled={draft <= 0}
                 style={({ pressed }) => [
                   styles.unlockBtn,
