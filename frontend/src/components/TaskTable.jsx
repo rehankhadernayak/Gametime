@@ -1,10 +1,18 @@
 import { useRef, useState } from 'react';
-import { apiRequest, pushDeletionToast } from '../api/client.js';
+import { apiRequest } from '../api/client.js';
 import StatusChip from './StatusChip.jsx';
 import GTConfirmDialog from './GTConfirmDialog.jsx';
 import HoldToConfirmButton from './HoldToConfirmButton.jsx';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function notifyDeletionSuccess(title, message) {
+  window.dispatchEvent(
+    new CustomEvent('gametime:toast', {
+      detail: { type: 'success', title, message }
+    })
+  );
+}
 
 export const CATEGORIES = [
   { id: 'school',     label: 'School',     color: '#4b8ff5' },
@@ -209,10 +217,10 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
     setDeletingId(taskId);
     try {
       await apiRequest(`/tasks/${taskId}`, { method: 'DELETE', token });
-      pushDeletionToast({
-        title: 'Quest removed',
-        message: taskTitle ? `"${taskTitle}" was deleted.` : 'The quest was deleted.'
-      });
+      notifyDeletionSuccess(
+        'Quest removed',
+        taskTitle ? `"${taskTitle}" was deleted.` : 'The quest was deleted.'
+      );
       await onRefresh();
     } catch {
       /* silent - onRefresh will show latest state */
@@ -244,10 +252,10 @@ export default function TaskTable({ token, tasks, children, onRefresh }) {
         await apiRequest(`/tasks/${t.id}`, { method: 'DELETE', token });
       }
       const n = deletableFiltered.length;
-      pushDeletionToast({
-        title: n === 1 ? 'Quest removed' : 'Quests removed',
-        message: n === 1 ? 'One quest was deleted.' : `${n} quests were deleted.`
-      });
+      notifyDeletionSuccess(
+        n === 1 ? 'Quest removed' : 'Quests removed',
+        n === 1 ? 'One quest was deleted.' : `${n} quests were deleted.`
+      );
       await onRefresh();
     } catch {
       await onRefresh();

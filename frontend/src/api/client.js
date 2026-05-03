@@ -94,16 +94,3 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
   });
   return data;
 }
-
-/** Success toast for destructive removes (tasks, children, account). */
-export function pushDeletionToast({ title, message }) {
-  window.dispatchEvent(
-    new CustomEvent('gametime:toast', {
-      detail: {
-        type: 'success',
-        title,
-        message,
-      },
-    })
-  );
-}
