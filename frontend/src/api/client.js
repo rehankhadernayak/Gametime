@@ -1,5 +1,5 @@
 import { trackEvent } from '../utils/analytics.js';
-export const API_BASE = String(import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
+export const API_BASE = String(import.meta.env?.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
 const REQUEST_TIMEOUT_MS = 15000;
 
 export class ApiRequestError extends Error {
@@ -93,4 +93,17 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
     durationMs: Date.now() - startTs
   });
   return data;
+}
+
+/** Success toast for destructive removes (tasks, children, account). */
+export function pushDeletionToast({ title, message }) {
+  window.dispatchEvent(
+    new CustomEvent('gametime:toast', {
+      detail: {
+        type: 'success',
+        title,
+        message,
+      },
+    })
+  );
 }

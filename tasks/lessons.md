@@ -200,3 +200,15 @@
 **Rule:** After trying nvm/fnm/volta, bootstrap Node from `nodejs.org` into a repo-local cache (e.g. `.cursor/runtime/`, gitignored) via `scripts/ensure-node-on-path.sh`, and pin the version in `.node-version` so installs stay reproducible.
 
 ---
+
+### 2026-05-03 — Next SSR: guard `import.meta.env` in shared Vite `client.js`
+**What happened:** Bundling `frontend/src/api/client.js` into `web-next` left `import.meta` undefined during static prerender; reading `import.meta.env.VITE_*` threw and broke `npm run build`.
+**Rule:** Use optional chaining on `import.meta.env` (e.g. `import.meta.env?.VITE_API_BASE_URL ?? '/api'`) so Node prerender never dereferences `undefined`.
+
+---
+
+### 2026-05-03 — JSX inline styles: CSS `var()` must be quoted strings
+**What happened:** `color: var(--token)` without quotes in a JS object is invalid (`var` parses as the keyword); TypeScript reported a fake “header has no closing tag” at the parent `<header>`.
+**Rule:** In React style objects, always write `'var(--css-variable)'` as a string value.
+
+---
