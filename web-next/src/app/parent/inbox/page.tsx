@@ -17,6 +17,13 @@ type PendingTask = {
   childId: string;
 };
 
+type RewardRequestRow = {
+  id: string;
+  childId: string;
+  rewardTitle: string;
+  costMinutes: number;
+};
+
 function readRewardMinutes(row: Record<string, unknown>): number {
   const v = row.reward_minutes;
   if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.round(v));
@@ -29,6 +36,16 @@ function readRewardMinutes(row: Record<string, unknown>): number {
 
 function readTimeBankMinutes(row: Record<string, unknown> | null | undefined): number {
   const v = row?.time_bank_minutes;
+  if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.round(v));
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  return 0;
+}
+
+function readCostMinutes(row: Record<string, unknown>): number {
+  const v = row.cost_minutes;
   if (typeof v === "number" && Number.isFinite(v)) return Math.max(0, Math.round(v));
   if (typeof v === "string" && v.trim() !== "") {
     const n = Number(v);
@@ -58,6 +75,9 @@ export default function ParentApprovalInboxPage() {
   const router = useRouter();
   const { auth, authHydrated } = useGametimeAuth();
   const [tasks, setTasks] = useState<PendingTask[]>([]);
+  const [rewardRequests, setRewardRequests] = useState<RewardRequestRow[]>([]);
+  const [childNameById, setChildNameById] = useState<Record<string, string>>({});
+  const [familyId, setFamilyId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createSupabaseBrowserAuthedClient(auth.token));
 
@@ -78,49 +98,103 @@ export default function ParentApprovalInboxPage() {
     const supabase = supabaseRef.current;
     if (!supabase || !parentId) {
       setTasks([]);
+      setRewardRequests([]);
+      setChildNameById({});
+      setFamilyId(null);
+      setChildIds([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
 
-    const { data: children, error: childErr } = await supabase.from(childTable).select("id").eq("parent_id", parentId);
+    const { data: children, error: childErr } = await supabase
+      .from(childTable)
+      .select("id, name, family_id")
+      .eq("parent_id", parentId);
     if (childErr) {
       toast.error("Could not load inbox", { description: childErr.message });
       setTasks([]);
+      setRewardRequests([]);
+      setChildNameById({});
+      setFamilyId(null);
+      setChildIds([]);
       setLoading(false);
       return;
     }
+
+    const names: Record<string, string> = {};
+    for (const c of children ?? []) {
+      const row = c as { id: unknown; name: unknown };
+      names[String(row.id)] = String(row.name ?? "");
+    }
+    setChildNameById(names);
+
     const ids = (children ?? []).map((r) => String((r as { id: unknown }).id));
     setChildIds(ids);
 
+    const fidRow = (children ?? []).find((c) => {
+      const f = (c as { family_id?: unknown }).family_id;
+      return typeof f === "string" && f.trim() !== "";
+    }) as { family_id?: string } | undefined;
+    const nextFamilyId = fidRow?.family_id?.trim() ?? null;
+    setFamilyId(nextFamilyId);
+
     if (ids.length === 0) {
       setTasks([]);
+      setRewardRequests([]);
       setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase
+    const taskRes = await supabase
       .from("tasks")
       .select("id, title, reward_minutes, child_id")
       .eq("time_task_status", "pending")
       .in("child_id", ids);
 
-    if (error) {
-      toast.error("Could not load inbox", { description: error.message });
+    if (taskRes.error) {
+      toast.error("Could not load inbox", { description: taskRes.error.message });
       setTasks([]);
+      setRewardRequests([]);
       setLoading(false);
       return;
     }
 
-    const rows = (data ?? []) as Record<string, unknown>[];
-    const mapped: PendingTask[] = rows.map((r) => ({
+    let rewardRows: Record<string, unknown>[] = [];
+    if (nextFamilyId != null) {
+      const rewardRes = await supabase
+        .from("reward_requests")
+        .select("id, child_id, reward_title, cost_minutes, status")
+        .eq("family_id", nextFamilyId)
+        .eq("status", "pending");
+
+      if (rewardRes.error) {
+        toast.error("Could not load reward requests", { description: rewardRes.error.message });
+        setTasks([]);
+        setRewardRequests([]);
+        setLoading(false);
+        return;
+      }
+      rewardRows = (rewardRes.data ?? []) as Record<string, unknown>[];
+    }
+
+    const taskRows = (taskRes.data ?? []) as Record<string, unknown>[];
+    const mappedTasks: PendingTask[] = taskRows.map((r) => ({
       id: String(r.id),
       title: String(r.title ?? ""),
       rewardMinutes: readRewardMinutes(r),
       childId: String(r.child_id ?? ""),
     }));
-    setTasks(mapped);
+    setTasks(mappedTasks);
+
+    const mappedRewards: RewardRequestRow[] = rewardRows.map((r) => ({
+      id: String(r.id),
+      childId: String(r.child_id ?? ""),
+      rewardTitle: String(r.reward_title ?? ""),
+      costMinutes: readCostMinutes(r),
+    }));
+    setRewardRequests(mappedRewards);
     setLoading(false);
   }, [parentId, childTable]);
 
@@ -129,16 +203,19 @@ export default function ParentApprovalInboxPage() {
     void loadPending();
   }, [authHydrated, auth.role, parentId, loadPending]);
 
-  /** Realtime: task inserts/updates for this parent's children refresh the list. */
+  /** Realtime: tasks + reward_requests for this family refresh the lists. */
   useEffect(() => {
     if (!authHydrated || auth.role !== "parent" || !parentId) return;
     const supabase = supabaseRef.current;
     if (!supabase) return;
 
     const ids = childIds.filter(Boolean);
-    if (ids.length === 0) return;
+    const taskFilter = ids.length > 0 ? `child_id=in.(${ids.join(",")})` : null;
+    const rewardFilter =
+      familyId != null && familyId.trim() !== "" ? `family_id=eq.${familyId.trim()}` : null;
 
-    const filter = `child_id=in.(${ids.join(",")})`;
+    if (!taskFilter && !rewardFilter) return;
+
     let channel: RealtimeChannel | null = null;
     let cancelled = false;
     let retryTimer: number | null = null;
@@ -149,26 +226,37 @@ export default function ParentApprovalInboxPage() {
         clearTimeout(retryTimer);
         retryTimer = null;
       }
-      channel = supabase.channel(`parent-inbox:${parentId}:${[...ids].sort().join(",")}`);
-      channel
-        .on(
+      const topicKey = `${[...ids].sort().join(",")}|${familyId ?? ""}`;
+      channel = supabase.channel(`parent-inbox:${parentId}:${topicKey}`);
+      if (taskFilter) {
+        channel.on(
           "postgres_changes",
-          { event: "*", schema: "public", table: "tasks", filter },
+          { event: "*", schema: "public", table: "tasks", filter: taskFilter },
           () => {
             void loadPending();
           },
-        )
-        .subscribe((status) => {
-          if (cancelled) return;
-          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-            void supabase.removeChannel(channel!);
-            channel = null;
-            retryTimer = window.setTimeout(() => {
-              retryTimer = null;
-              if (!cancelled) setup();
-            }, 2000);
-          }
-        });
+        );
+      }
+      if (rewardFilter) {
+        channel.on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "reward_requests", filter: rewardFilter },
+          () => {
+            void loadPending();
+          },
+        );
+      }
+      channel.subscribe((status) => {
+        if (cancelled) return;
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          void supabase.removeChannel(channel!);
+          channel = null;
+          retryTimer = window.setTimeout(() => {
+            retryTimer = null;
+            if (!cancelled) setup();
+          }, 2000);
+        }
+      });
     };
 
     setup();
@@ -181,11 +269,127 @@ export default function ParentApprovalInboxPage() {
       }
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [authHydrated, auth.role, parentId, childIds, loadPending]);
+  }, [authHydrated, auth.role, parentId, childIds, familyId, loadPending]);
 
   const dismissTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
+
+  const dismissReward = useCallback((id: string) => {
+    setRewardRequests((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  const onApproveReward = useCallback(
+    async (req: RewardRequestRow) => {
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        toast.error("Supabase is not configured.");
+        return;
+      }
+
+      const { data: updated, error } = await supabase
+        .from("reward_requests")
+        .update({ status: "approved" })
+        .eq("id", req.id)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+
+      if (error || !updated) {
+        toast.error("Could not approve reward", { description: error?.message ?? "No rows updated." });
+        void loadPending();
+        return;
+      }
+
+      dismissReward(req.id);
+      toast.success("Reward request approved.");
+    },
+    [dismissReward, loadPending],
+  );
+
+  const onDenyReward = useCallback(
+    async (req: RewardRequestRow) => {
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        toast.error("Supabase is not configured.");
+        return;
+      }
+
+      const now = new Date().toISOString();
+
+      const { data: rr, error: fetchErr } = await supabase
+        .from("reward_requests")
+        .select("id, status, child_id, cost_minutes")
+        .eq("id", req.id)
+        .maybeSingle();
+
+      if (fetchErr || !rr) {
+        toast.error("Could not load reward request", { description: fetchErr?.message });
+        return;
+      }
+
+      const row = rr as Record<string, unknown>;
+      if (row.status !== "pending") {
+        toast.message("Request is no longer pending.");
+        dismissReward(req.id);
+        return;
+      }
+
+      const childId = String(row.child_id ?? "");
+      const cost = readCostMinutes(row);
+
+      const { data: childRow, error: childFetchErr } = await supabase
+        .from(childTable)
+        .select("time_bank_minutes")
+        .eq("id", childId)
+        .maybeSingle();
+
+      if (childFetchErr || !childRow) {
+        toast.error("Could not read child profile for refund", { description: childFetchErr?.message });
+        return;
+      }
+
+      const bank = readTimeBankMinutes(childRow as Record<string, unknown>);
+      const nextBank = Math.min(100000, bank + cost);
+
+      const { data: credited, error: childUpErr } = await supabase
+        .from(childTable)
+        .update({ time_bank_minutes: nextBank, updated_at: now })
+        .eq("id", childId)
+        .eq("time_bank_minutes", bank)
+        .select("id")
+        .maybeSingle();
+
+      if (childUpErr || !credited) {
+        toast.error("Could not refund Time Bank", { description: childUpErr?.message ?? "Balance may have changed." });
+        void loadPending();
+        return;
+      }
+
+      const { data: denied, error: denyErr } = await supabase
+        .from("reward_requests")
+        .update({ status: "denied" })
+        .eq("id", req.id)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+
+      if (denyErr || !denied) {
+        await supabase
+          .from(childTable)
+          .update({ time_bank_minutes: bank, updated_at: new Date().toISOString() })
+          .eq("id", childId)
+          .eq("time_bank_minutes", nextBank);
+        toast.error("Could not deny request", { description: denyErr?.message ?? "No rows updated." });
+        void loadPending();
+        return;
+      }
+
+      dismissReward(req.id);
+      toast.success("Request denied and minutes refunded.");
+    },
+    [childTable, dismissReward, loadPending],
+  );
 
   const onApprove = useCallback(
     async (task: PendingTask) => {
@@ -298,7 +502,9 @@ export default function ParentApprovalInboxPage() {
     [dismissTask, loadPending],
   );
 
-  const list = useMemo(() => tasks, [tasks]);
+  const taskList = useMemo(() => tasks, [tasks]);
+  const rewardList = useMemo(() => rewardRequests, [rewardRequests]);
+  const inboxEmpty = !loading && taskList.length === 0 && rewardList.length === 0;
 
   if (!authHydrated || auth.role !== "parent") return null;
 
@@ -309,65 +515,141 @@ export default function ParentApprovalInboxPage() {
           <p className={styles.heroEyebrow}>Review queue</p>
           <h1 className={styles.heroTitle}>Approval inbox</h1>
           <p className={styles.heroSub}>
-            Pending chores with photo evidence. Approve to add reward time to your child&apos;s bank, or send back for
-            another try.
+            Pending chores with photo evidence, plus reward-store requests your kids paid for with Time Bank minutes.
+            Approve tasks to credit time, or approve rewards when you&apos;re happy to grant the perk.
           </p>
         </header>
 
-        {!loading && list.length === 0 ? (
+        {loading ? <p className={styles.loadingNote}>Loading…</p> : null}
+
+        {!loading && inboxEmpty ? (
           <div className={styles.emptyWrap}>
             <EmptyState
               title="Inbox clear"
-              description="No tasks are waiting for approval right now."
+              description="No task submissions or reward requests are waiting right now."
             />
           </div>
-        ) : (
-          <ul className={styles.feed} aria-label="Pending tasks">
-            <AnimatePresence initial={false}>
-              {list.map((task) => (
-                <motion.li
-                  key={task.id}
-                  layout
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                >
-                  <article className={styles.card}>
-                    <div className={styles.cardBody}>
-                      <div className={styles.cardTop}>
-                        <h2 className={styles.taskTitle}>{task.title}</h2>
-                        <span className={styles.rewardBadge}>+{task.rewardMinutes} mins</span>
-                      </div>
-                      <EvidencePlaceholder />
-                      <div className={styles.actions}>
-                        <GTButton
-                          type="button"
-                          variant="primary"
-                          size="lg"
-                          fullWidth
-                          className={styles.approveButton}
-                          onClick={() => void onApprove(task)}
-                        >
-                          Approve
-                        </GTButton>
-                        <GTButton
-                          type="button"
-                          variant="danger"
-                          size="lg"
-                          fullWidth
-                          onClick={() => void onReject(task)}
-                        >
-                          Reject / needs work
-                        </GTButton>
-                      </div>
-                    </div>
-                  </article>
-                </motion.li>
-              ))}
-            </AnimatePresence>
-          </ul>
-        )}
+        ) : null}
+
+        {!loading && !inboxEmpty ? (
+          <>
+            <section className={styles.sectionBlock} aria-labelledby="inbox-tasks-heading">
+              <h2 id="inbox-tasks-heading" className={styles.sectionHeading}>
+                Task submissions
+              </h2>
+              {taskList.length === 0 ? (
+                <p className={styles.heroSub}>No pending tasks.</p>
+              ) : (
+                <ul className={styles.feed} aria-label="Pending tasks">
+                  <AnimatePresence initial={false}>
+                    {taskList.map((task) => (
+                      <motion.li
+                        key={task.id}
+                        layout
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -12 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      >
+                        <article className={styles.card}>
+                          <div className={styles.cardBody}>
+                            <div className={styles.cardTop}>
+                              <h3 className={styles.taskTitle}>{task.title}</h3>
+                              <span className={styles.rewardBadge}>+{task.rewardMinutes} mins</span>
+                            </div>
+                            <EvidencePlaceholder />
+                            <div className={styles.actions}>
+                              <GTButton
+                                type="button"
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                className={styles.approveButton}
+                                onClick={() => void onApprove(task)}
+                              >
+                                Approve
+                              </GTButton>
+                              <GTButton
+                                type="button"
+                                variant="danger"
+                                size="lg"
+                                fullWidth
+                                onClick={() => void onReject(task)}
+                              >
+                                Reject / needs work
+                              </GTButton>
+                            </div>
+                          </div>
+                        </article>
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              )}
+            </section>
+
+            <section className={styles.sectionBlock} aria-labelledby="inbox-rewards-heading">
+              <h2 id="inbox-rewards-heading" className={styles.sectionHeading}>
+                Reward requests
+              </h2>
+              {rewardList.length === 0 ? (
+                <p className={styles.heroSub}>No pending reward requests.</p>
+              ) : (
+                <ul className={styles.feed} aria-label="Reward requests">
+                  <AnimatePresence initial={false}>
+                    {rewardList.map((rr) => (
+                      <motion.li
+                        key={rr.id}
+                        layout
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -12 }}
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      >
+                        <article className={styles.card}>
+                          <div className={styles.cardBody}>
+                            <div className={styles.cardTop}>
+                              <h3 className={styles.taskTitle}>{rr.rewardTitle}</h3>
+                              <span className={styles.costBadge}>{rr.costMinutes} min</span>
+                            </div>
+                            <p className={styles.metaRow}>
+                              <span className={styles.metaChild}>{childNameById[rr.childId] ?? "Child"}</span>
+                              <span aria-hidden>·</span>
+                              <span>
+                                Paid {rr.costMinutes} min from Time Bank
+                              </span>
+                            </p>
+                            <div className={styles.actions}>
+                              <GTButton
+                                type="button"
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                className={styles.approveButton}
+                                onClick={() => void onApproveReward(rr)}
+                              >
+                                Approve
+                              </GTButton>
+                              <GTButton
+                                type="button"
+                                variant="danger"
+                                size="lg"
+                                fullWidth
+                                onClick={() => void onDenyReward(rr)}
+                              >
+                                Deny
+                              </GTButton>
+                            </div>
+                          </div>
+                        </article>
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              )}
+            </section>
+          </>
+        ) : null}
       </div>
     </ParentTheme>
   );

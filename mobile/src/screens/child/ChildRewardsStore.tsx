@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   Alert,
   Platform,
@@ -15,6 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { HAPTIC_PATTERNS } from '../../theme/kinetic-mobile-theme.js';
+import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/supabase';
 
 /** Matches ChildDashboard (Time Bank) kinetic cream theme. */
 const TIME_BANK_CREAM = '#F9F9F4';
@@ -64,9 +65,24 @@ function readTimeBankMinutes(user: Record<string, unknown> | null | undefined): 
   return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
 }
 
+function newRequestId(): string {
+  const g = globalThis as { crypto?: { randomUUID?: () => string } };
+  if (g.crypto?.randomUUID) return g.crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export default function ChildRewardsStore() {
   const insets = useSafeAreaInsets();
-  const { user, refreshMe } = useAuth();
+  const { user, refreshMe, token, role } = useAuth();
+  const childId =
+    user && typeof user === 'object' && 'id' in user && typeof (user as { id?: unknown }).id === 'string'
+      ? (user as { id: string }).id
+      : '';
+
+  const supabaseRef = useRef(createChildSupabaseClient(token));
+  useEffect(() => {
+    supabaseRef.current = createChildSupabaseClient(token);
+  }, [token]);
 
   const timeBankMinutes = useMemo(() => readTimeBankMinutes(user as Record<string, unknown>), [user]);
 
@@ -76,11 +92,89 @@ export default function ChildRewardsStore() {
     }, [refreshMe])
   );
 
-  const onBuy = (reward: PurchasableReward) => {
-    if (timeBankMinutes < reward.costMinutes) return;
-    HAPTIC_PATTERNS.success();
-    Alert.alert('Request sent to parent!');
-  };
+  const onBuy = useCallback(
+    async (reward: PurchasableReward) => {
+      if (role !== 'child' || !childId || !token) return;
+      if (timeBankMinutes < reward.costMinutes) return;
+
+      const supabase = supabaseRef.current;
+      if (!supabase) {
+        Alert.alert('Unavailable', 'Supabase is not configured on this build.');
+        return;
+      }
+
+      const childTable = getSupabaseChildTableName();
+      const now = new Date().toISOString();
+
+      const { data: profile, error: fetchErr } = await supabase
+        .from(childTable)
+        .select('time_bank_minutes, family_id')
+        .eq('id', childId)
+        .maybeSingle();
+
+      if (fetchErr) {
+        Alert.alert('Could not read Time Bank', fetchErr.message);
+        return;
+      }
+
+      const row = profile as Record<string, unknown>;
+      const bank = readTimeBankMinutes(row);
+      const familyId =
+        typeof row.family_id === 'string' && row.family_id.trim() !== ''
+          ? row.family_id.trim()
+          : null;
+
+      if (!familyId) {
+        Alert.alert('Cannot send request', 'Your profile is missing family information. Ask a parent to refresh the app.');
+        return;
+      }
+
+      if (reward.costMinutes > bank) {
+        Alert.alert('Not enough minutes', 'Your balance changed. Try again.');
+        void refreshMe();
+        return;
+      }
+
+      const { data: updatedRow, error: decErr } = await supabase
+        .from(childTable)
+        .update({ time_bank_minutes: bank - reward.costMinutes, updated_at: now })
+        .eq('id', childId)
+        .eq('time_bank_minutes', bank)
+        .select('time_bank_minutes')
+        .maybeSingle();
+
+      if (decErr || !updatedRow) {
+        void refreshMe();
+        Alert.alert('Balance updated', 'Your Time Bank changed. Try again.');
+        return;
+      }
+
+      const { error: insErr } = await supabase.from('reward_requests').insert({
+        id: newRequestId(),
+        child_id: childId,
+        family_id: familyId,
+        reward_title: reward.title,
+        cost_minutes: reward.costMinutes,
+        status: 'pending',
+        created_at: now,
+      });
+
+      if (insErr) {
+        await supabase
+          .from(childTable)
+          .update({ time_bank_minutes: bank, updated_at: new Date().toISOString() })
+          .eq('id', childId);
+        Alert.alert('Could not send request', insErr.message);
+        void refreshMe();
+        return;
+      }
+
+      HAPTIC_PATTERNS.success();
+      void refreshMe();
+      Alert.alert('Request sent to parent!');
+    },
+    [childId, refreshMe, role, timeBankMinutes, token]
+  );
 
   return (
     <ScrollView

@@ -163,3 +163,51 @@
 .emptyWrap {
   margin-top: 2.5rem;
 }
+
+.loadingNote {
+  margin: 1.5rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--gt-ink-soft);
+  line-height: 1.5;
+}
+
+.sectionBlock {
+  margin-top: 2.75rem;
+}
+
+.sectionHeading {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--gt-ink);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gt-ink-soft);
+}
+
+.metaChild {
+  font-weight: 700;
+  color: var(--gt-ink);
+}
+
+.costBadge {
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--gt-ink);
+  background: rgba(124, 91, 255, 0.12);
+  border: 0.5px solid rgba(124, 91, 255, 0.22);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
