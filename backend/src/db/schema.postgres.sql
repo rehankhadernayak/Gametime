@@ -140,19 +140,6 @@ CREATE TABLE IF NOT EXISTS redemptions (
   updated_at TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS reward_requests (
-  id TEXT PRIMARY KEY DEFAULT (gen_random_uuid()::text),
-  child_id TEXT NOT NULL REFERENCES child_profiles (id) ON DELETE CASCADE,
-  reward_title TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-  gift_card_code TEXT,
-  created_at TEXT NOT NULL DEFAULT ((NOW() AT TIME ZONE 'UTC')::TEXT),
-  updated_at TEXT NOT NULL DEFAULT ((NOW() AT TIME ZONE 'UTC')::TEXT)
-);
-
-CREATE INDEX IF NOT EXISTS idx_reward_requests_child_status
-  ON reward_requests (child_id, status, created_at DESC);
-
 CREATE TABLE IF NOT EXISTS points_transactions (
   id TEXT PRIMARY KEY,
   child_id TEXT NOT NULL REFERENCES child_profiles (id) ON DELETE CASCADE,
@@ -381,7 +368,6 @@ CREATE TABLE IF NOT EXISTS platform_codes (
 CREATE INDEX IF NOT EXISTS idx_tasks_child_state ON tasks (child_id, state);
 CREATE INDEX IF NOT EXISTS idx_task_requests_parent_status ON task_requests (parent_id, status, created_at);
 CREATE INDEX IF NOT EXISTS idx_task_requests_child_status ON task_requests (child_id, status, created_at);
-CREATE INDEX IF NOT EXISTS idx_reward_requests_child_status ON reward_requests (child_id, status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON notifications (recipient_id, recipient_type, is_read);
 CREATE INDEX IF NOT EXISTS idx_points_child ON points_transactions (child_id);
 CREATE INDEX IF NOT EXISTS idx_gaming_games_parent ON gaming_games (parent_id, status);
