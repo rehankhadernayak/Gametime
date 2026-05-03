@@ -16,6 +16,8 @@ build/
 .next/
 next-env.d.ts
 .expo/
+# Cursor Cloud: bootstrapped Node (scripts/ensure-node-on-path.sh)
+.cursor/runtime/
 .DS_Store
 Gametime-Product-Build-Web.zip
 demo_build/
