@@ -10,7 +10,7 @@ cd "$ROOT"
 . "$ROOT/scripts/load-nvm-if-needed.sh"
 
 if ! command -v npm >/dev/null 2>&1; then
-  echo "cursor-environment-install: npm not found on PATH (install Node or ensure nvm is configured)." >&2
+  echo "cursor-environment-install: npm still not on PATH after nvm/fnm/volta and bundled Node bootstrap." >&2
   exit 1
 fi
 

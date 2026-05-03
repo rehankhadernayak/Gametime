@@ -194,3 +194,9 @@
 **Rule:** Either list every preview origin explicitly, or add `https://*.vercel.app` to `FRONTEND_ORIGIN` (supported by the backend as an opt-in wildcard for `https://<sub>.vercel.app` only). Redeploy the API after changing env.
 
 ---
+
+### 2026-05-03 — Cursor env install must not assume nvm or system Node
+**What happened:** `.cursor/environment.json` ran `cursor-environment-install.sh`, which failed with "npm not found on PATH" on Cloud Agent images that ship without Node and without `~/.nvm`.
+**Rule:** After trying nvm/fnm/volta, bootstrap Node from `nodejs.org` into a repo-local cache (e.g. `.cursor/runtime/`, gitignored) via `scripts/ensure-node-on-path.sh`, and pin the version in `.node-version` so installs stay reproducible.
+
+---
