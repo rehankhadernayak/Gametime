@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { GametimeLink, useAppRouter } from '../shims/nav.vite.jsx';
-import { apiRequest } from '../api/client.js';
+import { apiRequest, isReviewerDemoParentEmail, setDemoMode } from '../api/client.js';
 import './auth.css';
 
 export default function ParentLogin({ onAuth }) {
@@ -24,6 +24,9 @@ export default function ParentLogin({ onAuth }) {
     setLoading(true);
     try {
       const data = await apiRequest('/auth/login', { method: 'POST', body: normalized });
+      if (isReviewerDemoParentEmail(data.parent?.email)) {
+        setDemoMode(true);
+      }
       onAuth({ token: data.token, role: 'parent', user: data.parent });
       router.push('/parent/ai');
     } catch (e) {

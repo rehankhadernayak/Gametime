@@ -13,7 +13,7 @@ import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import ParentOnboarding from './pages/ParentOnboarding.jsx';
 import AdminPage from './pages/AdminPage.jsx';
-import { apiRequest } from './api/client.js';
+import { apiRequest, syncDemoModeFromUrl } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ThemeToggleButton from './components/ThemeToggleButton.jsx';
 import ToastStack from './components/ToastStack.jsx';
@@ -62,6 +62,10 @@ export default function App() {
   }, [auth]);
 
   useEffect(() => {
+    syncDemoModeFromUrl();
+  }, [location.search]);
+
+  useEffect(() => {
     localStorage.setItem('gametime_theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
@@ -80,6 +84,7 @@ export default function App() {
     } finally {
       setAuth({ token: '', role: '', user: null });
       localStorage.removeItem('gametime_auth');
+      localStorage.removeItem('gametime_demo_mode');
       trackEvent('logout', { fromPath: location.pathname });
     }
   }

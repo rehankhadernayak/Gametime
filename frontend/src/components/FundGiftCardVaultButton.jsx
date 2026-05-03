@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { apiRequest } from '../api/client.js';
+import { apiRequest, isDemoMode } from '../api/client.js';
 import './FundGiftCardVaultButton.css';
 
 const AMOUNTS_SGD = [10, 20, 50];
@@ -12,6 +12,16 @@ export default function FundGiftCardVaultButton({ token, onError }) {
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
+    if (isDemoMode()) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('gametime:toast', {
+            detail: { type: 'success', title: 'Demo mode', message: 'Stripe checkout skipped for review.' }
+          })
+        );
+      }
+      return;
+    }
     setLoading(true);
     try {
       const { url } = await apiRequest('/api/billing/create-checkout', {

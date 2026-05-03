@@ -3,9 +3,16 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 const API_URL_KEY = 'gametime_mobile_api_url';
+const DEMO_MODE_KEY = 'gametime_demo_mode';
 const DEFAULT_WEB_API_URL = 'http://localhost:4000';
 const REQUEST_TIMEOUT_MS = 15000;
 let unauthorizedHandler = null;
+
+/** Raw base64 body of a 1×1 PNG (no data: prefix) — demo evidence file. */
+const DEMO_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+export { DEMO_PNG_BASE64 };
 
 function normalizeUrl(url) {
   return String(url || '').trim().replace(/\/$/, '');
@@ -70,7 +77,37 @@ export async function setApiUrl(value) {
   return normalized;
 }
 
+export async function isDemoMode() {
+  if (process.env.EXPO_PUBLIC_REVIEWER_DEMO === 'true') return true;
+  const v = await AsyncStorage.getItem(DEMO_MODE_KEY);
+  return v === '1';
+}
+
+export async function setDemoMode(enabled) {
+  if (enabled) await AsyncStorage.setItem(DEMO_MODE_KEY, '1');
+  else await AsyncStorage.removeItem(DEMO_MODE_KEY);
+}
+
+function isStripeCheckoutPath(path) {
+  const p = String(path || '');
+  return (
+    p === '/stripe/checkout' ||
+    p.endsWith('/stripe/checkout') ||
+    p.includes('/billing/create-checkout')
+  );
+}
+
+function mockStripeCheckoutResponse() {
+  return {
+    url: 'gametime://demo-stripe-success'
+  };
+}
+
 export async function apiRequest(path, { method = 'GET', token = '', body } = {}) {
+  if ((await isDemoMode()) && method === 'POST' && isStripeCheckoutPath(path)) {
+    return mockStripeCheckoutResponse();
+  }
+
   const base = await getApiUrl();
   let response;
   const controller = new AbortController();

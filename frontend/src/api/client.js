@@ -1,6 +1,64 @@
 import { trackEvent } from '../utils/analytics.js';
+
 export const API_BASE = String(import.meta.env?.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+
+const DEMO_MODE_STORAGE_KEY = 'gametime_demo_mode';
+const REVIEWER_DEMO_PARENT_EMAILS = String(import.meta.env?.VITE_REVIEWER_DEMO_PARENT_EMAILS ?? '')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
+/** 1×1 transparent PNG — used for reviewer demo mode (no camera/file required). */
+export const DEMO_EVIDENCE_PNG_DATA_URL =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
 const REQUEST_TIMEOUT_MS = 15000;
+
+/**
+ * When true, Stripe checkout is not called and task completion can use built-in demo evidence
+ * (no camera or file picker required). Toggle via localStorage or `?demo=1` on first load.
+ */
+export function isDemoMode() {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(DEMO_MODE_STORAGE_KEY) === '1';
+}
+
+export function setDemoMode(enabled) {
+  if (typeof window === 'undefined') return;
+  if (enabled) window.localStorage.setItem(DEMO_MODE_STORAGE_KEY, '1');
+  else window.localStorage.removeItem(DEMO_MODE_STORAGE_KEY);
+}
+
+export function isReviewerDemoParentEmail(email) {
+  const e = String(email || '').trim().toLowerCase();
+  if (!e) return false;
+  return REVIEWER_DEMO_PARENT_EMAILS.includes(e);
+}
+
+export function syncDemoModeFromUrl() {
+  if (typeof window === 'undefined') return;
+  const q = new URLSearchParams(window.location.search).get('demo');
+  if (q === '1' || q === 'true') setDemoMode(true);
+  if (q === '0' || q === 'false') setDemoMode(false);
+}
+
+function isStripeCheckoutPath(path) {
+  const p = String(path || '');
+  return (
+    p === '/stripe/checkout' ||
+    p.endsWith('/stripe/checkout') ||
+    p.includes('/billing/create-checkout')
+  );
+}
+
+function mockStripeCheckoutResponse() {
+  if (typeof window !== 'undefined') {
+    window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+  }
+  return {
+    url: `${typeof window !== 'undefined' ? window.location.origin : ''}/parent/dashboard?topup=success`
+  };
+}
 
 export class ApiRequestError extends Error {
   constructor(message, statusCode, details = null) {
@@ -10,7 +68,12 @@ export class ApiRequestError extends Error {
   }
 }
 
-export async function apiRequest(path, { method = 'GET', body, token } = {}) {
+export async function apiRequest(path, { method = 'GET', body, token, suppressErrorToast = false } = {}) {
+  if (isDemoMode() && method === 'POST' && isStripeCheckoutPath(path)) {
+    trackEvent('api_demo_stripe_bypass', { path });
+    return mockStripeCheckoutResponse();
+  }
+
   const startTs = Date.now();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -40,15 +103,17 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
       durationMs: Date.now() - startTs,
       error: apiError.message
     });
-    window.dispatchEvent(
-      new CustomEvent('gametime:toast', {
-        detail: {
-          type: 'error',
-          title: 'Network error',
-          message: apiError.message
-        }
-      })
-    );
+    if (!suppressErrorToast) {
+      window.dispatchEvent(
+        new CustomEvent('gametime:toast', {
+          detail: {
+            type: 'error',
+            title: 'Network error',
+            message: apiError.message
+          }
+        })
+      );
+    }
     throw apiError;
   } finally {
     clearTimeout(timeout);
@@ -74,15 +139,17 @@ export async function apiRequest(path, { method = 'GET', body, token } = {}) {
       window.dispatchEvent(new CustomEvent('gametime:session-expired', { detail: { path, method } }));
     }
 
-    window.dispatchEvent(
-      new CustomEvent('gametime:toast', {
-        detail: {
-          type: 'error',
-          title: 'Request failed',
-          message: error.message
-        }
-      })
-    );
+    if (!suppressErrorToast) {
+      window.dispatchEvent(
+        new CustomEvent('gametime:toast', {
+          detail: {
+            type: 'error',
+            title: 'Request failed',
+            message: error.message
+          }
+        })
+      );
+    }
     throw error;
   }
 
