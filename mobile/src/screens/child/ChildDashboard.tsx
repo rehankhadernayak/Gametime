@@ -52,6 +52,40 @@ function readTimeBankMinutes(row: Record<string, unknown> | null | undefined): n
   return 0;
 }
 
+function readRewardMinutesField(row: Record<string, unknown> | null | undefined): number {
+  const v = row?.reward_minutes;
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.max(0, Math.round(v));
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  return 0;
+}
+
+function readDailySpendLimit(row: Record<string, unknown> | null | undefined): number {
+  const v = row?.daily_spend_limit;
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.max(0, Math.round(v));
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
+  }
+  return 0;
+}
+
+/** UTC calendar day bounds for `created_at` ISO text filters. */
+function utcTodayAllocationBounds(): { start: string; endExclusive: string } {
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  const m = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(now.getUTCDate()).padStart(2, '0');
+  const start = `${y}-${m}-${d}T00:00:00.000Z`;
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  const ny = next.getUTCFullYear();
+  const nm = String(next.getUTCMonth() + 1).padStart(2, '0');
+  const nd = String(next.getUTCDate()).padStart(2, '0');
+  return { start, endExclusive: `${ny}-${nm}-${nd}T00:00:00.000Z` };
+}
+
 function readTaskState(row: Record<string, unknown> | null | undefined): string {
   const v = row?.state;
   return typeof v === 'string' ? v : '';
@@ -212,6 +246,7 @@ export default function ChildDashboard() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
+  const { token, role, user } = useAuth();
   const celebrateSubmission =
     typeof route.params === 'object' &&
     route.params !== null &&
@@ -222,6 +257,8 @@ export default function ChildDashboard() {
     : '';
 
   const [balanceMinutes, setBalanceMinutes] = useState(0);
+  const [dailySpendLimit, setDailySpendLimit] = useState(0);
+  const [spentTodayMinutes, setSpentTodayMinutes] = useState(0);
   const [draftByAppId, setDraftByAppId] = useState<Record<string, number>>(() =>
     Object.fromEntries(MOCK_LOCKED_APPS.map((a) => [a.id, 0]))
   );
@@ -245,19 +282,30 @@ export default function ChildDashboard() {
     [draftByAppId]
   );
 
-  const availableMinutes = Math.max(0, balanceMinutes - totalDraft);
+  const maxTotalDraftMinutes = useMemo(() => {
+    const cap = dailySpendLimit;
+    const bankCap = balanceMinutes;
+    if (cap <= 0) return bankCap;
+    const underDaily = Math.max(0, cap - spentTodayMinutes);
+    return Math.min(bankCap, underDaily);
+  }, [balanceMinutes, dailySpendLimit, spentTodayMinutes]);
 
-  const setDraftForApp = useCallback((appId: string, value: number) => {
-    setDraftByAppId((prev) => {
-      const others = MOCK_LOCKED_APPS.filter((a) => a.id !== appId);
-      const sumOthers = others.reduce((s, a) => s + (prev[a.id] ?? 0), 0);
-      const maxForThis = Math.max(0, balanceMinutes - sumOthers);
-      const clamped = Math.min(Math.max(0, Math.round(value)), maxForThis);
-      return { ...prev, [appId]: clamped };
-    });
-  }, [balanceMinutes]);
+  const availableMinutes = Math.max(0, maxTotalDraftMinutes - totalDraft);
 
-  /** Load balance + subscribe to parent top-ups (time_bank_minutes). */
+  const setDraftForApp = useCallback(
+    (appId: string, value: number) => {
+      setDraftByAppId((prev) => {
+        const others = MOCK_LOCKED_APPS.filter((a) => a.id !== appId);
+        const sumOthers = others.reduce((s, a) => s + (prev[a.id] ?? 0), 0);
+        const maxForThis = Math.max(0, maxTotalDraftMinutes - sumOthers);
+        const clamped = Math.min(Math.max(0, Math.round(value)), maxForThis);
+        return { ...prev, [appId]: clamped };
+      });
+    },
+    [maxTotalDraftMinutes]
+  );
+
+  /** Load Time Bank + daily cap; subscribe to profile updates. */
   useEffect(() => {
     if (role !== 'child' || !childId || !token) return;
 
@@ -269,18 +317,20 @@ export default function ChildDashboard() {
     let channel: RealtimeChannel | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-    async function loadBalance() {
+    async function loadProfile() {
       const { data, error } = await supabase
         .from(childTable)
-        .select('time_bank_minutes')
+        .select('time_bank_minutes, daily_spend_limit')
         .eq('id', childId)
         .maybeSingle();
       if (cancelled) return;
       if (error) return;
-      setBalanceMinutes(readTimeBankMinutes(data as Record<string, unknown>));
+      const row = data as Record<string, unknown>;
+      setBalanceMinutes(readTimeBankMinutes(row));
+      setDailySpendLimit(readDailySpendLimit(row));
     }
 
-    void loadBalance();
+    void loadProfile();
 
     const setupChannel = () => {
       if (cancelled) return;
@@ -294,8 +344,83 @@ export default function ChildDashboard() {
           'postgres_changes',
           { event: 'UPDATE', schema: 'public', table: childTable, filter: `id=eq.${childId}` },
           (payload) => {
-            const next = readTimeBankMinutes(payload.new as Record<string, unknown>);
-            setBalanceMinutes(next);
+            const row = payload.new as Record<string, unknown>;
+            setBalanceMinutes(readTimeBankMinutes(row));
+            setDailySpendLimit(readDailySpendLimit(row));
+          }
+        )
+        .subscribe((status) => {
+          if (cancelled) return;
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            void supabase.removeChannel(channel!);
+            channel = null;
+            retryTimer = setTimeout(() => {
+              retryTimer = null;
+              if (!cancelled) setupChannel();
+            }, 2000);
+          }
+        });
+    };
+
+    setupChannel();
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+      if (channel) void supabase.removeChannel(channel);
+    };
+  }, [role, childId, token]);
+
+  /** Minutes unlocked to apps today (UTC day) — for parent-set daily_spend_limit. */
+  useEffect(() => {
+    if (role !== 'child' || !childId || !token) return;
+
+    const supabase = supabaseRef.current;
+    if (!supabase) return;
+
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
+    async function loadSpentToday() {
+      const { start, endExclusive } = utcTodayAllocationBounds();
+      const { data, error } = await supabase
+        .from('app_allocations')
+        .select('allocated_minutes')
+        .eq('child_id', childId)
+        .gte('created_at', start)
+        .lt('created_at', endExclusive);
+      if (cancelled) return;
+      if (error) return;
+      const rows = (data ?? []) as { allocated_minutes?: unknown }[];
+      const sum = rows.reduce((s, r) => {
+        const v = r.allocated_minutes;
+        const n = typeof v === 'number' ? v : Number(v);
+        return s + (Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0);
+      }, 0);
+      setSpentTodayMinutes(sum);
+    }
+
+    void loadSpentToday();
+
+    const setupChannel = () => {
+      if (cancelled) return;
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      channel = supabase.channel(`child-app-alloc-spend:${childId}`);
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'app_allocations',
+            filter: `child_id=eq.${childId}`,
+          },
+          () => {
+            void loadSpentToday();
           }
         )
         .subscribe((status) => {
@@ -347,7 +472,7 @@ export default function ChildDashboard() {
           id: String(r.id ?? ''),
           title: String(r.title ?? ''),
           state: readTaskState(r),
-          rewardMinutes: readTimeBankMinutes({ time_bank_minutes: r.reward_minutes }),
+          rewardMinutes: readRewardMinutesField(r),
         })),
       );
     }
@@ -420,7 +545,7 @@ export default function ChildDashboard() {
 
       const { data: profile, error: fetchErr } = await supabase
         .from(childTable)
-        .select('time_bank_minutes')
+        .select('time_bank_minutes, daily_spend_limit')
         .eq('id', childId)
         .maybeSingle();
 
@@ -429,7 +554,39 @@ export default function ChildDashboard() {
         return;
       }
 
-      const bank = readTimeBankMinutes(profile as Record<string, unknown>);
+      const prof = profile as Record<string, unknown>;
+      const bank = readTimeBankMinutes(prof);
+      const dailyCap = readDailySpendLimit(prof);
+      setDailySpendLimit(dailyCap);
+
+      const { start, endExclusive } = utcTodayAllocationBounds();
+      const { data: allocRows, error: allocErr } = await supabase
+        .from('app_allocations')
+        .select('allocated_minutes')
+        .eq('child_id', childId)
+        .gte('created_at', start)
+        .lt('created_at', endExclusive);
+
+      if (allocErr) {
+        Alert.alert('Could not check daily limit', allocErr.message);
+        return;
+      }
+
+      const spentToday = ((allocRows ?? []) as { allocated_minutes?: unknown }[]).reduce((s, r) => {
+        const v = r.allocated_minutes;
+        const n = typeof v === 'number' ? v : Number(v);
+        return s + (Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0);
+      }, 0);
+      setSpentTodayMinutes(spentToday);
+
+      if (dailyCap > 0 && spentToday + minutes > dailyCap) {
+        Alert.alert(
+          'Daily Limit Reached',
+          `You can unlock up to ${dailyCap} minutes per day. You've already used ${spentToday} today.`
+        );
+        return;
+      }
+
       if (minutes > bank) {
         Alert.alert('Not enough minutes', 'Your balance changed. Try again.');
         setBalanceMinutes(bank);
@@ -474,6 +631,7 @@ export default function ChildDashboard() {
       }
 
       setBalanceMinutes(bank - minutes);
+      setSpentTodayMinutes((prev) => prev + minutes);
       setDraftByAppId((prev) => ({ ...prev, [app.id]: 0 }));
     },
     [draftByAppId, role, childId]
@@ -579,9 +737,13 @@ export default function ChildDashboard() {
 
       {MOCK_LOCKED_APPS.map((app) => {
         const draft = draftByAppId[app.id] ?? 0;
-        const othersSum =
-          totalDraft - draft;
-        const maxForSlider = Math.max(0, balanceMinutes - othersSum);
+        const othersSum = totalDraft - draft;
+        const maxForSlider = Math.max(0, maxTotalDraftMinutes - othersSum);
+        const dailyCap = dailySpendLimit;
+        const capHint =
+          dailyCap > 0
+            ? `Max ${maxForSlider} min (Time Bank & daily cap: ${spentTodayMinutes}/${dailyCap} used today)`
+            : `Max ${maxForSlider} min (your Time Bank)`;
 
         return (
           <View key={app.id} style={styles.appCard}>
@@ -604,9 +766,7 @@ export default function ChildDashboard() {
             />
 
             <View style={styles.unlockRow}>
-              <Text style={styles.sliderCapHint}>
-                Max {maxForSlider} min (your Time Bank)
-              </Text>
+              <Text style={styles.sliderCapHint}>{capHint}</Text>
               <Pressable
                 onPress={() => void handleUnlock(app)}
                 disabled={draft <= 0}
