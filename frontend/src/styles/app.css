@@ -114,8 +114,7 @@
 
 /* ═══════════════════════════════════════════════════════════════════════
    DARK THEME
-   Applied via explicit [data-theme='dark'] (ThemeToggleButton) OR
-   via OS preference when no explicit theme is set.
+   Applied via explicit [data-theme='dark'] (ThemeToggleButton).
    ═══════════════════════════════════════════════════════════════════════ */
 [data-theme='dark'] {
   color-scheme: dark;
@@ -176,32 +175,6 @@
   --focus:        0 0 0 3px rgba(124, 91, 255, 0.30);
   --focus-energy: 0 0 0 3px rgba(34, 216, 231, 0.30);
   --sidebar-glass-bg: rgba(18, 22, 40, 0.55);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --bg-root: #05060D; --bg-shell: #0D1020; --bg-panel: #12162A;
-    --bg-panel-2: #181C33; --bg-panel-3: #1E243F;
-    --bg-action: #7C5BFF; --bg-action-hover: #4F3CFF;
-    --bg-muted-action: #181B33; --bg-muted-action-hover: #21254B;
-    --bg-danger: #EF5350;
-    --gradient-brand: linear-gradient(135deg, #7C5BFF 0%, #3D9DFF 100%);
-    --color-energy: #22D8E7; --color-energy-dark: #00A6B9; --color-energy-surface: #0D252E;
-    --color-success: #66F7B2; --color-success-dark: #22C894; --color-success-surface: #042E1B;
-    --color-warning: #FFB300; --color-warning-dark: #E49D00; --color-warning-surface: #2A2200;
-    --color-error: #F76F74; --color-error-dark: #EF5350; --color-error-surface: #2A1010;
-    --color-info: #6BD7FF; --color-info-surface: #081723;
-    --color-xp-gold: #FFD54F; --color-xp-gold-surface: #2D2000;
-    --text-main: #F8FAFF; --text-sub: #AAB3D3; --text-dim: #6F7CAA;
-    --line: #2A2F53; --line-soft: #1A1F3A; --line-strong: #31395B;
-    --green: #22D8E7; --amber: #FFB300; --red: #F76F74;
-    --glass-bg: rgba(12, 14, 25, 0.78); --glass-border: rgba(124,91,255,0.18);
-    --shadow-sm: 0 1px 6px rgba(0,0,0,0.35); --shadow: 0 6px 24px rgba(0,0,0,0.45);
-    --shadow-lg: 0 14px 48px rgba(0,0,0,0.55); --shadow-xl: 0 26px 88px rgba(0,0,0,0.70);
-    --focus: 0 0 0 3px rgba(124,91,255,0.30); --focus-energy: 0 0 0 3px rgba(34,216,231,0.30);
-    --sidebar-glass-bg: rgba(18, 22, 40, 0.55);
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════

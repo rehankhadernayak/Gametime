@@ -5,7 +5,7 @@ import './auth-brutal.css';
 
 export default function Support() {
   return (
-    <div className="auth-brutal-shell ascii-bg brutal-stub-page">
+    <div className="auth-brutal-shell auth-brutal-ascii-bg brutal-stub-page">
       <div className="brutal-stub-inner brutal-stub-inner--legal">
         <TypewriterHeading className="font-mono text-xs sm:text-sm mb-4 block text-black">
           SYSTEM_SUPPORT

@@ -8,8 +8,9 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--brutal-bg);
-  color: var(--brutal-ink);
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #000000;
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 0.875rem;
   line-height: 1.45;
@@ -24,8 +25,10 @@
   color: #000000;
 }
 
-.ascii-bg {
+/* Distinct from index.css `.ascii-bg` (fixed overlay) — this stays in document flow */
+.auth-brutal-ascii-bg {
   background-color: #ffffff;
+  color: #000000;
   background-image: linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
   background-size: 12px 12px;
@@ -86,6 +89,8 @@
   align-items: center;
   justify-content: flex-start;
   padding: 1.5rem 1rem 3rem;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .brutalist-mode-row {
@@ -179,10 +184,18 @@
   padding: 0.65rem 0.75rem;
   border: 2px solid #000000;
   border-radius: 0;
+  background-color: #ffffff;
   background: #ffffff;
   color: #000000;
   font-family: inherit;
   font-size: 0.85rem;
+}
+
+.auth-brutal-shell input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.auth-brutal-shell textarea,
+.auth-brutal-shell select {
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .brutalist-input::placeholder {

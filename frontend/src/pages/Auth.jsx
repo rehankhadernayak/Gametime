@@ -105,7 +105,7 @@ export default function Auth({ onAuth }) {
   }
 
   return (
-    <div className="auth-brutal-shell ascii-bg">
+    <div className="auth-brutal-shell auth-brutal-ascii-bg">
       <header className="brutalist-top-nav">
         <pre className="brutalist-logo-pre" aria-label="Gametime logo">
           {ASCII_LOGO}

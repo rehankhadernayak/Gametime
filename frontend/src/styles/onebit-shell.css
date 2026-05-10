@@ -281,3 +281,18 @@ html[data-app-shell='1bit'] .dashboard-breadcrumb .hamburger {
   border-radius: 0;
   border: 2px solid var(--line);
 }
+
+/* Public auth / legal / forgot-password: always white canvas (never 1-bit dark tokens behind forms) */
+html[data-app-shell='1bit']:has(.auth-brutal-shell),
+html[data-app-shell='1bit']:has(.al-root),
+html[data-app-shell='1bit']:has(.al-centered-page) {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+html[data-app-shell='1bit']:has(.auth-brutal-shell) body,
+html[data-app-shell='1bit']:has(.al-root) body,
+html[data-app-shell='1bit']:has(.al-centered-page) body {
+  background-color: #ffffff;
+  color: #000000;
+}
