@@ -1,6 +1,5 @@
 import ExpoModulesCore
 import FamilyControls
-import ManagedSettings
 import SwiftUI
 import UIKit
 
@@ -51,7 +50,9 @@ final class FamilyPickerContainerView: ExpoView {
     if #available(iOS 16.0, *) {
       let holder = SelectionHolder()
       holder.onEncoded = { [weak self] encoded in
-        self?.onSelectionChange(["selectionData": encoded])
+        self?.onSelectionChange([
+          "selectionData": encoded
+        ])
       }
       let host = FamilyActivityPickerHost(holder: holder)
       let controller = UIHostingController(rootView: host)
