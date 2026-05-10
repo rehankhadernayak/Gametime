@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-10 — Time Bank rollback after failed insert must be conditional
+**What happened:** After a successful optimistic `time_bank_minutes` debit, if the follow-up `insert` failed, the client restored the old balance with `update ... eq(id)` only, overwriting any concurrent spend and inflating the Time Bank.
+**Rule:** When refunding a conditional debit, include `.eq('time_bank_minutes', <post-debit value>)` on the revert (or an equivalent compare-and-swap) so a concurrent change to the balance cannot be clobbered. If the revert matches zero rows, refresh from the server and warn the user instead of forcing the stale balance.
+
+---

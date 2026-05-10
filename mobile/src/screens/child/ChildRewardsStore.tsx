@@ -309,12 +309,25 @@ export default function ChildRewardsStore() {
       });
 
       if (insErr) {
-        await supabase
+        const afterDebit = bank - reward.costMinutes;
+        const { data: reverted, error: revErr } = await supabase
           .from(childTable)
           .update({ time_bank_minutes: bank, updated_at: new Date().toISOString() })
-          .eq('id', childId);
-        Alert.alert('Could not send request', insErr.message);
+          .eq('id', childId)
+          .eq('time_bank_minutes', afterDebit)
+          .select('time_bank_minutes')
+          .maybeSingle();
+
         void refreshMe();
+
+        if (revErr || !reverted) {
+          Alert.alert(
+            'Could not send request',
+            'The purchase did not go through. Your balance changed while sending — ask a parent to verify your Time Bank if something looks wrong.',
+          );
+        } else {
+          Alert.alert('Could not send request', insErr.message);
+        }
         return;
       }
 

@@ -622,11 +622,30 @@ export default function ChildDashboard() {
       });
 
       if (insErr) {
-        await supabase
+        const afterDebit = bank - minutes;
+        const { data: reverted, error: revErr } = await supabase
           .from(childTable)
           .update({ time_bank_minutes: bank, updated_at: new Date().toISOString() })
-          .eq('id', childId);
-        Alert.alert('Could not save unlock', insErr.message);
+          .eq('id', childId)
+          .eq('time_bank_minutes', afterDebit)
+          .select('time_bank_minutes')
+          .maybeSingle();
+
+        if (revErr || !reverted) {
+          const { data: fresh } = await supabase
+            .from(childTable)
+            .select('time_bank_minutes')
+            .eq('id', childId)
+            .maybeSingle();
+          if (fresh) setBalanceMinutes(readTimeBankMinutes(fresh as Record<string, unknown>));
+          Alert.alert(
+            'Could not save unlock',
+            'Minutes were not deducted from another unlock. Your balance changed — adjust the slider and try again.',
+          );
+        } else {
+          setBalanceMinutes(bank);
+          Alert.alert('Could not save unlock', insErr.message);
+        }
         return;
       }
 
