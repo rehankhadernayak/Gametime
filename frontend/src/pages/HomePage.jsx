@@ -118,7 +118,7 @@ export default function HomePage({ auth }) {
               earned time.
             </span>
           </h1>
-          <p className="text-lg max-w-xl leading-relaxed">
+          <p className="text-lg max-w-xl leading-relaxed text-black">
             Gametime helps Singapore families tie gaming to chores and homework. Set quests, review evidence with AI,
             approve rewards — kids redeem RP and GP for real gift cards.
             <span className="cursor-blink" aria-hidden />
