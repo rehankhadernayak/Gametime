@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,8 +14,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { apiRequest } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useChildScreenTime } from '../../context/ChildScreenTimeContext';
+import { GamingBlockOverlay } from '../../components/GamingBlockOverlay';
+import { useGamingBlocker } from '../../hooks/useGamingBlocker';
 import { monoFont } from '../../theme/oneBit';
 import { getErrorMessage } from '../../utils/format';
+import { applyShieldWhenSessionEnds } from '../../utils/screenTimeShield';
 import { CHILD_OS, DataGauge } from '../../components/childOs';
 
 const BG = '#000000';
@@ -48,6 +52,14 @@ export default function ChildSession() {
     return Math.max(0, Math.ceil((end - Date.now()) / 1000));
   });
   const [ending, setEnding] = useState(false);
+  const expiryHandledRef = useRef(false);
+
+  const { screenTimeSelectionJson } = useChildScreenTime();
+  const { isBlocked, blockCode, dismissBlock } = useGamingBlocker(sessionId);
+
+  useEffect(() => {
+    if (isBlocked) expiryHandledRef.current = true;
+  }, [isBlocked]);
 
   const startedMs = useMemo(() => Date.parse(expiresAt) - grantedMinutes * 60_000, [expiresAt, grantedMinutes]);
 
@@ -64,22 +76,49 @@ export default function ChildSession() {
     return Math.max(1, Math.min(grantedMinutes, Math.ceil(elapsedMs / 60_000)));
   }, [grantedMinutes, startedMs]);
 
+  const endSessionOnDevice = useCallback(async () => {
+    if (!token) return;
+    await applyShieldWhenSessionEnds(screenTimeSelectionJson);
+    await apiRequest('/gaming/sessions/end', {
+      method: 'POST',
+      token,
+      body: { sessionId, actualMinutes: actualMinutesForEnd() },
+    } as never);
+  }, [actualMinutesForEnd, screenTimeSelectionJson, sessionId, token]);
+
   const onTerminate = useCallback(async () => {
     if (!token || ending) return;
     setEnding(true);
     try {
-      // apiRequest is implemented in JS without a typed options bag; body is supported at runtime.
-      await apiRequest('/gaming/sessions/end', {
-        method: 'POST',
-        token,
-        body: { sessionId, actualMinutes: actualMinutesForEnd() },
-      } as never);
+      await endSessionOnDevice();
       navigation.goBack();
     } catch (e) {
       setEnding(false);
       Alert.alert('Session', getErrorMessage(e));
     }
-  }, [actualMinutesForEnd, ending, navigation, sessionId, token]);
+  }, [endSessionOnDevice, ending, navigation, token]);
+
+  useEffect(() => {
+    if (remainingSec > 0 || ending || expiryHandledRef.current || !token || isBlocked) return;
+    expiryHandledRef.current = true;
+    let cancelled = false;
+    setEnding(true);
+    void (async () => {
+      try {
+        await endSessionOnDevice();
+        if (!cancelled) navigation.goBack();
+      } catch (e) {
+        expiryHandledRef.current = false;
+        if (!cancelled) {
+          setEnding(false);
+          Alert.alert('Session', getErrorMessage(e));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [remainingSec, ending, token, isBlocked, endSessionOnDevice, navigation]);
 
   const { height: winH } = Dimensions.get('window');
   const timerAreaMinH = winH * 0.48;
@@ -109,11 +148,20 @@ export default function ChildSession() {
 
       <View style={{ flex: 1 }} />
 
+      <GamingBlockOverlay
+        visible={isBlocked}
+        code={blockCode}
+        onDismiss={() => {
+          dismissBlock();
+          navigation.goBack();
+        }}
+      />
+
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Terminate gaming session"
         onPress={() => void onTerminate()}
-        disabled={ending}
+        disabled={ending || isBlocked}
         style={({ pressed }: { pressed: boolean }) => [
           styles.terminateOuter,
           pressed && !ending && { opacity: 0.88 },
