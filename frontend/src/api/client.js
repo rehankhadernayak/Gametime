@@ -1,9 +1,19 @@
 import { trackEvent } from '../utils/analytics.js';
 
-/** Prefer VITE_API_BASE_URL; VITE_API_URL matches Vercel/docs naming so deploys do not silently fall back to `/api`. */
-export const API_BASE = String(
-  import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_API_URL || '/api'
-).replace(/\/$/, '');
+const viteApiUrl = String(import.meta.env?.VITE_API_URL ?? '').trim();
+const viteApiBaseUrl = String(import.meta.env?.VITE_API_BASE_URL ?? '').trim();
+
+/** Prefer VITE_API_URL (Vercel/dashboard naming); VITE_API_BASE_URL is legacy/alternate only. */
+const resolvedApiBase = viteApiUrl || viteApiBaseUrl || '/api';
+
+if (import.meta.env.PROD && !viteApiUrl) {
+  console.error(
+    '[Gametime] Missing VITE_API_URL in this production build. API requests fall back to same-origin `/api`, which will not reach your AWS backend — login and all API calls will fail.\n' +
+      'Fix: In Vercel → Project → Settings → Environment Variables, add VITE_API_URL (Production) = https://api.gametime.app (no trailing slash), then redeploy.'
+  );
+}
+
+export const API_BASE = String(resolvedApiBase).replace(/\/$/, '');
 
 const DEMO_MODE_STORAGE_KEY = 'gametime_demo_mode';
 const REVIEWER_DEMO_PARENT_EMAILS = String(import.meta.env?.VITE_REVIEWER_DEMO_PARENT_EMAILS ?? '')
