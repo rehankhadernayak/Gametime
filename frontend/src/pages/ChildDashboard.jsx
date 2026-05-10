@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -12,6 +14,8 @@ import RewardStore from '../components/RewardStore.jsx';
 import { trackEvent } from '../utils/analytics.js';
 import { normalizeTasksListResponse } from '../utils/tasksList.js';
 import ChildAvatar from '../components/ChildAvatar.jsx';
+
+gsap.registerPlugin(useGSAP);
 
 const GAMING_PLATFORMS = ['iOS', 'Windows', 'macOS', 'Web', 'Console', 'Other'];
 const DENIAL_MESSAGES = {
@@ -91,6 +95,7 @@ function formatGamingDenial(response) {
 export default function ChildDashboard({ token }) {
   const router = useAppRouter();
   const { showParentChrome } = useAuth();
+  const overviewStatsGridRef = useRef(null);
   const [me, setMe] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [taskRequests, setTaskRequests] = useState([]);
@@ -193,6 +198,27 @@ export default function ChildDashboard({ token }) {
     { key: 'rewards', label: 'Rewards', icon: 'rewards' },
     { key: 'playableNow', label: 'Play Now', icon: 'play' }
   ];
+
+  useGSAP(
+    () => {
+      if (loading) return;
+      const root = overviewStatsGridRef.current;
+      if (!root) return;
+      const cards = root.querySelectorAll('.stat-card');
+      if (!cards.length) return;
+      if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+      gsap.from(cards, {
+        opacity: 0,
+        y: 18,
+        duration: 0.52,
+        stagger: 0.075,
+        ease: 'power2.out',
+      });
+    },
+    { scope: overviewStatsGridRef, dependencies: [loading], revertOnUpdate: true },
+  );
 
   async function requestTask(event) {
     event.preventDefault();
@@ -354,12 +380,16 @@ export default function ChildDashboard({ token }) {
           {loading && <StatsSkeleton count={7} />}
           {error ? <p className="error" role="alert">{error}</p> : null}
 
-          <div className="stats-grid">
+          <div ref={overviewStatsGridRef} className="stats-grid">
             {quickStatCards.map((card, index) => (
               <div key={card.key} className={`stat-card tone-${(index % 6) + 1}`}>
-                <div className="stat-icon" aria-hidden="true"><MetricIcon name={card.icon} /></div>
-                <span className="stat-label">{card.label}</span>
-                <strong>{quickStats[card.key]}</strong>
+                <div className="stat-card__head">
+                  <span className="stat-label">{card.label}</span>
+                  <div className="stat-icon" aria-hidden="true">
+                    <MetricIcon name={card.icon} />
+                  </div>
+                </div>
+                <strong className="stat-value">{quickStats[card.key]}</strong>
               </div>
             ))}
           </div>

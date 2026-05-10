@@ -1626,14 +1626,25 @@ a:focus-visible {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--bg-shell);
-  padding: 1.25rem 1rem 1.25rem 1.25rem;
-  min-height: 88px;
-  display: grid;
-  gap: 0.2rem;
+  padding: 1.5rem 1.625rem;
+  min-height: 108px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 200ms, transform 200ms;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .stat-card::before {
@@ -1647,7 +1658,30 @@ a:focus-visible {
   border-radius: 4px 0 0 4px;
 }
 
-.stat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.14),
+    0 8px 28px rgba(124, 91, 255, 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] .stat-card:hover {
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 10px 32px rgba(124, 91, 255, 0.12),
+    0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card {
+    transition: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+}
 
 /* Accent colours per tone - matching Figma MetricCard */
 .stat-card.tone-1 { --stat-accent: #7C5BFF; }  /* purple - children/family */
@@ -1675,28 +1709,44 @@ a:focus-visible {
   align-items: center;
   justify-content: center;
   color: var(--bg-action);
+  flex-shrink: 0;
 }
 
 .stat-icon svg { width: 15px; height: 15px; }
 
 .stat-label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   color: var(--text-dim);
-  margin-top: 0.25rem;
-  margin-bottom: 0.4rem;
+  line-height: 1.35;
 }
 
-.stat-card strong {
+.stat-card .stat-value {
   display: block;
-  margin-top: 0.1rem;
-  font-size: 2rem;
+  margin: 0;
+  padding: 0;
+  font-size: 2.125rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: 1.05;
   color: var(--text-main);
   font-variant-numeric: tabular-nums;
   font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+@media (min-width: 900px) {
+  .stat-card {
+    padding: 2rem 1.85rem;
+    min-height: 116px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 2.375rem;
+  }
 }
 
 /* ─── Gaming session banner (Figma design) ─────────────────────────────── */
@@ -4171,7 +4221,7 @@ body.sidebar-open { overflow: hidden; }
     padding: 0.75rem;
     min-height: 72px;
   }
-  .stat-card strong { font-size: 1.4rem; }
+  .stat-card .stat-value { font-size: 1.4rem; }
 
   /* Data tables - horizontal scroll */
   .data-table-wrap {
@@ -5739,8 +5789,11 @@ body.sidebar-open { overflow: hidden; }
 /* ── Stats grid ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
-  .stat-card { padding: 0.9rem 0.75rem; min-height: 72px; }
-  .stat-card strong { font-size: 1.5rem; }
+  .stat-card {
+    padding: 1rem 1rem;
+    min-height: 92px;
+  }
+  .stat-card .stat-value { font-size: 1.5rem; }
 }
 
 /* ── Glance / check grids ───────────────────────────────────────────── */
