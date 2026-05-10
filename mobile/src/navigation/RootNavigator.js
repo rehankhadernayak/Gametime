@@ -70,7 +70,11 @@ function AuthStack({ childMustLinkFamily }) {
     >
       <AuthStackNav.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <AuthStackNav.Screen name="ParentLogin" component={ParentLoginScreen} options={{ title: 'Parent Login' }} />
-      <AuthStackNav.Screen name="ParentSignup" component={ParentSignupScreen} options={{ title: 'Create Account' }} />
+      <AuthStackNav.Screen
+        name="ParentSignup"
+        component={ParentSignupScreen}
+        options={{ headerShown: false, title: 'Create Account' }}
+      />
       <AuthStackNav.Screen name="ChildLogin" component={ChildLoginScreen} options={{ title: 'Child Login' }} />
       <AuthStackNav.Screen name="LinkFamily" component={LinkFamilyScreen} options={{ headerShown: false, title: 'Join family' }} />
       <AuthStackNav.Screen name="ApiSettings" component={ApiSettingsScreen} options={{ title: 'Connection Settings' }} />
@@ -140,7 +144,7 @@ function ParentStack() {
       <ParentStackNav.Screen
         name="ParentHome"
         component={ParentHomeScreen}
-        options={{ headerShown: true, title: 'Dashboard', headerStyle: { backgroundColor: colors.surface }, headerTitleStyle: { color: colors.text, fontWeight: '700' }, headerTintColor: colors.primaryDark }}
+        options={{ headerShown: false, title: 'Dashboard' }}
       />
       <ParentStackNav.Screen
         name="ParentGaming"
