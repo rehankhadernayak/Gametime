@@ -7,9 +7,13 @@ const viteApiBaseUrl = String(import.meta.env?.VITE_API_BASE_URL ?? '').trim();
 const resolvedApiBase = viteApiUrl || viteApiBaseUrl || '/api';
 
 if (import.meta.env.PROD && !viteApiUrl) {
+  const usingLegacy = Boolean(viteApiBaseUrl);
   console.error(
-    '[Gametime] Missing VITE_API_URL in this production build. API requests fall back to same-origin `/api`, which will not reach your AWS backend — login and all API calls will fail.\n' +
-      'Fix: In Vercel → Project → Settings → Environment Variables, add VITE_API_URL (Production) = https://api.gametime.app (no trailing slash), then redeploy.'
+    '[Gametime] Missing VITE_API_URL in this production build. ' +
+      (usingLegacy
+        ? 'Requests use legacy VITE_API_BASE_URL; migrate to VITE_API_URL so builds match your AWS API hostname.\n'
+        : 'API requests fall back to same-origin `/api`, which will not reach your AWS backend — login and all API calls will fail.\n') +
+      'Fix: Vercel → Project → Settings → Environment Variables → add VITE_API_URL (Production) = https://<your-aws-api-host> (no trailing slash), then redeploy.'
   );
 }
 
