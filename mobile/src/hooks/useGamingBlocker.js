@@ -1,7 +1,9 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { AppState } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useChildScreenTimeOptional } from '../context/ChildScreenTimeContext';
 import { apiRequest } from '../api/client';
+import { applyShieldWhenSessionEnds } from '../utils/screenTimeShield';
 
 export function useGamingBlocker(sessionId, onSessionDenied) {
   const [isBlocked, setIsBlocked] = useState(false);
@@ -9,6 +11,7 @@ export function useGamingBlocker(sessionId, onSessionDenied) {
   const appState = useRef(AppState.currentState);
   const checkInterval = useRef(null);
   const { token } = useAuth();
+  const screenTime = useChildScreenTimeOptional();
 
   const performCheck = useCallback(async () => {
     if (!sessionId || !token) return;
@@ -21,6 +24,7 @@ export function useGamingBlocker(sessionId, onSessionDenied) {
       });
 
       if (!result.allowed) {
+        await applyShieldWhenSessionEnds(screenTime?.screenTimeSelectionJson ?? null);
         setIsBlocked(true);
         setBlockCode(result.code);
         onSessionDenied?.(result.code, result.reason);
@@ -32,7 +36,7 @@ export function useGamingBlocker(sessionId, onSessionDenied) {
       console.error('[useGamingBlocker] Check-in failed:', err);
       // On network error, don't block to avoid false positives
     }
-  }, [token, sessionId, onSessionDenied]);
+  }, [token, sessionId, onSessionDenied, screenTime?.screenTimeSelectionJson]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {

@@ -36,7 +36,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.gametime.app",
-        "EXPO_PUBLIC_REVIEWER_DEMO": "true"
+        "EXPO_PUBLIC_REVIEWER_DEMO": "false"
       }
     }
   },
