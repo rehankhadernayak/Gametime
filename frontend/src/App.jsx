@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import Auth, { BrutalistPathStub } from './pages/Auth.jsx';
 import ChildLogin from './pages/ChildLogin.jsx';
 import ParentDashboard from './pages/ParentDashboard.jsx';
-import ChildDashboard from './pages/ChildDashboard.jsx';
+import ChildDashboard from './pages/child/ChildDashboard.jsx';
+import ActiveTimer from './pages/child/ActiveTimer.jsx';
 import HomePage from './pages/HomePage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import AiWorkspacePage from './pages/AiWorkspacePage.jsx';
@@ -180,6 +181,10 @@ export default function App() {
         <Route
           path="/child/dashboard"
           element={auth.role === 'child' ? <ChildDashboard token={auth.token} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/child/active-timer"
+          element={auth.role === 'child' ? <ActiveTimer token={auth.token} /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/parent/ai"

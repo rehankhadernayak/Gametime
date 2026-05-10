@@ -1,0 +1,30 @@
+.child-os-layout {
+  position: relative;
+  min-height: 100%;
+  background: var(--bg-layer-0);
+  color: var(--white-accent);
+  padding: var(--child-os-pad, 1.25rem);
+  padding-bottom: calc(var(--child-os-pad, 1.25rem) + env(safe-area-inset-bottom, 0));
+}
+
+.child-os-layout__scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.06;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 217, 255, 0.12) 2px,
+    rgba(0, 217, 255, 0.12) 3px
+  );
+}
+
+.child-os-layout__main {
+  position: relative;
+  z-index: 1;
+  max-width: 42rem;
+  margin: 0 auto;
+}
