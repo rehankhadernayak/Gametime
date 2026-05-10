@@ -1,6 +1,9 @@
 import { trackEvent } from '../utils/analytics.js';
 
-export const API_BASE = String(import.meta.env?.VITE_API_BASE_URL ?? '/api').replace(/\/$/, '');
+/** Prefer VITE_API_BASE_URL; VITE_API_URL matches Vercel/docs naming so deploys do not silently fall back to `/api`. */
+export const API_BASE = String(
+  import.meta.env?.VITE_API_BASE_URL || import.meta.env?.VITE_API_URL || '/api'
+).replace(/\/$/, '');
 
 const DEMO_MODE_STORAGE_KEY = 'gametime_demo_mode';
 const REVIEWER_DEMO_PARENT_EMAILS = String(import.meta.env?.VITE_REVIEWER_DEMO_PARENT_EMAILS ?? '')
@@ -13,6 +16,13 @@ export const DEMO_EVIDENCE_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
 const REQUEST_TIMEOUT_MS = 15000;
+const MAX_ERROR_BODY_CHARS = 4000;
+
+function truncateForErrorMessage(text) {
+  const s = String(text ?? '');
+  if (s.length <= MAX_ERROR_BODY_CHARS) return s || '(empty body)';
+  return `${s.slice(0, MAX_ERROR_BODY_CHARS)}… (${s.length} characters total)`;
+}
 
 /**
  * When true, Stripe checkout is not called and task completion can use built-in demo evidence
@@ -75,11 +85,12 @@ export async function apiRequest(path, { method = 'GET', body, token, suppressEr
   }
 
   const startTs = Date.now();
+  const requestUrl = `${API_BASE}${path}`;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let response;
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    response = await fetch(requestUrl, {
       method,
       credentials: 'include',
       headers: {
@@ -92,8 +103,8 @@ export async function apiRequest(path, { method = 'GET', body, token, suppressEr
   } catch (error) {
     const timedOut = error?.name === 'AbortError';
     const message = timedOut
-      ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s`
-      : `Network request failed. Check backend at ${API_BASE}`;
+      ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s at ${requestUrl}`
+      : `Network request failed at ${requestUrl}: ${error?.message || 'no details'} (check backend URL and CORS)`;
 
     const apiError = new ApiRequestError(message, 0);
     trackEvent('api_request_failed', {
@@ -119,8 +130,42 @@ export async function apiRequest(path, { method = 'GET', body, token, suppressEr
     clearTimeout(timeout);
   }
 
-  const data = await response.json().catch(() => ({}));
+  const rawText = await response.text();
+  let data;
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch {
+    data = undefined;
+  }
+
   if (!response.ok) {
+    if (data === undefined) {
+      const message = `Web Request failed (${response.status}) at ${requestUrl} - Response: ${truncateForErrorMessage(rawText)}`;
+      const error = new ApiRequestError(message, response.status, null);
+      trackEvent('api_request_failed', {
+        path,
+        method,
+        statusCode: response.status,
+        durationMs: Date.now() - startTs,
+        error: error.message
+      });
+      if (response.status === 401) {
+        window.dispatchEvent(new CustomEvent('gametime:session-expired', { detail: { path, method } }));
+      }
+      if (!suppressErrorToast) {
+        window.dispatchEvent(
+          new CustomEvent('gametime:toast', {
+            detail: {
+              type: 'error',
+              title: 'Request failed',
+              message: error.message
+            }
+          })
+        );
+      }
+      throw error;
+    }
+
     let message = data.error || 'Request failed';
     if (message === 'Validation failed' && Array.isArray(data.details) && data.details.length > 0) {
       const first = data.details[0];
@@ -139,6 +184,30 @@ export async function apiRequest(path, { method = 'GET', body, token, suppressEr
       window.dispatchEvent(new CustomEvent('gametime:session-expired', { detail: { path, method } }));
     }
 
+    if (!suppressErrorToast) {
+      window.dispatchEvent(
+        new CustomEvent('gametime:toast', {
+          detail: {
+            type: 'error',
+            title: 'Request failed',
+            message: error.message
+          }
+        })
+      );
+    }
+    throw error;
+  }
+
+  if (data === undefined) {
+    const message = `Invalid JSON in response (${response.status}) at ${requestUrl} - Response: ${truncateForErrorMessage(rawText)}`;
+    const error = new ApiRequestError(message, response.status, null);
+    trackEvent('api_request_failed', {
+      path,
+      method,
+      statusCode: response.status,
+      durationMs: Date.now() - startTs,
+      error: error.message
+    });
     if (!suppressErrorToast) {
       window.dispatchEvent(
         new CustomEvent('gametime:toast', {

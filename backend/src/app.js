@@ -24,6 +24,13 @@ import { logger } from './utils/logger.js';
 import { env } from './config/env.js';
 import { httpsVercelAppWildcardConfigured, isHttpsVercelAppOrigin } from './utils/corsOrigins.js';
 
+/** Strip whitespace and trailing slash so `https://app.com/` matches `https://app.com`. */
+function normalizeOrigin(origin) {
+  return String(origin || '')
+    .trim()
+    .replace(/\/$/, '');
+}
+
 function isDevTunnelOrigin(origin) {
   if (process.env.NODE_ENV === 'production') return false;
   try {
@@ -44,27 +51,38 @@ export function createApp() {
   const app = express();
   const allowAllHttpsVercelApp =
     httpsVercelAppWildcardConfigured(env.frontendOrigins);
-  const allowedOrigins = new Set([
-    ...env.frontendOrigins.filter((o) => !/^https:\/\/\*\.vercel\.app\/?$/i.test(String(o).trim())),
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:8081',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:8081'
-  ]);
+  const allowedOrigins = new Set(
+    [
+      ...env.frontendOrigins.filter((o) => !/^https:\/\/\*\.vercel\.app\/?$/i.test(String(o).trim())),
+      // Local web + tooling (Vite default, CRA, preview, Expo web)
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:4173',
+      'http://localhost:8081',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:4173',
+      'http://127.0.0.1:8081'
+    ].map(normalizeOrigin)
+  );
 
   app.use(helmet());
   app.use(
     cors({
       origin(origin, callback) {
         if (!origin) return callback(null, true);
-        if (allowedOrigins.has(origin)) return callback(null, true);
+        const normalized = normalizeOrigin(origin);
+        if (allowedOrigins.has(normalized)) return callback(null, true);
         if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
         if (isDevTunnelOrigin(origin)) return callback(null, true);
-        return callback(new Error(`CORS blocked for origin: ${origin}`));
+        // Deny without throwing — avoids a 500 while still omitting Access-Control-Allow-Origin.
+        logger.warn({ origin }, 'CORS request blocked for origin');
+        return callback(null, false);
       },
-      credentials: true
+      credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      optionsSuccessStatus: 204,
+      maxAge: 86400
     })
   );
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
