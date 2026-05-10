@@ -38,10 +38,19 @@ CREATE INDEX IF NOT EXISTS idx_child_profiles_user_id ON public.child_profiles U
 
 CREATE INDEX IF NOT EXISTS idx_child_streaks_last_approval ON public.child_streaks USING btree (last_approval_at);
 
-DO $$ BEGIN
-  ALTER TABLE public.child_streaks ADD CONSTRAINT child_streaks_pkey PRIMARY KEY USING INDEX child_streaks_pkey;
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class rel ON rel.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = rel.relnamespace
+    WHERE n.nspname = 'public'
+      AND rel.relname = 'child_streaks'
+      AND c.contype = 'p'
+  ) THEN
+    ALTER TABLE public.child_streaks ADD CONSTRAINT child_streaks_pkey PRIMARY KEY USING INDEX child_streaks_pkey;
+  END IF;
 END $$;
 
 DO $$ BEGIN
