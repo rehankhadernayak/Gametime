@@ -598,7 +598,7 @@ export default function ParentSettingsPage({ token, parentName, theme, onToggleT
 
             {childMsg ? (
               <p
-                className={`font-mono text-xs uppercase mb-4 px-3 py-2 border-2 border-black ${childMsgKind === 'error' ? 'bg-red-50 text-red-800' : 'bg-black/[0.03]'}`}
+                className={`font-mono text-xs uppercase mb-4 px-3 py-2 border-2 border-black ${childMsgKind === 'error' ? 'bg-red-50 text-red-800' : 'bg-black/[0.03] text-black'}`}
                 role="alert"
               >
                 {childMsg}

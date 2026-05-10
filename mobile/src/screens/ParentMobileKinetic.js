@@ -197,6 +197,7 @@ export function ParentMobileKinetic({ navigation }) {
       )}
 
       <ScrollView
+        style={{ flex: 1, backgroundColor: '#FFFFFF' }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -458,10 +459,12 @@ function StatBlock({ icon, label, value, color }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MOBILE_COLORS.primary,
+    backgroundColor: '#FFFFFF',
   },
 
   scrollContent: {
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
     paddingBottom: 24,
   },
 
@@ -514,7 +517,7 @@ const styles = StyleSheet.create({
 
   notificationTitle: {
     ...MOBILE_TYPOGRAPHY.bodySmall,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     fontWeight: '600',
   },
 
@@ -538,7 +541,7 @@ const styles = StyleSheet.create({
 
   headerGreeting: {
     ...MOBILE_TYPOGRAPHY.h2,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
   },
 
   headerSubtext: {
@@ -554,7 +557,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     ...MOBILE_TYPOGRAPHY.h3,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     fontWeight: '700',
     marginBottom: 12,
   },
@@ -582,7 +585,7 @@ const styles = StyleSheet.create({
 
   childName: {
     ...MOBILE_TYPOGRAPHY.caption,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     marginTop: 8,
     fontWeight: '600',
   },
@@ -644,7 +647,7 @@ const styles = StyleSheet.create({
 
   emptyText: {
     ...MOBILE_TYPOGRAPHY.bodySmall,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     fontWeight: '600',
   },
 
@@ -684,10 +687,10 @@ const styles = StyleSheet.create({
 
   terminalContainer: {
     marginHorizontal: SAFE_AREA.horizontal,
-    backgroundColor: '#0a0e27',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: `${MOBILE_COLORS.neonGreen}30`,
+    borderWidth: 2,
+    borderColor: MOBILE_COLORS.primary,
     padding: 12,
     marginVertical: 12,
   },

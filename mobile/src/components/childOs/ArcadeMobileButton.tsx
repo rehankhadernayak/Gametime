@@ -17,7 +17,7 @@ type Props = Omit<PressableProps, 'style' | 'children'> & {
   textStyle?: StyleProp<TextStyle>;
 };
 
-/** Primary arcade action — white frame on black (Child OS). */
+/** Primary arcade action — black frame on white (Child OS). */
 export function ArcadeMobileButton({ children, style, textStyle, disabled, ...rest }: Props) {
   return (
     <Pressable

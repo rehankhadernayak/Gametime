@@ -5,8 +5,8 @@
 .dashboardWrapper {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
-  color: #f6f8ff;
+  background: #ffffff;
+  color: #000000;
   position: relative;
   z-index: 0;
 }

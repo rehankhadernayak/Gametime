@@ -109,7 +109,7 @@ function AuthenticatedEvidenceMedia({ path, token, mediaType, title }) {
 
   if (failed) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center border-4 border-black bg-black/5 p-6 font-mono text-xs font-bold uppercase tracking-wide">
+      <div className="flex min-h-[200px] items-center justify-center border-4 border-black bg-black/5 p-6 font-mono text-xs font-bold uppercase tracking-wide text-black">
         Evidence unavailable
       </div>
     );
