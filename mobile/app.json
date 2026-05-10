@@ -64,9 +64,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
-      },
-      "_instructions": "Run `eas init` in the mobile/ directory to replace YOUR_EAS_PROJECT_ID with your real project ID. This links the app to your Expo account for EAS Build and push notifications."
-    }
+        "projectId": "9f769e0f-d8a6-4931-9d29-1423f3b16de2"
+      }
+    },
+    "owner": "rehan.khadernayak"
   }
 }
