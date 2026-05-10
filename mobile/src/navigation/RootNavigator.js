@@ -26,7 +26,7 @@ import ParentAiScreen from '../screens/parent/ParentAiScreen';
 import ParentMobileKinetic from '../screens/ParentMobileKinetic';
 import AccountScreen from '../screens/AccountScreen';
 
-import ChildDashboard from '../screens/child/ChildDashboard';
+import ChildHome from '../screens/child/ChildHome';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
 import ChildRewardsScreen from '../screens/child/ChildRewardsScreen';
 import ChildRewardsStore from '../screens/child/ChildRewardsStore';
@@ -35,6 +35,7 @@ import ChildAiScreen from '../screens/child/ChildAiScreen';
 import ChildNotificationsScreen from '../screens/child/ChildNotificationsScreen';
 import EvidenceSubmitScreen from '../screens/child/EvidenceSubmitScreen';
 import TaskProofScreen from '../screens/child/TaskProofScreen';
+import ChildSession from '../screens/child/ChildSession';
 
 import ParentNotificationsScreen from '../screens/parent/ParentNotificationsScreen';
 import ParentChildDetailScreen from '../screens/parent/ParentChildDetailScreen';
@@ -194,7 +195,7 @@ function ParentStack() {
 // ─── Child bottom tabs ────────────────────────────────────────────────────────
 
 const CHILD_TABS = [
-  { name: 'ChildHome',    component: ChildDashboard,    label: 'Home',    icon: 'home' },
+  { name: 'ChildHome',    component: ChildHome,    label: 'Home',    icon: 'home' },
   { name: 'ChildTasks',   component: ChildTasksScreen,   label: 'Tasks',   icon: 'checkbox' },
   { name: 'ChildGaming',  component: ChildGamingScreen,  label: 'Gaming',  icon: 'game-controller' },
   { name: 'ChildRewards', component: ChildRewardsScreen, label: 'Rewards', icon: 'gift' },
@@ -307,6 +308,15 @@ function ChildStack() {
           headerTitleStyle: { color: TEXT_DARK_CHILD_NAV, fontWeight: '800' },
           headerTintColor: colors.primaryDark,
           headerShadowVisible: false,
+        }}
+      />
+      <ChildStackNav.Screen
+        name="ChildSession"
+        component={ChildSession}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#000000' },
+          presentation: 'fullScreenModal',
         }}
       />
     </ChildStackNav.Navigator>
