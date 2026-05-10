@@ -21,7 +21,8 @@ function normalizeUrl(url) {
 /**
  * Resolution order for the mobile API base URL:
  *   1. EXPO_PUBLIC_API_URL — baked in at build time via eas.json env
- *      (production / preview / development profiles override this).
+ *      (e.g. preview / production profiles); development builds omit it so
+ *      host inference or manual settings apply.
  *   2. Expo Go dev host URI — when running `expo start`, point at the same
  *      machine the Metro bundler runs on (so the device can reach localhost).
  *   3. Fallback to localhost (web preview, simulator).
@@ -54,11 +55,13 @@ export function getSuggestedApiUrl() {
 }
 
 export class ApiError extends Error {
-  constructor(message, statusCode, details = null) {
+  constructor(message, statusCode, details = null, meta = {}) {
     super(message);
     this.name = 'ApiError';
     this.statusCode = statusCode;
     this.details = details;
+    this.requestUrl = meta.url ?? '';
+    this.rawResponse = meta.rawResponse ?? '';
   }
 }
 
@@ -128,19 +131,57 @@ export async function apiRequest(path, { method = 'GET', token = '', body } = {}
       timedOut
         ? `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s.`
         : `Network request failed. Check API URL (${base}) and backend availability.`,
-      0
+      0,
+      null,
+      { url: `${base}${path}`, rawResponse: '' }
     );
   } finally {
     clearTimeout(timeout);
   }
 
-  const data = await response.json().catch(() => ({}));
+  const fullUrl = `${base}${path}`;
+  const rawText = await response.text();
+  let parsedBody;
+  try {
+    parsedBody = JSON.parse(rawText);
+  } catch {
+    parsedBody = undefined;
+  }
+
+  const isJsonObject =
+    parsedBody !== null &&
+    typeof parsedBody === 'object' &&
+    !Array.isArray(parsedBody);
+
   if (!response.ok) {
-    let message = data.error || `Request failed (${response.status})`;
-    if (message === 'Validation failed' && Array.isArray(data.details) && data.details.length > 0) {
-      const first = data.details[0];
-      message = first?.path ? `${first.path}: ${first.message}` : (first?.message || message);
+    const maxPreview = 500;
+    const truncatePreview = (s) =>
+      String(s).length > maxPreview ? String(s).slice(0, maxPreview) + '…' : String(s);
+    const rawForMeta =
+      rawText.length > 8000 ? rawText.slice(0, 8000) + '…' : rawText;
+
+    let message;
+    let details = null;
+
+    if (isJsonObject) {
+      details = parsedBody.details ?? null;
+      let friendly = parsedBody.error || `Request failed (${response.status})`;
+      if (
+        friendly === 'Validation failed' &&
+        Array.isArray(parsedBody.details) &&
+        parsedBody.details.length > 0
+      ) {
+        const first = parsedBody.details[0];
+        friendly = first?.path
+          ? `${first.path}: ${first.message}`
+          : first?.message || friendly;
+      }
+      message = `Request failed (${response.status}) at ${fullUrl} - Response: ${truncatePreview(friendly)}`;
+    } else {
+      const snippet = (rawText || '').trim() || '(empty body)';
+      message = `Request failed (${response.status}) at ${fullUrl} - Response: ${truncatePreview(snippet)}`;
     }
+
     if (response.status === 401 && token && unauthorizedHandler) {
       try {
         unauthorizedHandler();
@@ -148,11 +189,14 @@ export async function apiRequest(path, { method = 'GET', token = '', body } = {}
         // Ignore unauthorized handler errors to avoid masking API response.
       }
     }
-    throw new ApiError(
-      message,
-      response.status,
-      data.details ?? null
-    );
+    throw new ApiError(message, response.status, details, {
+      url: fullUrl,
+      rawResponse: rawForMeta
+    });
   }
-  return data;
+
+  if (parsedBody === undefined) {
+    return {};
+  }
+  return parsedBody;
 }

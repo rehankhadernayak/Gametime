@@ -100,7 +100,13 @@ export function AuthProvider({ children }) {
 
   async function loginWithToken(nextToken) {
     await saveToken(nextToken);
-    await hydrateFromToken(nextToken);
+    try {
+      await hydrateFromToken(nextToken);
+    } catch (error) {
+      throw new Error(
+        'Login successful, but failed to load profile: ' + (error?.message ?? String(error))
+      );
+    }
   }
 
   async function refreshMe() {
