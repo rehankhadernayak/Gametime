@@ -67,6 +67,7 @@ describe('Children list', () => {
     expect(typeof child.giftcardPointsBalance).toBe('number');
     expect(child.hasPasswordLogin).toBe(true);
     expect(child.hasPinLogin).toBe(false);
+    expect(child.hasScreenTimeSelection).toBe(false);
   });
 
   test('GET /children/list requires auth', async () => {
@@ -162,5 +163,65 @@ describe('Children avatar', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.headers['content-type']).toMatch(/image/);
+  });
+});
+
+describe('Children screen time selection', () => {
+  test('PATCH /children/:id/screen-time-selection saves payload', async () => {
+    const encoded = '{"opaqueFamilyActivitySelection":true}';
+    const res = await request(app)
+      .patch(`/children/${childId}/screen-time-selection`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({ encodedSelectionJson: encoded });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.ok).toBe(true);
+  });
+
+  test('GET /children/screen-time-selection returns payload for child session', async () => {
+    const encoded = '{"blocks":["token-a"]}';
+    await request(app)
+      .patch(`/children/${childId}/screen-time-selection`)
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({ encodedSelectionJson: encoded });
+
+    const childLoginRes = await request(app)
+      .post('/auth/child-login')
+      .set('Authorization', `Bearer ${parentToken}`)
+      .send({ childId });
+    expect(childLoginRes.statusCode).toBe(200);
+    const childToken = childLoginRes.body.token;
+
+    const res = await request(app)
+      .get('/children/screen-time-selection')
+      .set('Authorization', `Bearer ${childToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.encodedSelectionJson).toBe(encoded);
+  });
+
+  test('GET /children/screen-time-selection rejects parent token', async () => {
+    const res = await request(app)
+      .get('/children/screen-time-selection')
+      .set('Authorization', `Bearer ${parentToken}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  test('PATCH /children/:id/screen-time-selection rejects other household', async () => {
+    const signupRes = await request(app).post('/auth/signup').send({
+      name: 'Other Parent',
+      email: 'otherparent-screen@example.com',
+      password: 'Password123'
+    });
+    expect(signupRes.statusCode).toBe(201);
+    const otherToken = signupRes.body.token;
+
+    const res = await request(app)
+      .patch(`/children/${childId}/screen-time-selection`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ encodedSelectionJson: '{}' });
+
+    expect(res.statusCode).toBe(404);
   });
 });
