@@ -1,59 +1,90 @@
 drop extension if exists "pg_net";
 
+-- Idempotent with incremental migrations (e.g. child_streaks from 20250503220000).
+CREATE TABLE IF NOT EXISTS public.child_streaks (
+  child_id text NOT NULL,
+  streak_days integer NOT NULL DEFAULT 0,
+  last_approval_at timestamp with time zone,
+  bonus_milestones_rewarded text NOT NULL DEFAULT '[]'::text,
+  created_at text NOT NULL DEFAULT ((now() AT TIME ZONE 'UTC'::text))::text,
+  updated_at text NOT NULL DEFAULT ((now() AT TIME ZONE 'UTC'::text))::text
+);
 
-  create table "public"."child_streaks" (
-    "child_id" text not null,
-    "streak_days" integer not null default 0,
-    "last_approval_at" timestamp with time zone,
-    "bonus_milestones_rewarded" text not null default '[]'::text,
-    "created_at" text not null default ((now() AT TIME ZONE 'UTC'::text))::text,
-    "updated_at" text not null default ((now() AT TIME ZONE 'UTC'::text))::text
-      );
+ALTER TABLE public.child_streaks ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.app_allocations ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."child_streaks" enable row level security;
+ALTER TABLE public.child_profiles ADD COLUMN IF NOT EXISTS user_id uuid;
 
-alter table "public"."app_allocations" enable row level security;
+ALTER TABLE public.child_profiles ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."child_profiles" add column "user_id" uuid;
+ALTER TABLE public.families ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."child_profiles" enable row level security;
+ALTER TABLE public.family_invites ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."families" enable row level security;
+ALTER TABLE public.parent_profiles ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."family_invites" enable row level security;
+ALTER TABLE public.task_completions ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."parent_profiles" enable row level security;
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS reference_photo_url text;
 
-alter table "public"."task_completions" enable row level security;
+ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 
-alter table "public"."tasks" add column "reference_photo_url" text;
+CREATE UNIQUE INDEX IF NOT EXISTS child_profiles_user_id_key ON public.child_profiles USING btree (user_id);
 
-alter table "public"."tasks" enable row level security;
+CREATE UNIQUE INDEX IF NOT EXISTS child_streaks_pkey ON public.child_streaks USING btree (child_id);
 
-CREATE UNIQUE INDEX child_profiles_user_id_key ON public.child_profiles USING btree (user_id);
+CREATE INDEX IF NOT EXISTS idx_child_profiles_user_id ON public.child_profiles USING btree (user_id);
 
-CREATE UNIQUE INDEX child_streaks_pkey ON public.child_streaks USING btree (child_id);
+CREATE INDEX IF NOT EXISTS idx_child_streaks_last_approval ON public.child_streaks USING btree (last_approval_at);
 
-CREATE INDEX idx_child_profiles_user_id ON public.child_profiles USING btree (user_id);
+DO $$ BEGIN
+  ALTER TABLE public.child_streaks ADD CONSTRAINT child_streaks_pkey PRIMARY KEY USING INDEX child_streaks_pkey;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE INDEX idx_child_streaks_last_approval ON public.child_streaks USING btree (last_approval_at);
+DO $$ BEGIN
+  ALTER TABLE public.child_profiles ADD CONSTRAINT child_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL NOT VALID;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-alter table "public"."child_streaks" add constraint "child_streaks_pkey" PRIMARY KEY using index "child_streaks_pkey";
+DO $$ BEGIN
+  ALTER TABLE public.child_profiles VALIDATE CONSTRAINT child_profiles_user_id_fkey;
+EXCEPTION
+  WHEN undefined_object THEN NULL;
+END $$;
 
-alter table "public"."child_profiles" add constraint "child_profiles_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL not valid;
+DO $$ BEGIN
+  ALTER TABLE public.child_profiles ADD CONSTRAINT child_profiles_user_id_key UNIQUE USING INDEX child_profiles_user_id_key;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-alter table "public"."child_profiles" validate constraint "child_profiles_user_id_fkey";
+DO $$ BEGIN
+  ALTER TABLE public.child_streaks ADD CONSTRAINT child_streaks_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.child_profiles(id) ON DELETE CASCADE NOT VALID;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-alter table "public"."child_profiles" add constraint "child_profiles_user_id_key" UNIQUE using index "child_profiles_user_id_key";
+DO $$ BEGIN
+  ALTER TABLE public.child_streaks VALIDATE CONSTRAINT child_streaks_child_id_fkey;
+EXCEPTION
+  WHEN undefined_object THEN NULL;
+END $$;
 
-alter table "public"."child_streaks" add constraint "child_streaks_child_id_fkey" FOREIGN KEY (child_id) REFERENCES public.child_profiles(id) ON DELETE CASCADE not valid;
+DO $$ BEGIN
+  ALTER TABLE public.child_streaks ADD CONSTRAINT child_streaks_streak_days_check CHECK (((streak_days >= 0) AND (streak_days <= 10000))) NOT VALID;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-alter table "public"."child_streaks" validate constraint "child_streaks_child_id_fkey";
-
-alter table "public"."child_streaks" add constraint "child_streaks_streak_days_check" CHECK (((streak_days >= 0) AND (streak_days <= 10000))) not valid;
-
-alter table "public"."child_streaks" validate constraint "child_streaks_streak_days_check";
+DO $$ BEGIN
+  ALTER TABLE public.child_streaks VALIDATE CONSTRAINT child_streaks_streak_days_check;
+EXCEPTION
+  WHEN undefined_object THEN NULL;
+END $$;
 
 set check_function_bodies = off;
 
@@ -210,194 +241,6 @@ grant truncate on table "public"."child_streaks" to "service_role";
 
 grant update on table "public"."child_streaks" to "service_role";
 
-
-  create policy "app_allocations_child_insert"
-  on "public"."app_allocations"
-  as permissive
-  for insert
-  to authenticated
-with check ((child_id = public.gt_auth_child_id()));
-
-
-
-  create policy "app_allocations_child_select"
-  on "public"."app_allocations"
-  as permissive
-  for select
-  to authenticated
-using ((child_id = public.gt_auth_child_id()));
-
-
-
-  create policy "app_allocations_parent_all"
-  on "public"."app_allocations"
-  as permissive
-  for all
-  to authenticated
-using ((EXISTS ( SELECT 1
-   FROM public.child_profiles c
-  WHERE ((c.id = app_allocations.child_id) AND (c.family_id = public.gt_auth_parent_family_id())))))
-with check ((EXISTS ( SELECT 1
-   FROM public.child_profiles c
-  WHERE ((c.id = app_allocations.child_id) AND (c.family_id = public.gt_auth_parent_family_id())))));
-
-
-
-  create policy "child_profiles_child_select_self"
-  on "public"."child_profiles"
-  as permissive
-  for select
-  to authenticated
-using ((id = public.gt_auth_child_id()));
-
-
-
-  create policy "child_profiles_child_update_time_bank"
-  on "public"."child_profiles"
-  as permissive
-  for update
-  to authenticated
-using ((id = public.gt_auth_child_id()))
-with check ((id = public.gt_auth_child_id()));
-
-
-
-  create policy "child_profiles_parent_all"
-  on "public"."child_profiles"
-  as permissive
-  for all
-  to authenticated
-using ((family_id = public.gt_auth_parent_family_id()))
-with check ((family_id = public.gt_auth_parent_family_id()));
-
-
-
-  create policy "child_streaks_child_select"
-  on "public"."child_streaks"
-  as permissive
-  for select
-  to authenticated
-using ((child_id = public.gt_auth_child_id()));
-
-
-
-  create policy "child_streaks_parent_all"
-  on "public"."child_streaks"
-  as permissive
-  for all
-  to authenticated
-using ((EXISTS ( SELECT 1
-   FROM public.child_profiles c
-  WHERE ((c.id = child_streaks.child_id) AND (c.family_id = public.gt_auth_parent_family_id())))))
-with check ((EXISTS ( SELECT 1
-   FROM public.child_profiles c
-  WHERE ((c.id = child_streaks.child_id) AND (c.family_id = public.gt_auth_parent_family_id())))));
-
-
-
-  create policy "families_delete_family_admin"
-  on "public"."families"
-  as permissive
-  for delete
-  to authenticated
-using (public.gt_auth_parent_is_family_admin(id));
-
-
-
-  create policy "families_select_parent"
-  on "public"."families"
-  as permissive
-  for select
-  to authenticated
-using ((id = public.gt_auth_parent_family_id()));
-
-
-
-  create policy "families_update_parent"
-  on "public"."families"
-  as permissive
-  for update
-  to authenticated
-using ((id = public.gt_auth_parent_family_id()))
-with check ((id = public.gt_auth_parent_family_id()));
-
-
-
-  create policy "family_invites_anon_read_by_code"
-  on "public"."family_invites"
-  as permissive
-  for select
-  to anon, authenticated
-using (((public.gt_request_family_invite_code() IS NOT NULL) AND ((code)::text = public.gt_request_family_invite_code()) AND (expires_at > (now() AT TIME ZONE 'utc'::text))));
-
-
-
-  create policy "family_invites_parent_all"
-  on "public"."family_invites"
-  as permissive
-  for all
-  to authenticated
-using ((family_id = public.gt_auth_parent_family_id()))
-with check ((family_id = public.gt_auth_parent_family_id()));
-
-
-
-  create policy "parent_profiles_parent_rw"
-  on "public"."parent_profiles"
-  as permissive
-  for all
-  to authenticated
-using ((family_id = public.gt_auth_parent_family_id()))
-with check ((family_id = public.gt_auth_parent_family_id()));
-
-
-
-  create policy "task_completions_child_select"
-  on "public"."task_completions"
-  as permissive
-  for select
-  to authenticated
-using ((child_id = public.gt_auth_child_id()));
-
-
-
-  create policy "task_completions_parent_select"
-  on "public"."task_completions"
-  as permissive
-  for select
-  to authenticated
-using ((EXISTS ( SELECT 1
-   FROM (public.tasks t
-     JOIN public.child_profiles c ON ((c.id = t.child_id)))
-  WHERE ((t.id = task_completions.task_id) AND (c.family_id = public.gt_auth_parent_family_id())))));
-
-
-
-  create policy "tasks_child_rw"
-  on "public"."tasks"
-  as permissive
-  for all
-  to authenticated
-using ((child_id = public.gt_auth_child_id()))
-with check ((child_id = public.gt_auth_child_id()));
-
-
-
-  create policy "tasks_parent_all"
-  on "public"."tasks"
-  as permissive
-  for all
-  to authenticated
-using ((EXISTS ( SELECT 1
-   FROM public.child_profiles c
-  WHERE ((c.id = tasks.child_id) AND (c.family_id = public.gt_auth_parent_family_id())))))
-with check ((EXISTS ( SELECT 1
-   FROM public.child_profiles c
-  WHERE ((c.id = tasks.child_id) AND (c.family_id = public.gt_auth_parent_family_id())))));
-
-
-CREATE TRIGGER trg_child_profiles_child_update_guard BEFORE UPDATE ON public.child_profiles FOR EACH ROW WHEN (((public.gt_auth_child_id() IS NOT NULL) AND (old.id = public.gt_auth_child_id()))) EXECUTE FUNCTION public.gt_child_restrict_profile_update();
-
-CREATE TRIGGER trg_child_profiles_sync_family BEFORE INSERT OR UPDATE OF parent_id ON public.child_profiles FOR EACH ROW EXECUTE FUNCTION public.gt_sync_child_family_from_parent();
-
-
+-- RLS policies and child_profiles triggers are defined in earlier migrations:
+-- 20250503190100_security_policies.sql, 20250503220000_child_streaks_reference_photo.sql.
+-- The dashboard snapshot previously duplicated those CREATE POLICY / CREATE TRIGGER statements here.
