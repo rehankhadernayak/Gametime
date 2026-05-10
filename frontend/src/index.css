@@ -8,20 +8,17 @@
   html {
     -webkit-font-smoothing: none;
   }
-}
 
-html body {
-  background-color: #ffffff;
-  color: #000000;
-  -webkit-font-smoothing: none;
-  font-family: 'IBM Plex Mono', monospace;
+  body {
+    @apply bg-[#FFFFFF] text-[#000000] font-sans;
+  }
 }
 
 ::selection {
-  background-color: #000000;
-  color: #ffffff;
+  @apply bg-black text-white;
 }
 
+/* Fixed overlay: opacity does not dim interactive content (see main) */
 .ascii-bg {
   position: fixed;
   inset: 0;
@@ -29,6 +26,7 @@ html body {
   pointer-events: none;
   background-image: radial-gradient(#000000 0.5px, transparent 0.5px);
   background-size: 20px 20px;
+  background-position: 0 0;
   opacity: 0.05;
 }
 
@@ -36,6 +34,7 @@ html body {
   border: 2px solid #000000;
 }
 
+/* Used by .cursor-blink and TypewriterHeading; matches tailwind theme keyframes */
 @keyframes blink {
   0%,
   100% {
@@ -47,10 +46,52 @@ html body {
 }
 
 @keyframes typewriter {
-  0% {
+  from {
     width: 0;
   }
-  100% {
+  to {
     width: 100%;
   }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.typewriter-heading {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.typewriter-heading__grid {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.typewriter-heading__measure {
+  visibility: hidden;
+  grid-column: 1;
+  grid-row: 1;
+  white-space: pre;
+}
+
+.typewriter-heading__text {
+  grid-column: 1;
+  grid-row: 1;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  animation: typewriter 2.8s steps(var(--typewriter-steps, 32), end) forwards;
+  vertical-align: bottom;
+}
+
+.typewriter-heading__cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background-color: #000000;
+  flex-shrink: 0;
 }

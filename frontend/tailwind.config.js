@@ -5,6 +5,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"IBM Plex Mono"', 'monospace'],
+        mono: ['"IBM Plex Mono"', 'monospace'],
       },
       spacing: {
         'grid-20': '20px',
