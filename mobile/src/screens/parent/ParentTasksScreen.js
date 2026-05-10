@@ -7,17 +7,20 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import InputField from '../../components/InputField';
-import Button from '../../components/Button';
 import Banner from '../../components/Banner';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
+import BrutalistBox from '../../components/ui/BrutalistBox';
+import MobileButton from '../../components/ui/MobileButton';
+import MobileInput from '../../components/ui/MobileInput';
+import OneBitAsciiHeader from '../../components/ui/OneBitAsciiHeader';
+import StatusLine from '../../components/ui/StatusLine';
+import { ONE_BIT } from '../../components/ui/oneBitTheme';
 import { apiRequest } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
-import { spacing, radius } from '../../theme/spacing';
+import { spacing } from '../../theme/spacing';
 import { fmtDateTime, getErrorMessage, sanitizeText } from '../../utils/format';
 import { DEFAULT_PARENT_SETTINGS, loadParentSettings } from '../../utils/parentSettings';
 import { normalizeTasksListResponse } from '../../utils/tasksList.js';
@@ -154,112 +157,158 @@ export default function ParentTasksScreen() {
     return true;
   });
 
-  if (initialLoading) return <Spinner full />;
+  if (initialLoading) {
+    return (
+      <View style={styles.root}>
+        <Spinner full />
+      </View>
+    );
+  }
 
-  const selectedChild = children.find((c) => c.id === form.childId);
-
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
-    >
-      {/* ── Header gradient ── */}
-      <LinearGradient
-        colors={['#3B5BDB', '#2F4AC0']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.header, { paddingTop: insets.top + 12 }]}
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ONE_BIT.ink} />}
       >
-        <View>
-          <Text style={styles.headerTitle}>Tasks</Text>
-          <Text style={styles.headerSub}>{tasks.length} total · {pendingRequests.length} request{pendingRequests.length !== 1 ? 's' : ''} pending</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.createBtn}
-          onPress={() => { setShowForm((v) => !v); setError(''); setMessage(''); }}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.createBtnText}>{showForm ? '✕ Cancel' : '+ Create Task'}</Text>
-        </TouchableOpacity>
-      </LinearGradient>
-
-      <Banner message={message} tone="success" />
-      <Banner message={error} />
-
-      {/* ── Create task form ── */}
-      {showForm && (
-        <View style={styles.formCard}>
-          <Text style={styles.formTitle}>New Task</Text>
-
-          {/* Quick templates */}
-          <Text style={styles.formLabel}>Quick-start templates</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.templatesScroll}>
-            <View style={styles.templatesRow}>
-              {TASK_TEMPLATES.map((tpl) => (
-                <TouchableOpacity
-                  key={tpl.title}
-                  style={[styles.templateChip, form.title === tpl.title && styles.templateChipActive]}
-                  onPress={() => applyTemplate(tpl)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.templateChipIcon}>{tpl.icon}</Text>
-                  <Text style={[styles.templateChipText, form.title === tpl.title && styles.templateChipTextActive]}>
-                    {tpl.title}
-                  </Text>
-                  <Text style={styles.templateChipPts}>+{tpl.points} RP</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-
-          {/* Child selector */}
-          <Text style={styles.formLabel}>Assign to</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.childSelectorScroll}>
-            <View style={styles.childSelectorRow}>
-              {children.map((child) => (
-                <TouchableOpacity
-                  key={child.id}
-                  style={[styles.childChip, form.childId === child.id && styles.childChipActive]}
-                  onPress={() => setForm((p) => ({ ...p, childId: child.id }))}
-                  activeOpacity={0.75}
-                >
-                  <View style={[styles.childChipAvatar, form.childId === child.id && styles.childChipAvatarActive]}>
-                    <Text style={[styles.childChipAvatarText, form.childId === child.id && { color: '#fff' }]}>
-                      {child.name.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <Text style={[styles.childChipName, form.childId === child.id && styles.childChipNameActive]}>
-                    {child.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-
-          <InputField label="Task title" value={form.title} onChangeText={(v) => setForm({ ...form, title: v })} maxLength={50} />
-          <InputField label="Description" value={form.description} onChangeText={(v) => setForm({ ...form, description: v })} maxLength={200} multiline style={{ minHeight: 80, textAlignVertical: 'top' }} />
-
-          <View style={styles.formRow}>
-            <View style={{ flex: 1 }}>
-              <InputField label="RP reward (5–50)" value={form.points} onChangeText={(v) => setForm({ ...form, points: v })} keyboardType="number-pad" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <InputField label="GP bonus (0–1000)" value={form.gpPoints} onChangeText={(v) => setForm({ ...form, gpPoints: v })} keyboardType="number-pad" />
-            </View>
+        <View style={[styles.topHeader, { paddingTop: insets.top + 12 }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.topHeaderTitle}>TASK_MATRIX</Text>
+            <Text style={styles.topHeaderSub}>
+              {tasks.length} TOTAL // {pendingRequests.length} REQ
+              {pendingRequests.length !== 1 ? 'S' : ''}_PENDING
+            </Text>
           </View>
-          <InputField label="Due in hours (1–168)" value={form.dueInHours} onChangeText={(v) => setForm({ ...form, dueInHours: v })} keyboardType="number-pad" />
-
-          <Button
-            title={loading ? 'Creating…' : `Create Task${selectedChild ? ` for ${selectedChild.name}` : ''}`}
-            onPress={createTask}
-            loading={loading}
-            disabled={!form.childId || !form.title || !form.description}
-          />
+          <TouchableOpacity
+            style={[styles.headerToggle, showForm && styles.headerToggleActive]}
+            onPress={() => {
+              setShowForm((v) => !v);
+              setError('');
+              setMessage('');
+            }}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.headerToggleText, showForm && styles.headerToggleTextActive]}>
+              {showForm ? 'ABORT' : 'DEPLOY'}
+            </Text>
+          </TouchableOpacity>
         </View>
-      )}
+
+        <Banner message={message} tone="success" />
+        <Banner message={error} />
+
+        {showForm && (
+          <BrutalistBox style={styles.formCard}>
+            <OneBitAsciiHeader compact title="DEPLOY MISSION" style={styles.deployHeader} />
+
+            <Text style={styles.formLabel}>QUICK_START_TEMPLATES</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.templatesScroll}>
+              <View style={styles.templatesRow}>
+                {TASK_TEMPLATES.map((tpl) => (
+                  <TouchableOpacity
+                    key={tpl.title}
+                    style={[styles.templateChip, form.title === tpl.title && styles.templateChipActive]}
+                    onPress={() => applyTemplate(tpl)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[styles.templateChipText, form.title === tpl.title && styles.templateChipTextActive]}>
+                      {tpl.title.toUpperCase()}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.templateChipPts,
+                        form.title === tpl.title && styles.templateChipPtsActive
+                      ]}
+                    >
+                      +{tpl.points} RP
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text style={styles.formLabel}>ASSIGN_TO</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.childSelectorScroll}>
+              <View style={styles.childSelectorRow}>
+                {children.map((child) => (
+                  <TouchableOpacity
+                    key={child.id}
+                    style={[styles.childChip, form.childId === child.id && styles.childChipActive]}
+                    onPress={() => setForm((p) => ({ ...p, childId: child.id }))}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[styles.childChipAvatar, form.childId === child.id && styles.childChipAvatarActive]}>
+                      <Text
+                        style={[
+                          styles.childChipAvatarText,
+                          form.childId === child.id && styles.childChipAvatarTextActive
+                        ]}
+                      >
+                        {child.name.charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <Text style={[styles.childChipName, form.childId === child.id && styles.childChipNameActive]}>
+                      {child.name.toUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text style={styles.fieldLabel}>MISSION_TITLE</Text>
+            <MobileInput
+              value={form.title}
+              onChangeText={(v) => setForm({ ...form, title: v })}
+              placeholder="ENTER_TITLE"
+              maxLength={50}
+              autoCapitalize="sentences"
+            />
+            <StatusLine message="FORMAT: PLAINTEXT // MAX 50" style={styles.statusBelowField} />
+
+            <Text style={styles.fieldLabel}>TIME_REWARD (RP)</Text>
+            <MobileInput
+              value={form.points}
+              onChangeText={(v) => setForm({ ...form, points: v })}
+              placeholder="10"
+              keyboardType="number-pad"
+            />
+            <StatusLine message="FORMAT: MM" style={styles.statusBelowField} />
+
+            <Text style={styles.fieldLabel}>MISSION_BRIEF</Text>
+            <MobileInput
+              value={form.description}
+              onChangeText={(v) => setForm({ ...form, description: v })}
+              placeholder="OBJECTIVE_DETAILS"
+              maxLength={200}
+              multiline
+              style={styles.inputMultiline}
+              textAlignVertical="top"
+            />
+            <StatusLine message="REQUIRED // MAX 200 CHARS" style={styles.statusBelowField} />
+
+            <View style={styles.formRow}>
+              <View style={styles.formRowHalf}>
+                <Text style={styles.fieldLabel}>GP_BONUS</Text>
+                <MobileInput
+                  value={form.gpPoints}
+                  onChangeText={(v) => setForm({ ...form, gpPoints: v })}
+                  keyboardType="number-pad"
+                />
+              </View>
+              <View style={styles.formRowHalf}>
+                <Text style={styles.fieldLabel}>DUE_HOURS</Text>
+                <MobileInput
+                  value={form.dueInHours}
+                  onChangeText={(v) => setForm({ ...form, dueInHours: v })}
+                  keyboardType="number-pad"
+                />
+              </View>
+            </View>
+            <StatusLine message="GP: 0–1000 // DUE: 1–168 H" style={styles.statusBelowField} />
+          </BrutalistBox>
+        )}
 
       {/* ── Task requests ── */}
       {pendingRequests.length > 0 && (
@@ -280,11 +329,12 @@ export default function ParentTasksScreen() {
                 </View>
               </View>
               {req.description ? <Text style={styles.requestDesc}>{req.description}</Text> : null}
-              <InputField
-                label="Response note (optional)"
+              <Text style={styles.fieldLabel}>RESPONSE_NOTE</Text>
+              <MobileInput
                 value={requestNotes[req.id] || ''}
                 onChangeText={(v) => setRequestNotes((prev) => ({ ...prev, [req.id]: v }))}
                 maxLength={200}
+                placeholder="OPTIONAL_NOTE"
               />
               <View style={styles.requestActions}>
                 <TouchableOpacity style={styles.approveBtn} onPress={() => decideRequest(req.id, 'approve')} activeOpacity={0.8}>
@@ -368,69 +418,141 @@ export default function ParentTasksScreen() {
         )}
       </View>
 
-      <View style={{ height: spacing.xl }} />
+      <View style={{ height: showForm ? spacing.xl + 72 : spacing.xl }} />
     </ScrollView>
-  );
-}
+    {showForm ? (
+      <View style={[styles.formFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <MobileButton
+          title={loading ? 'SYNCING…' : 'SAVE_TO_LEDGER'}
+          onPress={createTask}
+          disabled={loading || !form.childId || !form.title || !form.description}
+        />
+      </View>
+    ) : null}
+  </View>
+);
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
+  root: { flex: 1, backgroundColor: '#FFFFFF' },
+  scroll: { flex: 1 },
   content: { paddingHorizontal: spacing.md, paddingBottom: spacing.md, gap: spacing.md },
 
-  // ── Header ──
-  header: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.md,
+    borderBottomWidth: ONE_BIT.borderWidth,
+    borderBottomColor: ONE_BIT.borderColor,
+    marginHorizontal: -spacing.md,
+    paddingHorizontal: spacing.md
   },
-  headerTitle: { fontSize: 22, fontWeight: '900', color: '#fff' },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  createBtn: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    paddingHorizontal: spacing.md,
-    paddingVertical: 9,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+  topHeaderTitle: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 18,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.5
   },
-  createBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  topHeaderSub: {
+    fontFamily: ONE_BIT.fontRegular,
+    fontSize: 11,
+    color: ONE_BIT.ink,
+    opacity: 0.72,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4
+  },
+  headerToggle: {
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: ONE_BIT.background
+  },
+  headerToggleActive: {
+    backgroundColor: ONE_BIT.ink
+  },
+  headerToggleText: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 12,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.5
+  },
+  headerToggleTextActive: {
+    color: ONE_BIT.background
+  },
 
-  // ── Form ──
+  formFooter: {
+    borderTopWidth: ONE_BIT.borderWidth,
+    borderTopColor: ONE_BIT.borderColor,
+    paddingHorizontal: spacing.md,
+    paddingTop: 12,
+    backgroundColor: '#FFFFFF'
+  },
+
+  deployHeader: { marginBottom: 4 },
   formCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     gap: spacing.sm
   },
-  formTitle: { fontSize: 17, fontWeight: '800', color: colors.text },
-  formLabel: { fontSize: 12, fontWeight: '700', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  fieldLabel: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 11,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginTop: 4
+  },
+  statusBelowField: { marginTop: 4, marginBottom: 2 },
+  inputMultiline: { minHeight: 88 },
   formRow: { flexDirection: 'row', gap: spacing.sm },
+  formRowHalf: { flex: 1, gap: 6 },
 
-  // ── Templates ──
+  formLabel: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 11,
+    color: ONE_BIT.ink,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: 4
+  },
+
   templatesScroll: { marginHorizontal: -spacing.md },
   templatesRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.md, paddingBottom: 2 },
   templateChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    backgroundColor: ONE_BIT.background,
+    maxWidth: 200
   },
-  templateChipActive: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  templateChipIcon: { fontSize: 16 },
-  templateChipText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
-  templateChipTextActive: { color: colors.primary },
-  templateChipPts: { fontSize: 11, color: colors.textMuted },
+  templateChipActive: {
+    backgroundColor: ONE_BIT.ink
+  },
+  templateChipText: {
+    fontFamily: ONE_BIT.fontRegular,
+    fontSize: 11,
+    color: ONE_BIT.ink
+  },
+  templateChipTextActive: {
+    color: ONE_BIT.background
+  },
+  templateChipPts: {
+    fontFamily: ONE_BIT.fontRegular,
+    fontSize: 10,
+    color: ONE_BIT.ink,
+    opacity: 0.7
+  },
+  templateChipPtsActive: {
+    color: ONE_BIT.background,
+    opacity: 0.85
+  },
 
-  // ── Child selector ──
   childSelectorScroll: { marginHorizontal: -spacing.md },
   childSelectorRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.md, paddingBottom: 2 },
   childChip: {
@@ -439,96 +561,150 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    backgroundColor: ONE_BIT.background
   },
-  childChipActive: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
+  childChipActive: {
+    backgroundColor: ONE_BIT.ink
+  },
   childChipAvatar: {
     width: 28,
     height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surface2,
+    borderRadius: 0,
+    backgroundColor: ONE_BIT.background,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.ink,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  childChipAvatarActive: { backgroundColor: colors.primary },
-  childChipAvatarText: { fontWeight: '800', fontSize: 14, color: colors.textMuted },
-  childChipName: { fontSize: 14, fontWeight: '700', color: colors.textSecondary },
-  childChipNameActive: { color: colors.primary },
+  childChipAvatarActive: {
+    backgroundColor: ONE_BIT.background,
+    borderColor: ONE_BIT.ink
+  },
+  childChipAvatarText: { fontFamily: ONE_BIT.fontBold, fontSize: 14, color: ONE_BIT.ink },
+  childChipAvatarTextActive: { color: ONE_BIT.ink },
+  childChipName: { fontFamily: ONE_BIT.fontRegular, fontSize: 12, color: ONE_BIT.ink },
+  childChipNameActive: { color: ONE_BIT.background },
 
-  // ── Section ──
   section: { gap: spacing.sm },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: colors.text },
-  sectionCount: { fontWeight: '600', color: colors.textMuted },
+  sectionTitle: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 15,
+    color: ONE_BIT.ink
+  },
+  sectionCount: { fontFamily: ONE_BIT.fontRegular, opacity: 0.7 },
 
-  // ── Request card ──
   requestCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
     borderLeftWidth: 4,
-    borderLeftColor: colors.warning,
+    borderLeftColor: ONE_BIT.ink,
     padding: spacing.md,
     gap: spacing.sm
   },
   requestHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   requestAvatar: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: colors.warningSurface,
-    alignItems: 'center', justifyContent: 'center'
+    width: 36,
+    height: 36,
+    borderRadius: 0,
+    backgroundColor: ONE_BIT.background,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.ink,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  requestAvatarText: { fontWeight: '800', color: colors.warning, fontSize: 16 },
-  requestTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  requestChild: { fontSize: 12, color: colors.textMuted },
-  requestDesc: { fontSize: 13, color: colors.textSecondary },
+  requestAvatarText: { fontFamily: ONE_BIT.fontBold, color: ONE_BIT.ink, fontSize: 16 },
+  requestTitle: { fontFamily: ONE_BIT.fontBold, fontSize: 14, color: ONE_BIT.ink },
+  requestChild: { fontFamily: ONE_BIT.fontRegular, fontSize: 11, color: ONE_BIT.ink, opacity: 0.7 },
+  requestDesc: { fontFamily: ONE_BIT.fontRegular, fontSize: 12, color: ONE_BIT.ink, opacity: 0.85 },
   requestActions: { flexDirection: 'row', gap: spacing.sm },
-  approveBtn: { flex: 1, paddingVertical: 10, borderRadius: radius.lg, backgroundColor: colors.secondary, alignItems: 'center' },
-  approveBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  rejectBtn: { flex: 1, paddingVertical: 10, borderRadius: radius.lg, borderWidth: 1.5, borderColor: colors.danger, alignItems: 'center' },
-  rejectBtnText: { color: colors.danger, fontWeight: '700', fontSize: 14 },
+  approveBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    backgroundColor: ONE_BIT.ink,
+    alignItems: 'center'
+  },
+  approveBtnText: { fontFamily: ONE_BIT.fontBold, color: ONE_BIT.background, fontSize: 12, letterSpacing: 0.5 },
+  rejectBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    backgroundColor: ONE_BIT.background,
+    alignItems: 'center'
+  },
+  rejectBtnText: { fontFamily: ONE_BIT.fontBold, color: ONE_BIT.ink, fontSize: 12, letterSpacing: 0.5 },
 
-  // ── Status tabs ──
   tabsScroll: { marginHorizontal: -spacing.md },
   tabsRow: { flexDirection: 'row', gap: 6, paddingHorizontal: spacing.md, paddingBottom: 2 },
-  tab: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surface },
-  tabActive: { borderColor: colors.primary, backgroundColor: colors.primarySurface },
-  tabText: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
-  tabTextActive: { color: colors.primary },
-  tabBadge: { backgroundColor: colors.surface2, paddingHorizontal: 6, paddingVertical: 1, borderRadius: radius.full },
-  tabBadgeActive: { backgroundColor: colors.primary + '30' },
-  tabBadgeText: { fontSize: 11, fontWeight: '700', color: colors.textMuted },
-  tabBadgeTextActive: { color: colors.primary },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    backgroundColor: '#FFFFFF'
+  },
+  tabActive: { backgroundColor: ONE_BIT.ink },
+  tabText: { fontFamily: ONE_BIT.fontRegular, fontSize: 12, color: ONE_BIT.ink },
+  tabTextActive: { color: ONE_BIT.background },
+  tabBadge: {
+    backgroundColor: ONE_BIT.background,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: ONE_BIT.ink
+  },
+  tabBadgeActive: { backgroundColor: ONE_BIT.background, borderColor: ONE_BIT.background },
+  tabBadgeText: { fontFamily: ONE_BIT.fontBold, fontSize: 10, color: ONE_BIT.ink },
+  tabBadgeTextActive: { color: ONE_BIT.ink },
 
-  // ── Task cards ──
   taskList: { gap: spacing.sm },
   taskCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
     borderLeftWidth: 4,
     padding: spacing.md,
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1
+    gap: 8
   },
   taskTop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-  taskTitle: { fontSize: 15, fontWeight: '700', color: colors.text, lineHeight: 20 },
-  taskChild: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  taskTitle: { fontFamily: ONE_BIT.fontBold, fontSize: 14, color: ONE_BIT.ink, lineHeight: 20 },
+  taskChild: { fontFamily: ONE_BIT.fontRegular, fontSize: 11, color: ONE_BIT.ink, opacity: 0.7, marginTop: 2 },
   taskPoints: { alignItems: 'center', gap: 1 },
-  taskPointsValue: { fontSize: 18, fontWeight: '900' },
-  taskPointsLabel: { fontSize: 10, fontWeight: '700', color: colors.textMuted },
+  taskPointsValue: { fontFamily: ONE_BIT.fontBold, fontSize: 18, color: ONE_BIT.ink },
+  taskPointsLabel: { fontFamily: ONE_BIT.fontRegular, fontSize: 10, color: ONE_BIT.ink, opacity: 0.65 },
   taskMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  statusPill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: radius.full },
-  statusPillText: { fontSize: 12, fontWeight: '700' },
-  taskDue: { fontSize: 12, color: colors.textMuted, flex: 1 },
-  taskGp: { fontSize: 12, color: colors.xpGold, fontWeight: '600' },
-  deleteBtn: { paddingVertical: 7, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-  deleteBtnText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' }
+  statusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: ONE_BIT.ink
+  },
+  statusPillText: { fontFamily: ONE_BIT.fontBold, fontSize: 11 },
+  taskDue: { fontFamily: ONE_BIT.fontRegular, fontSize: 11, color: ONE_BIT.ink, opacity: 0.7, flex: 1 },
+  taskGp: { fontFamily: ONE_BIT.fontRegular, fontSize: 12, color: ONE_BIT.ink, fontWeight: '600' },
+  deleteBtn: {
+    paddingVertical: 8,
+    borderRadius: 0,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF'
+  },
+  deleteBtnText: { fontFamily: ONE_BIT.fontRegular, fontSize: 12, color: ONE_BIT.ink, fontWeight: '600' }
 });
