@@ -114,6 +114,185 @@
   }
 }
 
+/* ── Parent Dashboard home: 1-bit Monolith-OS shell ─────────────────────── */
+
+.parent-dash-os {
+  --pd-ink: #000000;
+  --pd-bg: #ffffff;
+  --pd-border: 2px solid #000000;
+
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--pd-ink);
+}
+
+.parent-dash-os-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 960px) {
+  .parent-dash-os-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.parent-dash-os-feed-header,
+.parent-dash-os-metrics-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.parent-dash-os-feed-title,
+.parent-dash-os-metrics-title {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.parent-dash-os-tag {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border: var(--pd-border);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.parent-dash-deep-scan {
+  margin-bottom: 0.85rem;
+}
+
+.parent-dash-deep-scan-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.parent-dash-deep-scan-title {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+}
+
+.parent-dash-deep-scan-sub {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.parent-dash-deep-scan-track {
+  border: var(--pd-border);
+  background: var(--pd-bg);
+  padding: 0.25rem 0.35rem;
+  overflow: hidden;
+}
+
+.parent-dash-deep-scan-pre {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: pre;
+  overflow: hidden;
+}
+
+.parent-dash-os-grid--loading .parent-dash-os-log {
+  opacity: 0.55;
+}
+
+.parent-dash-os-log-wrap {
+  border: var(--pd-border);
+  background: var(--pd-bg);
+}
+
+.parent-dash-os-log-title {
+  padding: 0.35rem 0.5rem;
+  border-bottom: var(--pd-border);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.parent-dash-os-log {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.5rem 0.55rem;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.parent-dash-os-log-line {
+  word-break: break-word;
+}
+
+.parent-dash-os-log-line + .parent-dash-os-log-line {
+  margin-top: 0.35rem;
+}
+
+.parent-dash-os-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.parent-dash-os .brutalist-card.parent-dash-os-metric {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: var(--pd-border);
+  border-radius: 0;
+  background: var(--pd-bg);
+}
+
+.parent-dash-os-metric-head {
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.4rem;
+  border-bottom: var(--pd-border);
+}
+
+.parent-dash-os-metric-dl {
+  margin: 0;
+}
+
+.parent-dash-os-metric-row + .parent-dash-os-metric-row {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid #000000;
+}
+
+.parent-dash-os-metric-row dt {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.parent-dash-os-metric-row dd {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.parent-dash-os-metric-empty {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
 .points-adjust-submit--busy {
   opacity: 0.58;
   cursor: wait;
