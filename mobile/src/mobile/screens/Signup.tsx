@@ -12,6 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MobileButton } from '../../components/MobileButton';
 import { MobileInput } from '../../components/MobileInput';
 import { OneBitAsciiHeader } from '../../components/OneBitAsciiHeader';
+import GametimeGoogleSsoBlock, { googleSsoEnvConfigured } from '../../components/GametimeGoogleSsoBlock';
 import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../api/client';
 import { getErrorMessage } from '../../utils/format';
@@ -105,6 +106,16 @@ export default function Signup({ navigation }: Props) {
                 [DISMISS]
               </MobileButton>
             </View>
+          ) : null}
+
+          {googleSsoEnvConfigured() ? (
+            <GametimeGoogleSsoBlock
+              role="parent"
+              parentIntent="signup"
+              loginWithToken={loginWithToken}
+              onError={(m) => setError(m)}
+              disabled={loading}
+            />
           ) : null}
 
           <MobileInput

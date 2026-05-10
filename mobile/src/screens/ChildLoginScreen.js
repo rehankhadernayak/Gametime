@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../components/InputField';
+import GametimeGoogleSsoBlock, { googleSsoEnvConfigured } from '../components/GametimeGoogleSsoBlock';
 import { useAuth } from '../context/AuthContext';
 import { apiRequest } from '../api/client';
 import { colors } from '../theme/colors';
@@ -148,6 +149,15 @@ export default function ChildLoginScreen() {
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity onPress={() => setError('')}><Text style={styles.errorClose}>✕</Text></TouchableOpacity>
             </View>
+          ) : null}
+
+          {mode === 'email' && googleSsoEnvConfigured() ? (
+            <GametimeGoogleSsoBlock
+              role="child"
+              loginWithToken={loginWithToken}
+              onError={(m) => setError(m)}
+              disabled={loading}
+            />
           ) : null}
 
           {mode === 'pin' ? (

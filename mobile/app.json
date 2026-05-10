@@ -53,7 +53,8 @@
           "photosPermission": "Gametime needs photo library access for task evidence uploads.",
           "cameraPermission": "Gametime needs camera access for task evidence uploads."
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "web": {
       "bundler": "metro"

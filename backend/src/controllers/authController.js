@@ -23,10 +23,12 @@ import {
   childSessionLoginSchema,
   childPinLoginSchema,
   forgotPasswordSchema,
+  googleAuthSchema,
   loginSchema,
   resetPasswordSchema,
   signupSchema
 } from '../utils/validation.js';
+import { verifyGoogleIdentity } from '../services/googleVerifyService.js';
 
 /* ── Brute-force lockout helpers ────────────────────────────────────────
    Track failed logins per identifier (email / parentEmail+childName).
@@ -597,6 +599,117 @@ export async function exportData(req, res, next) {
       gamingSessions: gaming,
       notifications,
       achievements
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /auth/google
+ * Accepts a Google ID token (web / native) or OAuth access token (web implicit fallback).
+ * Parent: intent signin | signup. Child: sign-in only for an existing profile with matching email/Google link.
+ */
+export async function googleAuth(req, res, next) {
+  try {
+    const body = googleAuthSchema.parse(req.body);
+    const { role, intent } = body;
+    const profile = await verifyGoogleIdentity({
+      idToken: body.idToken,
+      accessToken: body.accessToken
+    });
+    const { sub, email, name: googleName } = profile;
+    const db = await getDb();
+
+    if (role === 'parent') {
+      const parentBySub = await db.get('SELECT * FROM parent_accounts WHERE google_sub = ?', [sub]);
+      const parentByEmail = await db.get('SELECT * FROM parent_accounts WHERE email = ?', [email]);
+      if (parentBySub && parentByEmail && parentBySub.id !== parentByEmail.id) {
+        throw new ApiError(409, 'Google account data conflicts with an existing Gametime account.');
+      }
+      const parent = parentBySub || parentByEmail;
+      if (parent?.google_sub && parent.google_sub !== sub) {
+        throw new ApiError(403, 'This email is linked to a different Google account.');
+      }
+
+      if (intent === 'signin') {
+        if (!parent) {
+          throw new ApiError(404, 'No Gametime parent account for this Google user. Create an account first.');
+        }
+        if (parent.google_sub !== sub) {
+          await db.run('UPDATE parent_accounts SET google_sub = ?, updated_at = ? WHERE id = ?', [
+            sub,
+            new Date().toISOString(),
+            parent.id
+          ]);
+        }
+        await clearAttempts(db, `parent:${email}`);
+        const isAdmin = Boolean(parent.is_admin);
+        const token = await issueToken(res, { role: 'parent', parentId: parent.id, isAdmin });
+        return res.json({
+          token,
+          parent: { id: parent.id, name: parent.name, email: parent.email, isAdmin }
+        });
+      }
+
+      // signup
+      if (parent) {
+        throw new ApiError(409, 'This Google account already has a Gametime parent profile. Sign in instead.');
+      }
+      const displayName = sanitizeText(googleName, 80);
+      if (displayName.length < 2) throw new ApiError(400, 'Name must be at least 2 characters.');
+      const passwordHash = await bcrypt.hash(`oauth-google-${uuidv4()}`, 10);
+      const id = uuidv4();
+      const now = new Date().toISOString();
+      await db.run(
+        `INSERT INTO parent_accounts (id, name, email, password_hash, google_sub, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, displayName, email, passwordHash, sub, now, now]
+      );
+      const token = await issueToken(res, { role: 'parent', parentId: id, isAdmin: false });
+      sendWelcomeEmail(email, displayName)
+        .then(({ previewUrl, deliveryMode }) => {
+          if (deliveryMode === 'test' && previewUrl) {
+            logger.info({ previewUrl }, 'Welcome email preview (Ethereal)');
+          }
+        })
+        .catch((err) => {
+          logger.warn({ err, parentId: id }, 'Welcome email failed - Google account created successfully');
+        });
+      return res.status(201).json({ token, parent: { id, name: displayName, email, isAdmin: false } });
+    }
+
+    // child
+    const childBySub = await db.get('SELECT * FROM child_profiles WHERE google_sub = ?', [sub]);
+    const childByEmail = email ? await db.get('SELECT * FROM child_profiles WHERE email = ?', [email]) : null;
+    if (childBySub && childByEmail && childBySub.id !== childByEmail.id) {
+      throw new ApiError(409, 'Google account data conflicts with an existing child profile.');
+    }
+    const child = childBySub || childByEmail;
+    if (!child) {
+      throw new ApiError(404, 'No child profile for this Google account. Ask your parent to add you in Gametime first.');
+    }
+    if (child.google_sub && child.google_sub !== sub) {
+      throw new ApiError(403, 'This child profile is linked to a different Google account.');
+    }
+    if (child.google_sub !== sub) {
+      await db.run('UPDATE child_profiles SET google_sub = ?, updated_at = ? WHERE id = ?', [
+        sub,
+        new Date().toISOString(),
+        child.id
+      ]);
+    }
+    await clearAttempts(db, `child:${email}`);
+    const token = await issueToken(res, { role: 'child', parentId: child.parent_id, childId: child.id });
+    return res.json({
+      token,
+      child: {
+        id: child.id,
+        name: child.name,
+        email: child.email,
+        pointsBalance: child.points_balance,
+        giftcardPointsBalance: child.giftcard_points_balance
+      }
     });
   } catch (error) {
     next(error);

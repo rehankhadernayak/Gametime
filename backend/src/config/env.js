@@ -99,7 +99,12 @@ export const env = {
   athenaWebhookSecret: process.env.ATHENA_WEBHOOK_SECRET || '',
   athenaTimeoutMs: Number(process.env.ATHENA_TIMEOUT_MS || 15000),
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
-  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || ''
+  stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+  /** Comma-separated OAuth client IDs (Web + iOS + Android) allowed as JWT `aud` for Google ID tokens. */
+  googleOAuthClientIds: (process.env.GOOGLE_OAUTH_CLIENT_IDS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
 };
 
 /** Comma-separated parent emails allowed to call POST /tasks/seed-review-demo (Apple review demo inbox). */

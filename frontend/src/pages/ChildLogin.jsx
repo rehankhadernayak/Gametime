@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { GametimeLink, useAppRouter } from 'gametime-web-nav';
 import { apiRequest } from '../api/client.js';
 import ChildPinLogin from '../components/ChildPinLogin.jsx';
+import BrutalistGoogleAuthBlock from '../components/BrutalistGoogleAuthBlock.jsx';
 import './auth.css';
+
+const GOOGLE_WEB_CLIENT_ID = String(import.meta.env?.VITE_GOOGLE_CLIENT_ID ?? '').trim();
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
@@ -186,6 +189,18 @@ export default function ChildLogin({ onAuth }) {
           <form className="al-form al-form--stack" onSubmit={handleSubmit} noValidate>
             {mode === 'email' ? (
               <>
+                {GOOGLE_WEB_CLIENT_ID ? (
+                  <BrutalistGoogleAuthBlock
+                    role="child"
+                    disabled={loading}
+                    onError={setError}
+                    onAuthed={async (data) => {
+                      setError('');
+                      await onAuth({ token: data.token, role: 'child', user: data.child });
+                      router.push('/child/dashboard');
+                    }}
+                  />
+                ) : null}
                 {/* Email */}
                 <div className="al-field">
                   <label className="al-label" htmlFor="cl-email">Child Email</label>
