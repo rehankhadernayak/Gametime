@@ -189,16 +189,6 @@ html[data-app-shell='1bit'] body {
   background-color: var(--bg-root);
 }
 
-html[data-app-shell='1bit'] .nav-logo-mark {
-  border-radius: 0;
-  background: var(--text-main);
-}
-
-html[data-app-shell='1bit'] .nav-logo-mark-inner {
-  border-radius: 0;
-  background: var(--bg-root);
-}
-
 html[data-app-shell='1bit'] .nav-brand-name {
   background: none;
   -webkit-text-fill-color: var(--text-main);

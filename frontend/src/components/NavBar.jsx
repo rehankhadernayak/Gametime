@@ -30,12 +30,9 @@ export default function NavBar({ role, token, onLogout, isAdmin, showParentChrom
 
   return (
     <nav className="nav" aria-label="Primary navigation">
-      {/* Left: Logo */}
+      {/* Left: wordmark only */}
       <div className="nav-brand">
-        <div className="nav-logo-mark" aria-hidden="true">
-          <div className="nav-logo-mark-inner" />
-        </div>
-        <span className="nav-brand-name">Gametime</span>
+        <span className="nav-brand-name">GAMETIME</span>
       </div>
 
       {/* Center: empty spacer */}

@@ -34,31 +34,16 @@
 }
 
 .al-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  display: block;
   z-index: 1;
-}
-
-.al-logo-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 0;
-  background: #ffffff;
-  border: 2px solid #000000;
-  display: grid;
-  place-items: center;
-  color: #000000;
-}
-
-.al-logo-mark svg path {
-  fill: currentColor;
 }
 
 .al-logo-name {
   font-size: 1.05rem;
   font-weight: 800;
   color: #000000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .al-features-wrap {
@@ -441,31 +426,16 @@
 }
 
 .al-card-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
+  display: block;
   margin-bottom: 0;
-}
-
-.al-card-logo-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 0;
-  background: #ffffff;
-  border: 2px solid #000000;
-  display: grid;
-  place-items: center;
-  color: #000000;
-}
-
-.al-card-logo-mark svg path {
-  fill: currentColor;
 }
 
 .al-card-logo-name {
   font-size: 0.95rem;
   font-weight: 800;
   color: #000000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .al-success-wrap {
