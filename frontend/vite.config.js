@@ -18,6 +18,8 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Cloudflare quick tunnels (trycloudflare.com) use a random subdomain each run.
+    allowedHosts: true,
     proxy: {
       '/api': {
         target: 'http://localhost:4000',

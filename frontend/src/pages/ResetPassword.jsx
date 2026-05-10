@@ -69,7 +69,7 @@ export default function ResetPassword() {
           <div className="al-card-logo-mark" aria-hidden="true">
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                fill="white" fillOpacity="0.9" />
+                fill="currentColor" />
             </svg>
           </div>
           <span className="al-card-logo-name">Gametime</span>
@@ -80,7 +80,7 @@ export default function ResetPassword() {
           <div className="al-success-wrap">
             <div className="al-success-icon" aria-hidden="true">
               <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <path d="M7 14.5l5 5 9-9" stroke="#16a34a" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M7 14.5l5 5 9-9" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <h2 className="al-success-heading">Password updated!</h2>

@@ -1,5 +1,4 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 
@@ -15,13 +14,8 @@ export default function WelcomeScreen({ navigation }) {
 
   return (
     <View style={styles.root}>
-      {/* Full-height gradient hero */}
-      <LinearGradient
-        colors={colors.gradientHero}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.hero, { paddingTop: insets.top + 40 }]}
-      >
+      {/* Hero */}
+      <View style={[styles.hero, { paddingTop: insets.top + 40 }]}>
         {/* Logo mark */}
         <View style={styles.logoWrap}>
           <View style={styles.logoOuter}>
@@ -44,7 +38,7 @@ export default function WelcomeScreen({ navigation }) {
             </View>
           ))}
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Bottom sheet */}
       <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
@@ -104,6 +98,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 40,
     gap: 12,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
   },
   logoWrap: { marginBottom: 4 },
   logoOuter: {

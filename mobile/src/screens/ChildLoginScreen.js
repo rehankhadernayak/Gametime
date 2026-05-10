@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../components/InputField';
 import { useAuth } from '../context/AuthContext';
@@ -117,8 +116,8 @@ export default function ChildLoginScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {/* Gradient header */}
-        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 36 }]}>
+        {/* Header */}
+        <View style={[styles.hero, { paddingTop: insets.top + 36 }]}>
           <View style={styles.logoWrap}>
             <Text style={styles.logoEmoji}>GT</Text>
           </View>
@@ -140,7 +139,7 @@ export default function ChildLoginScreen() {
               <Text style={[styles.tabLabel, mode === 'email' && styles.tabLabelActive]}>Email</Text>
             </TouchableOpacity>
           </View>
-        </LinearGradient>
+        </View>
 
         {/* Form card */}
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
@@ -221,47 +220,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 36,
     gap: 8,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
   },
   logoWrap: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)',
+    width: 64,
+    height: 64,
+    borderRadius: 0,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
     marginBottom: 8,
   },
-  logoEmoji: { fontSize: 30 },
+  logoEmoji: { fontSize: 30, color: '#000000' },
   heroTitle: { color: '#000000', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
   heroSub: { color: '#525252', fontSize: 14 },
 
   tabRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 12,
-    padding: 3,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 0,
+    padding: 4,
     marginTop: 12,
-    gap: 3,
+    gap: 4,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   tab: {
-    flex: 1, paddingVertical: 9, borderRadius: 10, alignItems: 'center',
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 0,
+    alignItems: 'center',
   },
-  tabActive: { backgroundColor: '#fff' },
-  tabLabel: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
-  tabLabelActive: { color: colors.childAccentDark },
+  tabActive: { backgroundColor: '#000000' },
+  tabLabel: { fontSize: 13, fontWeight: '600', color: '#404040' },
+  tabLabelActive: { color: '#FFFFFF' },
 
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    borderWidth: 1,
+    borderRadius: 0,
+    borderWidth: 2,
     borderColor: colors.border,
     margin: 16,
     padding: 20,
     gap: 12,
     marginTop: -20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    elevation: 0,
+    shadowOpacity: 0,
   },
 
   errorBanner: {
@@ -283,15 +291,14 @@ const styles = StyleSheet.create({
 
   submitBtn: {
     backgroundColor: colors.childAccent,
-    borderRadius: 12,
+    borderRadius: 0,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 4,
-    shadowColor: colors.childAccent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 2,
+    borderColor: '#000000',
+    elevation: 0,
+    shadowOpacity: 0,
   },
   submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },

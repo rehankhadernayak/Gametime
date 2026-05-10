@@ -12,7 +12,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
@@ -167,9 +166,8 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <LinearGradient
-        colors={['#EDE9DC', CREAM]}
-        style={[styles.gradient, { paddingTop: insets.top + 8, paddingBottom: 24 }]}
+      <View
+        style={[styles.gradient, { paddingTop: insets.top + 8, paddingBottom: 24, backgroundColor: CREAM }]}
       >
         <Pressable
           onPress={() => navigation.navigate('Welcome')}
@@ -224,7 +222,7 @@ export default function LinkFamilyScreen({ navigation }: { navigation: Nav }) {
             )}
           </Pressable>
         </Animated.View>
-      </LinearGradient>
+      </View>
 
       <ParentalGateModal
         visible={parentGateOpen}

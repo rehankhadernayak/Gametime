@@ -156,7 +156,7 @@ export default function ChildDashboard({ token }) {
   return (
     <ChildLayout>
       <div className="child-os-dash">
-        <TypewriterHeading className="text-xs sm:text-sm md:text-base mb-6 text-[var(--neon-blue)]">
+        <TypewriterHeading className="text-xs sm:text-sm md:text-base mb-6 text-white">
           {'>'} WELCOME_OPERATIVE
         </TypewriterHeading>
 

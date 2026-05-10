@@ -254,7 +254,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-main);
@@ -1795,21 +1795,21 @@ a:focus-visible {
   }
 }
 
-/* Accent colours per tone - matching Figma MetricCard */
-.stat-card.tone-1 { --stat-accent: #7C5BFF; }  /* purple - children/family */
-.stat-card.tone-2 { --stat-accent: #FFA500; }  /* amber - pending approvals */
-.stat-card.tone-3 { --stat-accent: #22D8E7; }  /* cyan - requests */
-.stat-card.tone-4 { --stat-accent: #06D3A8; }  /* green - rewards/earned */
-.stat-card.tone-5 { --stat-accent: #22D8E7; }  /* cyan - GP balance */
-.stat-card.tone-6 { --stat-accent: #FF3D5A; }  /* red - unread/alerts */
+/* Accent colours per tone — 1-bit mono (ink contrast only) */
+.stat-card.tone-1 { --stat-accent: #000000; }
+.stat-card.tone-2 { --stat-accent: #000000; }
+.stat-card.tone-3 { --stat-accent: #000000; }
+.stat-card.tone-4 { --stat-accent: #000000; }
+.stat-card.tone-5 { --stat-accent: #000000; }
+.stat-card.tone-6 { --stat-accent: #000000; }
 
 [data-theme='dark'] .stat-card { background: var(--bg-panel); border-color: var(--line); }
-[data-theme='dark'] .stat-card.tone-1 { --stat-accent: #748FFC; }
-[data-theme='dark'] .stat-card.tone-2 { --stat-accent: #C4B5FD; }
-[data-theme='dark'] .stat-card.tone-3 { --stat-accent: #4ADE80; }
-[data-theme='dark'] .stat-card.tone-4 { --stat-accent: #FCD34D; }
-[data-theme='dark'] .stat-card.tone-5 { --stat-accent: #2DD4BF; }
-[data-theme='dark'] .stat-card.tone-6 { --stat-accent: #FCA5A5; }
+[data-theme='dark'] .stat-card.tone-1 { --stat-accent: #ffffff; }
+[data-theme='dark'] .stat-card.tone-2 { --stat-accent: #ffffff; }
+[data-theme='dark'] .stat-card.tone-3 { --stat-accent: #ffffff; }
+[data-theme='dark'] .stat-card.tone-4 { --stat-accent: #ffffff; }
+[data-theme='dark'] .stat-card.tone-5 { --stat-accent: #ffffff; }
+[data-theme='dark'] .stat-card.tone-6 { --stat-accent: #ffffff; }
 
 .stat-icon {
   width: 28px;
@@ -1847,7 +1847,7 @@ a:focus-visible {
   line-height: 1.05;
   color: var(--text-main);
   font-variant-numeric: tabular-nums;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 @media (min-width: 900px) {
@@ -1867,10 +1867,11 @@ a:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: linear-gradient(135deg, var(--color-warning-surface), #FDE68A);
-  border-radius: var(--radius-md);
+  background: var(--bg-panel-2);
+  border: 2px solid var(--line-strong);
+  border-radius: 0;
   padding: 1rem 1.25rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
@@ -5157,7 +5158,7 @@ body.sidebar-open { overflow: hidden; }
   align-items: center;
   gap: 0.35rem;
 }
-.icon-button {
+.task-row-actions .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5171,8 +5172,8 @@ body.sidebar-open { overflow: hidden; }
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
-.icon-button:hover { background: var(--bg-panel-2); color: var(--text-1); }
-.icon-button.danger-hover:hover {
+.task-row-actions .icon-button:hover { background: var(--bg-panel-2); color: var(--text-1); }
+.task-row-actions .icon-button.danger-hover:hover {
   background: color-mix(in srgb, #ef4444 12%, transparent);
   border-color: #ef4444;
   color: #ef4444;
@@ -5599,7 +5600,7 @@ body.sidebar-open { overflow: hidden; }
   color: var(--text-main);
 }
 .child-stat-value.rp { color: var(--bg-action); }
-.child-stat-value.gp { color: var(--cyan); }
+.child-stat-value.gp { color: var(--text-main); }
 .child-stat-value.play { color: var(--green); }
 
 /* Study Buddy sidebar button - child variant */

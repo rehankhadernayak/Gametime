@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import Auth, { BrutalistPathStub } from './pages/Auth.jsx';
+import Auth from './pages/Auth.jsx';
 import ChildLogin from './pages/ChildLogin.jsx';
 import ParentDashboard from './pages/ParentDashboard.jsx';
 import ChildDashboard from './pages/child/ChildDashboard.jsx';
@@ -126,7 +126,7 @@ export default function App() {
     }
   }
 
-  const onAuthShell = /^\/(login|signup|works|blog)\/?$/.test(location.pathname);
+  const onAuthShell = /^\/(login|signup|child-login|forgot-password|reset-password)\/?$/.test(location.pathname);
   const showUtility = !auth.token && !onAuthShell;
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
@@ -157,8 +157,6 @@ export default function App() {
         <Route path="/" element={<HomePage auth={auth} />} />
         <Route path="/signup" element={<Auth onAuth={handleAuth} />} />
         <Route path="/login" element={<Auth onAuth={handleAuth} />} />
-        <Route path="/works" element={<BrutalistPathStub title="WORKS" />} />
-        <Route path="/blog" element={<BrutalistPathStub title="BLOG" />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/support" element={<Support />} />
         <Route path="/child-login" element={<ChildLogin onAuth={handleAuth} />} />
