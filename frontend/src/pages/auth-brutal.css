@@ -277,3 +277,76 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+
+.brutal-stub-inner--legal {
+  max-width: 42rem;
+}
+
+.legal-static-prose {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.legal-static-prose h2 {
+  margin: 1.35rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.legal-static-prose h2:first-child {
+  margin-top: 0;
+}
+
+.legal-static-prose p {
+  margin: 0 0 0.65rem;
+}
+
+.legal-static-prose ul {
+  margin: 0 0 0.65rem;
+  padding-left: 1.15rem;
+}
+
+.legal-static-prose li {
+  margin-bottom: 0.35rem;
+}
+
+.legal-static-prose a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-static-meta {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.65rem;
+  border: var(--brutal-border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #ffffff;
+}
+
+.legal-static-back {
+  margin: 1rem 0 0;
+}
+
+.support-card-section {
+  margin: 0 0 0.65rem;
+}
+
+.support-card-section:last-child {
+  margin-bottom: 0;
+}
+
+.support-card-heading {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

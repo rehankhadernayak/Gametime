@@ -13,6 +13,8 @@ import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import ParentOnboarding from './pages/ParentOnboarding.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import Privacy from './pages/Privacy.jsx';
+import Support from './pages/Support.jsx';
 import { apiRequest, syncDemoModeFromUrl } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ThemeToggleButton from './components/ThemeToggleButton.jsx';
@@ -162,6 +164,8 @@ export default function App() {
         <Route path="/login" element={<Auth onAuth={handleAuth} />} />
         <Route path="/works" element={<BrutalistPathStub title="WORKS" />} />
         <Route path="/blog" element={<BrutalistPathStub title="BLOG" />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/child-login" element={<ChildLogin onAuth={handleAuth} />} />
         <Route
           path="/parent/dashboard"
