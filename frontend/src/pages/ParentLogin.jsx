@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useLayoutEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { GametimeLink, useAppRouter } from '../shims/nav.vite.jsx';
 import { apiRequest, isReviewerDemoParentEmail, setDemoMode } from '../api/client.js';
 import './auth.css';
 
 export default function ParentLogin({ onAuth }) {
+  const introRootRef = useRef(null);
   const router = useAppRouter();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -36,14 +38,38 @@ export default function ParentLogin({ onAuth }) {
     }
   }
 
+  useLayoutEffect(() => {
+    const root = introRootRef.current;
+    if (!root) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const nodes = [...root.querySelectorAll('[data-al-intro]')].sort(
+      (a, b) => Number(a.dataset.alIntro) - Number(b.dataset.alIntro),
+    );
+    if (nodes.length === 0) return;
+
+    const ctx = gsap.context(() => {
+      gsap.from(nodes, {
+        y: 28,
+        opacity: 0,
+        duration: 0.72,
+        stagger: 0.1,
+        ease: 'power3.out',
+        clearProps: 'opacity,transform',
+      });
+    }, root);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="al-root">
+    <div className="al-root" ref={introRootRef}>
       {/* ── Left brand panel ── */}
       <div className="al-panel">
         <div className="al-panel-blob" aria-hidden="true" />
 
         {/* Logo */}
-        <div className="al-logo">
+        <div className="al-logo" data-al-intro="0">
           <div className="al-logo-mark" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
@@ -111,12 +137,14 @@ export default function ParentLogin({ onAuth }) {
       {/* ── Right form panel ── */}
       <div className="al-form-panel">
         <div className="al-form-inner">
-          <h1 className="al-heading">Welcome back</h1>
-          <p className="al-subheading">Sign in to manage your family</p>
+          <div className="al-form-lead" data-al-intro="1">
+            <h1 className="al-heading">Welcome back</h1>
+            <p className="al-subheading">Sign in to manage your family</p>
+          </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form className="al-form al-form--stack" onSubmit={handleSubmit} noValidate>
             {/* Email */}
-            <div className="al-field">
+            <div className="al-field" data-al-intro="2">
               <label className="al-label" htmlFor="pl-email">Email</label>
               <div className="al-input-wrap">
                 <input
@@ -133,7 +161,7 @@ export default function ParentLogin({ onAuth }) {
             </div>
 
             {/* Password */}
-            <div className="al-field">
+            <div className="al-field" data-al-intro="3">
               <label className="al-label" htmlFor="pl-password">Password</label>
               <div className="al-input-wrap">
                 <input
@@ -168,7 +196,7 @@ export default function ParentLogin({ onAuth }) {
             </div>
 
             {/* Forgot link */}
-            <div className="al-field-footer">
+            <div className="al-field-footer" data-al-intro="4">
               <GametimeLink href="/forgot-password" className="al-link">Forgot password?</GametimeLink>
             </div>
 
@@ -176,7 +204,7 @@ export default function ParentLogin({ onAuth }) {
             {error && <p className="al-error" role="alert">{error}</p>}
 
             {/* Submit */}
-            <button type="submit" className="al-btn" disabled={loading}>
+            <button type="submit" className="al-btn" data-al-intro="5" disabled={loading}>
               {loading ? (
                 <>
                   <svg className="al-spinner" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
