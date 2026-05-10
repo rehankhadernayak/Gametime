@@ -32,6 +32,10 @@ const HOW_IT_WORKS = [
 
 const FEATURE_TAGS = ['Tasks → RP', 'RP → Gaming', 'GP → Gift Cards', 'Singapore · PDPA-aware'];
 
+/** Explicit fg/bg so headings never inherit var(--text-main) white-on-white from global app.css */
+const LANDING_SECTION_H2 =
+  'text-2xl font-bold uppercase border-b-2 border-black bg-black text-white px-2 py-1';
+
 function FadeSection({ children, className = '', id }) {
   const [ref, visible] = useFadeInWhenVisible(0.08);
   return (
@@ -157,11 +161,13 @@ export default function HomePage({ auth }) {
         </section>
 
         <FadeSection id="about" className="space-y-8 scroll-mt-24">
-          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2 flex justify-between items-center gap-4">
+          <h2
+            className={`${LANDING_SECTION_H2} flex justify-between items-center gap-4`}
+          >
             <span>01. Genesis</span>
-            <span className="text-xs opacity-50 shrink-0">#family_os</span>
+            <span className="text-xs text-white/70 shrink-0">#family_os</span>
           </h2>
-          <div className="space-y-4 text-justify text-sm md:text-base leading-relaxed">
+          <div className="space-y-4 text-justify text-sm md:text-base leading-relaxed text-black">
             <p>
               Gametime is built for parents who want clarity, not another glowing dashboard. Tasks, evidence, approvals,
               and rewards live in one blunt, readable flow — tuned for busy households.
@@ -174,7 +180,7 @@ export default function HomePage({ auth }) {
         </FadeSection>
 
         <FadeSection className="space-y-6">
-          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">02. Toolkit</h2>
+          <h2 className={LANDING_SECTION_H2}>02. Toolkit</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               'Quests & RP',
@@ -197,7 +203,7 @@ export default function HomePage({ auth }) {
         </FadeSection>
 
         <FadeSection id="features" className="space-y-8 scroll-mt-24">
-          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">03. Product surface</h2>
+          <h2 className={LANDING_SECTION_H2}>03. Product surface</h2>
           {[
             {
               title: 'QUEST_LEDGER',
@@ -240,7 +246,7 @@ export default function HomePage({ auth }) {
         </FadeSection>
 
         <FadeSection className="space-y-6">
-          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">04. Activity</h2>
+          <h2 className={LANDING_SECTION_H2}>04. Activity</h2>
           <div className="border border-black p-4 overflow-x-auto no-scrollbar">
             <div className="text-[8px] font-mono leading-[8px] whitespace-pre text-black">
               <span className="text-black">██</span> <span className="opacity-10">██</span>{' '}
@@ -280,7 +286,7 @@ export default function HomePage({ auth }) {
               <span className="text-black">██</span> <span className="opacity-10">██</span>{' '}
               <span className="text-black">██</span>
             </div>
-            <div className="mt-4 flex justify-between text-[10px] uppercase font-bold gap-4">
+            <div className="mt-4 flex justify-between text-[10px] uppercase font-bold gap-4 text-black">
               <span>Tasks completed · families onboarded · rewards redeemed</span>
               <span className="shrink-0">Signal only — not live GitHub data</span>
             </div>
@@ -288,25 +294,28 @@ export default function HomePage({ auth }) {
         </FadeSection>
 
         <FadeSection className="space-y-6">
-          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">05. How it ships</h2>
+          <h2 className={LANDING_SECTION_H2}>05. How it ships</h2>
           <div className="divide-y-2 divide-black border-x border-t border-black">
             {HOW_IT_WORKS.map((step) => (
-              <div key={step.number} className="py-4 px-2 flex flex-col gap-2 hover:bg-black hover:text-white transition-colors">
-                <div className="flex justify-between items-baseline gap-4">
+              <div
+                key={step.number}
+                className="group py-4 px-2 flex flex-col gap-2 hover:bg-black hover:text-white transition-colors"
+              >
+                <div className="flex justify-between items-baseline gap-4 text-black group-hover:text-white">
                   <span className="font-bold underline">{step.title}</span>
                   <span className="text-xs">{step.number}</span>
                 </div>
-                <p className="text-sm leading-relaxed">{step.description}</p>
+                <p className="text-sm leading-relaxed text-black group-hover:text-white">{step.description}</p>
               </div>
             ))}
           </div>
         </FadeSection>
 
         <FadeSection id="contact" className="space-y-6 scroll-mt-24">
-          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">06. Transmission</h2>
+          <h2 className={LANDING_SECTION_H2}>06. Transmission</h2>
           <div className="border-2 border-black p-6 md:p-8 text-center space-y-4">
-            <p className="text-xl">Need help or a demo walkthrough?</p>
-            <p className="text-2xl font-bold">
+            <p className="text-xl text-black">Need help or a demo walkthrough?</p>
+            <p className="text-2xl font-bold text-black">
               <Link to="/support" className="text-black visited:text-black hover:underline decoration-4">
                 Open support
               </Link>
