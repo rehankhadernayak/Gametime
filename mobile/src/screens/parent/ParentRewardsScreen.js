@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../../components/InputField';
 import Spinner from '../../components/Spinner';
@@ -241,8 +240,8 @@ export default function ParentRewardsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* ── Gradient Header ── */}
-      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>Rewards & Points</Text>
         <Text style={styles.headerSub}>Manage rewards, GP wallet, and point adjustments</Text>
         <View style={styles.gpRow}>
@@ -255,7 +254,7 @@ export default function ParentRewardsScreen() {
             <Text style={styles.gpLabel}>Rewards</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={{ flex: 1 }}
@@ -481,18 +480,29 @@ export default function ParentRewardsScreen() {
 
 const styles = StyleSheet.create({
   // Header
-  header: { paddingHorizontal: 20, paddingBottom: 20 },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
   headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
-  headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2, marginBottom: 14 },
+  headerSub: { color: '#525252', fontSize: 13, marginTop: 2, marginBottom: 14 },
   gpRow: { flexDirection: 'row', gap: 12 },
   gpPill: {
-    flexDirection: 'row', alignItems: 'baseline', gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 14,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   gpValue: { color: '#000000', fontSize: 20, fontWeight: '900' },
-  gpLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600' },
+  gpLabel: { color: '#525252', fontSize: 12, fontWeight: '600' },
 
   content: { padding: 16, gap: 10 },
 

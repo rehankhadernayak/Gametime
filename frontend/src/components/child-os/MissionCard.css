@@ -18,7 +18,7 @@
 
 .mission-card:hover {
   border-color: var(--neon-blue);
-  box-shadow: 0 0 16px var(--neon-blue-glow);
+  box-shadow: none;
 }
 
 .mission-card:focus-visible {
@@ -28,7 +28,7 @@
 
 .mission-card--selected {
   border-color: var(--neon-blue);
-  box-shadow: 0 0 20px var(--neon-blue-glow-bright);
+  box-shadow: none;
 }
 
 .mission-card__top {

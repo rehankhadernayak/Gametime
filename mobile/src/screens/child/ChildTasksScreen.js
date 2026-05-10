@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import InputField from '../../components/InputField';
@@ -175,8 +174,8 @@ export default function ChildTasksScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* ── Gradient Header ── */}
-      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.headerTitle}>My Tasks</Text>
@@ -202,7 +201,7 @@ export default function ChildTasksScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </LinearGradient>
+      </View>
 
       {/* ── Collapsible Request Form ── */}
       <Animated.View style={[styles.formPanel, {
@@ -425,6 +424,9 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 0,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
   },
   headerRow: {
     flexDirection: 'row',
@@ -433,16 +435,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
-  headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2 },
+  headerSub: { color: '#525252', fontSize: 13, marginTop: 2 },
   requestBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  requestBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  requestBtnText: { color: '#000000', fontSize: 13, fontWeight: '700' },
 
   // Tabs
   tabsScroll: { marginHorizontal: -20 },
@@ -450,17 +452,17 @@ const styles = StyleSheet.create({
   tab: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 0,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   tabActive: {
-    backgroundColor: '#fff',
-    borderColor: '#fff',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
-  tabText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' },
-  tabTextActive: { color: colors.childAccentDark },
+  tabText: { color: '#404040', fontSize: 13, fontWeight: '600' },
+  tabTextActive: { color: '#FFFFFF' },
 
   // Collapsible form panel
   formPanel: {

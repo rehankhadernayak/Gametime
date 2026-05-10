@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Screen from '../../components/Screen';
@@ -15,12 +14,7 @@ import { getErrorMessage } from '../../utils/format';
 
 function HeroBalanceCard({ rp, gp }) {
   return (
-    <LinearGradient
-      colors={['#3B5BDB', '#7C3AED']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={heroStyles.card}
-    >
+    <View style={heroStyles.card}>
       <View style={heroStyles.row}>
         <View style={heroStyles.col}>
           <Text style={heroStyles.number}>{rp}</Text>
@@ -35,20 +29,20 @@ function HeroBalanceCard({ rp, gp }) {
           <Text style={heroStyles.unit}>Gift Points</Text>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
 const heroStyles = StyleSheet.create({
   card: {
-    borderRadius: 24,
+    borderRadius: 0,
     paddingVertical: spacing[6],
     paddingHorizontal: spacing[6],
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 10,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: '#000000',
+    elevation: 0,
+    shadowOpacity: 0,
   },
   row: {
     flexDirection: 'row',
@@ -57,30 +51,32 @@ const heroStyles = StyleSheet.create({
   },
   col: { alignItems: 'center', gap: 4 },
   divider: {
-    width: 1,
+    width: 2,
     height: 56,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: '#000000',
   },
   number: {
     fontSize: 56,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#000000',
     lineHeight: 60,
     letterSpacing: -1,
   },
   unit: {
     fontSize: 12,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.75)',
+    color: '#525252',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   gpPill: {
-    backgroundColor: '#F59E0B',
-    borderRadius: 8,
+    backgroundColor: '#000000',
+    borderRadius: 0,
     paddingHorizontal: 8,
     paddingVertical: 2,
     alignSelf: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   gpPillText: {
     fontSize: 11,
