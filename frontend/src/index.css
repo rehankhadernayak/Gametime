@@ -5,15 +5,25 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-font-smoothing: none;
+  }
+
   body {
     @apply bg-[#FFFFFF] text-[#000000] font-sans;
-    -webkit-font-smoothing: none;
   }
 }
 
-/* 1-bit dot grid (subtle); use on a dedicated layer if wrapping interactive UI */
+::selection {
+  @apply bg-black text-white;
+}
+
+/* Fixed overlay: opacity does not dim interactive content (see main) */
 .ascii-bg {
-  background-attachment: fixed;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
   background-image: radial-gradient(#000000 0.5px, transparent 0.5px);
   background-size: 20px 20px;
   background-position: 0 0;
@@ -24,17 +34,13 @@
   border: 2px solid #000000;
 }
 
-::selection {
-  @apply bg-black text-white;
-}
-
+/* Used by .cursor-blink and TypewriterHeading; matches tailwind theme keyframes */
 @keyframes blink {
   0%,
-  49% {
+  100% {
     opacity: 1;
   }
-  50%,
-  100% {
+  50% {
     opacity: 0;
   }
 }
@@ -88,15 +94,4 @@
   height: 1em;
   background-color: #000000;
   flex-shrink: 0;
-}
-
-@layer utilities {
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
 }
