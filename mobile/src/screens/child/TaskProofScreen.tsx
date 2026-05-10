@@ -10,7 +10,7 @@ import Button from '../../components/Button';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 
-const SCREEN_BG = '#F9F9F4';
+const SCREEN_BG = '#FFFFFF';
 
 type ChildStackParamList = {
   TaskProof: {

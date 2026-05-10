@@ -380,7 +380,7 @@ const s2 = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sideBtnIcon: { fontSize: 24 },
+  sideBtnIcon: { fontSize: 24, color: '#000000' },
   shutter: {
     width: 76,
     height: 76,

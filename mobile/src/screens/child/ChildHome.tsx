@@ -11,7 +11,7 @@ import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/
 import { monoFont } from '../../theme/oneBit';
 import { syncSystemRestrictions } from '../../utils/syncSystemRestrictions';
 
-const BG = '#000000';
+const BG = CHILD_OS.background;
 
 type ChildTaskRow = {
   id: string;
@@ -326,7 +326,7 @@ export default function ChildHome() {
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Text style={[styles.header, { fontFamily: monoFont.regular }]} accessibilityRole="header">
         {'> TERMINAL_LINK_ESTABLISHED'}
       </Text>
@@ -350,7 +350,7 @@ export default function ChildHome() {
 
       <Text style={[styles.listHeading, { fontFamily: monoFont.semibold }]}>CURRENT TASKS</Text>
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, { backgroundColor: CHILD_OS.background }]}
         contentContainerStyle={{
           paddingBottom: insets.bottom + 100,
           gap: 10,

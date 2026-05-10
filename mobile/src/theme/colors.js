@@ -33,11 +33,6 @@ const colors = {
   bgPanel: '#FFFFFF',
   bgInput: '#FFFFFF',
 
-  darkBgRoot: '#09090b',
-  darkBgCard: '#09090b',
-  darkBgPanel: '#18181b',
-  darkBgInput: '#18181b',
-
   textPrimary: '#000000',
   textSecondary: '#404040',
   textMuted: '#737373',

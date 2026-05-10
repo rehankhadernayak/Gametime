@@ -23,7 +23,7 @@ import { applyShieldWhenSessionEnds } from '../../utils/screenTimeShield';
 import { syncSystemRestrictions } from '../../utils/syncSystemRestrictions';
 import { CHILD_OS, DataGauge } from '../../components/childOs';
 
-const BG = '#000000';
+const BG = CHILD_OS.background;
 
 export type ChildSessionParams = {
   sessionId: string;
@@ -132,7 +132,7 @@ export default function ChildSession() {
 
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom + 16 }]}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <View style={[styles.timerRegion, { minHeight: timerAreaMinH, paddingTop: insets.top + 12 }]}>
         <Text
           style={[styles.countdown, { fontFamily: monoFont.bold }]}

@@ -98,6 +98,7 @@ export function ChildDashboardKinetic({
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
+        style={{ flex: 1, backgroundColor: '#FFFFFF' }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
@@ -327,10 +328,12 @@ function StatsCard({ icon, label, value, color }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MOBILE_COLORS.primary,
+    backgroundColor: '#FFFFFF',
   },
 
   scrollContent: {
+    flexGrow: 1,
+    backgroundColor: '#FFFFFF',
     paddingBottom: 24,
   },
 
@@ -345,7 +348,7 @@ const styles = StyleSheet.create({
 
   greeting: {
     ...MOBILE_TYPOGRAPHY.h2,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
   },
 
   subheading: {
@@ -419,7 +422,7 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     ...MOBILE_TYPOGRAPHY.h3,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     fontWeight: '700',
   },
 
@@ -434,7 +437,7 @@ const styles = StyleSheet.create({
 
   taskTitle: {
     ...MOBILE_TYPOGRAPHY.bodySmall,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     fontWeight: '600',
   },
 
@@ -479,7 +482,7 @@ const styles = StyleSheet.create({
 
   emptyText: {
     ...MOBILE_TYPOGRAPHY.bodySmall,
-    color: MOBILE_COLORS.white,
+    color: MOBILE_COLORS.primary,
     fontWeight: '600',
   },
 
