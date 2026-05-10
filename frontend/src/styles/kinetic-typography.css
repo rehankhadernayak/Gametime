@@ -60,15 +60,15 @@
   --weight-black: 800;
 }
 
-/* ===== RESET & BASE STYLES ===== */
-html {
+/* ===== RESET & BASE STYLES (skip when 1-bit app shell is active) ===== */
+html:not([data-app-shell='1bit']) {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-body {
+html:not([data-app-shell='1bit']) body {
   font-family: var(--font-body);
   font-size: var(--text-body);
   font-weight: var(--weight-normal);

@@ -248,3 +248,9 @@
 **Rule:** Implement local Expo config plugins that use `@expo/config-plugins` with CommonJS `require('@expo/config-plugins')` and `module.exports`, unless the project explicitly uses a pattern verified to support ESM named imports.
 
 ---
+
+### 2026-05-10 — Merging remote branches can yield an empty tree diff
+**What happened:** Merging several `cursor/*` UI branches into a “rescue” branch produced merge commits but `git diff main..branch` was empty: those branches’ file content was already on `main`; only the kinetic / legacy global CSS was still overriding the 1-bit look in production.
+**Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
+
+---

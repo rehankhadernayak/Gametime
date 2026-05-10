@@ -23,6 +23,7 @@ import { trackEvent } from './utils/analytics.js';
 import { useLenisScroll } from './hooks/useLenisScroll.js';
 import './styles/kinetic-palette.css';
 import './styles/kinetic-typography.css';
+import './styles/onebit-shell.css';
 
 function BackIcon() {
   return (
@@ -53,8 +54,6 @@ export default function App() {
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('gametime_theme');
     if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-    // Fall back to OS preference if no saved preference exists
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
     return 'light';
   });
   const [toasts, setToasts] = useState([]);
