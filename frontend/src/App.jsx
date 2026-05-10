@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import ParentSignUp from './pages/ParentSignUp.jsx';
-import ParentLogin from './pages/ParentLogin.jsx';
+import Auth, { BrutalistPathStub } from './pages/Auth.jsx';
 import ChildLogin from './pages/ChildLogin.jsx';
 import ParentDashboard from './pages/ParentDashboard.jsx';
 import ChildDashboard from './pages/ChildDashboard.jsx';
@@ -130,7 +129,8 @@ export default function App() {
     }
   }
 
-  const showUtility = !auth.token;
+  const onAuthShell = /^\/(login|signup|works|blog)\/?$/.test(location.pathname);
+  const showUtility = !auth.token && !onAuthShell;
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   return (
@@ -157,8 +157,10 @@ export default function App() {
       {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} isAdmin={Boolean(auth.user?.isAdmin)} />}
       <Routes>
         <Route path="/" element={<HomePage auth={auth} />} />
-        <Route path="/signup" element={<ParentSignUp onAuth={handleAuth} />} />
-        <Route path="/login" element={<ParentLogin onAuth={handleAuth} />} />
+        <Route path="/signup" element={<Auth onAuth={handleAuth} />} />
+        <Route path="/login" element={<Auth onAuth={handleAuth} />} />
+        <Route path="/works" element={<BrutalistPathStub title="WORKS" />} />
+        <Route path="/blog" element={<BrutalistPathStub title="BLOG" />} />
         <Route path="/child-login" element={<ChildLogin onAuth={handleAuth} />} />
         <Route
           path="/parent/dashboard"

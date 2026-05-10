@@ -1,13 +1,13 @@
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   useFonts,
   IBMPlexMono_400Regular,
   IBMPlexMono_600SemiBold,
   IBMPlexMono_700Bold,
 } from '@expo-google-fonts/ibm-plex-mono';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -43,7 +43,7 @@ export default function App() {
   const [fontsLoaded] = useFonts({
     IBMPlexMono_400Regular,
     IBMPlexMono_600SemiBold,
-    IBMPlexMono_700Bold,
+    IBMPlexMono_700Bold
   });
 
   if (!fontsLoaded) {
@@ -54,7 +54,7 @@ export default function App() {
             flex: 1,
             backgroundColor: '#FFFFFF',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'center'
           }}
         >
           <ActivityIndicator size="large" color="#000000" />
