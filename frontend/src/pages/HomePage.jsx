@@ -62,11 +62,8 @@ function LandingNav({ auth }) {
         <a href="#features" className="hover:underline underline-offset-4">
           /features
         </a>
-        <Link to="/works" className="hover:underline underline-offset-4">
-          /works
-        </Link>
-        <Link to="/blog" className="hover:underline underline-offset-4">
-          /blog
+        <Link to="/child-login" className="hover:underline underline-offset-4">
+          /child-login
         </Link>
         <a href="#contact" className="hover:underline underline-offset-4">
           /connect
@@ -223,12 +220,15 @@ export default function HomePage({ auth }) {
                 <span className="text-xs shrink-0">[{item.year}]</span>
               </div>
               <p className="text-sm leading-relaxed">{item.body}</p>
-              <div className="flex gap-4 text-xs font-bold">
+              <div className="flex flex-wrap gap-4 text-xs font-bold">
                 <Link to="/signup" className="hover:underline">
                   SIGN_UP -&gt;
                 </Link>
                 <Link to="/login" className="hover:underline">
                   PARENT_LOGIN -&gt;
+                </Link>
+                <Link to="/child-login" className="hover:underline">
+                  CHILD_LOGIN -&gt;
                 </Link>
               </div>
             </article>
@@ -348,12 +348,12 @@ export default function HomePage({ auth }) {
               </button>
             </form>
           </div>
-          <div className="text-xs flex gap-4 opacity-50">
-            <Link to="/works" className="hover:underline">
-              WORKS
+          <div className="text-xs flex flex-wrap gap-4 opacity-50">
+            <Link to="/privacy" className="hover:underline">
+              Privacy
             </Link>
-            <Link to="/blog" className="hover:underline">
-              BLOG
+            <Link to="/support" className="hover:underline">
+              Support
             </Link>
           </div>
         </FadeSection>
