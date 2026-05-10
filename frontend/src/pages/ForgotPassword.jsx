@@ -62,7 +62,7 @@ export default function ForgotPassword() {
               Enter your email and we'll send you a link to reset your password.
             </p>
 
-            <form onSubmit={handleSubmit} noValidate>
+            <form className="al-form al-form--stack" onSubmit={handleSubmit} noValidate>
               <div className="al-field">
                 <label className="al-label" htmlFor="fp-email">Email address</label>
                 <div className="al-input-wrap">
