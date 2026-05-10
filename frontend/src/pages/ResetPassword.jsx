@@ -108,7 +108,7 @@ export default function ResetPassword() {
               </p>
             )}
 
-            <form onSubmit={handleSubmit} noValidate>
+            <form className="al-form al-form--stack" onSubmit={handleSubmit} noValidate>
               {/* New password */}
               <div className="al-field">
                 <label className="al-label" htmlFor="rp-password">New password</label>
