@@ -236,3 +236,9 @@
 **Rule:** After replacing a block inside `.map()`, run syntax check (or read the block) to confirm the `map` wrapper and key variables still exist.
 
 ---
+
+### 2026-05-10 — Duplicate import blocks Metro bundle
+**What happened:** `ChildRewardsStore.tsx` imported `createChildSupabaseClient` twice; Metro failed with "Identifier has already been declared".
+**Rule:** When adding imports to a file, scan for an existing import from the same module and extend that block instead of appending a second duplicate line.
+
+---
