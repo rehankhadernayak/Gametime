@@ -472,6 +472,20 @@ a:focus-visible {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.nav-brand-name {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
 /* Empty center column spacer - pushes actions to right */
 .nav > [aria-hidden='true'] { display: block; }
 

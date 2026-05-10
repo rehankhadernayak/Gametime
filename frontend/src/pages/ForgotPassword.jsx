@@ -26,13 +26,7 @@ export default function ForgotPassword() {
       <div className="al-card">
         {/* Logo */}
         <div className="al-card-logo">
-          <div className="al-card-logo-mark" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                fill="currentColor" />
-            </svg>
-          </div>
-          <span className="al-card-logo-name">Gametime</span>
+          <span className="al-card-logo-name">GAMETIME</span>
         </div>
 
         {status === 'sent' ? (
