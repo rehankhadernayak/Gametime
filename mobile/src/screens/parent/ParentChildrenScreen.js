@@ -28,7 +28,9 @@ import { normalizeTasksListResponse } from '../../utils/tasksList.js';
 import { childTelemetry } from '../../utils/oneBitTelemetry.js';
 import BrutalistBox from '../../components/ui/BrutalistBox';
 import BrutalistHeader from '../../components/ui/BrutalistHeader';
-import MobileButton from '../../components/ui/MobileButton';
+import FabMobileButton from '../../components/ui/MobileButton';
+import { MobileButton } from '../../components/MobileButton';
+import { MobileInput } from '../../components/MobileInput';
 import StatusLine from '../../components/ui/StatusLine';
 import { ONE_BIT } from '../../components/ui/oneBitTheme';
 
@@ -123,10 +125,18 @@ export default function ParentChildrenScreen() {
     setLoading(true); setMessage(''); setError('');
     try {
       const name = sanitizeText(form.name);
-      const dateOfBirth = form.dateOfBirth.trim();
-      const email = form.email.trim().toLowerCase();
-      const password = form.password;
-      const pin = form.pin.trim();
+      let dateOfBirth = form.dateOfBirth.trim();
+      let email = form.email.trim().toLowerCase();
+      let password = form.password;
+      let pin = form.pin.trim();
+
+      if (!dateOfBirth && pin && name && !email && !password) {
+        const d = new Date();
+        d.setUTCFullYear(d.getUTCFullYear() - 8);
+        d.setUTCMonth(0, 1);
+        dateOfBirth = d.toISOString().slice(0, 10);
+      }
+
       if (!name) throw new Error('Child name is required.');
       const parsedDob = new Date(dateOfBirth);
       if (!dateOfBirth || Number.isNaN(parsedDob.getTime()))
@@ -296,7 +306,15 @@ export default function ParentChildrenScreen() {
         </View>
         <TouchableOpacity
           style={styles.addBtn}
-          onPress={() => { setShowAddForm((v) => !v); setError(''); setMessage(''); }}
+          onPress={() => {
+            setShowAddForm((v) => {
+              const next = !v;
+              if (next) setForm(initialForm);
+              return next;
+            });
+            setError('');
+            setMessage('');
+          }}
           activeOpacity={0.8}
         >
           <Text style={styles.addBtnText}>{showAddForm ? 'CANCEL' : '+ ADD'}</Text>
@@ -322,16 +340,19 @@ export default function ParentChildrenScreen() {
       {/* ── Add child form ── */}
       {showAddForm && (
         <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Add New Child</Text>
-          <InputField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
-          <InputField label="Date of Birth (YYYY-MM-DD)" value={form.dateOfBirth} onChangeText={(v) => setForm({ ...form, dateOfBirth: v })} />
-          <View style={styles.formHint}>
-            <Text style={styles.formHintText}>Ages 6–9 can use a PIN. Ages 10–13 need email + password.</Text>
-          </View>
-          <InputField label="Child Email (optional for age 6–9)" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} autoCapitalize="none" keyboardType="email-address" />
-          <InputField label="Child Password (required for age 10+)" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} secureTextEntry />
-          <InputField label="4-digit PIN (age 6–9 only)" value={form.pin} onChangeText={(v) => setForm({ ...form, pin: v })} keyboardType="number-pad" maxLength={4} />
-          <Button title={loading ? 'Creating…' : 'Create Child Account'} onPress={createChild} loading={loading} disabled={!form.name || !form.dateOfBirth} />
+          <Text style={styles.provisionHeader}>/// PROVISION NODE ///</Text>
+          <MobileInput label="NAME" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
+          <MobileInput
+            label="ACCESS_PIN"
+            value={form.pin}
+            onChangeText={(v) => setForm({ ...form, pin: v })}
+            keyboardType="number-pad"
+            maxLength={4}
+            secureTextEntry
+          />
+          <MobileButton onPress={createChild} disabled={loading || !form.name.trim() || !/^\d{4}$/.test(form.pin.trim())}>
+            {loading ? 'INITIALIZING…' : 'INITIALIZE_OPERATIVE'}
+          </MobileButton>
         </View>
       )}
 
@@ -490,13 +511,15 @@ export default function ParentChildrenScreen() {
       </ScrollView>
 
       <View style={[styles.fabWrap, { bottom: fabBottom }]} pointerEvents="box-none">
-        <MobileButton
+        <FabMobileButton
           title={children.length ? 'EMERGENCY_LOCK' : 'ADD_NODE'}
-          onPress={() =>
-            children.length
-              ? navigation.navigate('ParentGaming')
-              : setShowAddForm(true)
-          }
+          onPress={() => {
+            if (children.length) navigation.navigate('ParentGaming');
+            else {
+              setForm(initialForm);
+              setShowAddForm(true);
+            }
+          }}
           style={styles.fabButton}
         />
       </View>
@@ -558,22 +581,23 @@ const styles = StyleSheet.create({
   quickLinkIcon: { fontSize: 20 },
   quickLinkLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted },
 
-  // ── Add form ──
+  // ── Add form (1-bit provision node) ──
   formCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: ONE_BIT.background,
+    borderRadius: ONE_BIT.radius,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.ink,
     padding: spacing.md,
-    gap: spacing.sm
+    gap: spacing.md
   },
-  formTitle: { fontSize: 16, fontWeight: '800', color: colors.text },
-  formHint: {
-    backgroundColor: colors.primarySurface,
-    borderRadius: radius.md,
-    padding: spacing.sm
+  provisionHeader: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    color: ONE_BIT.ink,
+    textAlign: 'center',
+    textTransform: 'uppercase'
   },
-  formHintText: { fontSize: 12, color: colors.primaryDark },
 
   // ── Children list ──
   childrenList: { gap: spacing.md },
