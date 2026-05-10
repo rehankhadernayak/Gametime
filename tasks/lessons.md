@@ -230,3 +230,9 @@
 **Rule:** In migrations, run `ALTER TABLE` to add columns **before** any `CREATE OR REPLACE FUNCTION` whose body references those columns.
 
 ---
+
+### 2026-05-10 — Verify JSX map callbacks after chunked edits
+**What happened:** A search/replace on `ParentChildrenScreen.js` dropped `{children.map((child) => { const tel = ...` while leaving the inner `return (...)`, producing invalid JSX until caught with `node --check`.
+**Rule:** After replacing a block inside `.map()`, run syntax check (or read the block) to confirm the `map` wrapper and key variables still exist.
+
+---

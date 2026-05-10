@@ -8,15 +8,31 @@ const COPY = {
 
 /**
  * Terminal-style metadata strip (website-style technical readout).
- * @param {{ variant?: 'system_ok' | 'user_logged_in', style?: import('react-native').ViewStyle }} props
+ * Pass `status` and/or `lastSync` for telemetry (e.g. STATUS: ONLINE // LAST_SYNC: 2M_AGO).
+ * @param {{
+ *   variant?: 'system_ok' | 'user_logged_in',
+ *   status?: string,
+ *   lastSync?: string,
+ *   style?: import('react-native').ViewStyle
+ * }} props
  */
-export default function StatusLine({ variant = 'system_ok', style }) {
-  const label = COPY[variant] ?? COPY.system_ok;
+export default function StatusLine({ variant = 'system_ok', status, lastSync, style }) {
+  const hasTelemetry = status != null || lastSync != null;
+  const label = hasTelemetry
+    ? [
+        status != null ? `STATUS: ${String(status).toUpperCase()}` : null,
+        lastSync != null ? `LAST_SYNC: ${String(lastSync).toUpperCase()}` : null
+      ]
+        .filter(Boolean)
+        .join(' // ')
+    : COPY[variant] ?? COPY.system_ok;
 
   return (
     <View style={[styles.row, style]} accessibilityRole="text">
       <View style={styles.bar} />
-      <Text style={styles.meta}>{label}</Text>
+      <Text style={styles.meta} numberOfLines={2}>
+        {label}
+      </Text>
       <View style={styles.bar} />
     </View>
   );
@@ -35,7 +51,7 @@ const styles = StyleSheet.create({
     backgroundColor: ONE_BIT.ink
   },
   meta: {
-    flexShrink: 0,
+    flexShrink: 1,
     color: ONE_BIT.ink,
     fontFamily: ONE_BIT.fontRegular,
     fontSize: 10,
