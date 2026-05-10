@@ -2,17 +2,14 @@ import { requireNativeViewManager } from 'expo-modules-core';
 import * as React from 'react';
 import { Platform, type NativeSyntheticEvent, type ViewProps } from 'react-native';
 
+/** Payload keys match the native `EventDispatcher` dictionary in `FamilyPickerContainerView`. */
 export type FamilySelectionChangePayload = {
-  /** UTF-8 JSON produced by `JSONEncoder` from `FamilyActivitySelection` (opaque tokens). */
-  encodedSelection: string;
+  /** UTF-8 JSON from `JSONEncoder.encode(FamilyActivitySelection)`; pass to `applyShield` on iOS. */
+  selectionData: string;
 };
 
 export type FamilyPickerProps = ViewProps & {
-  /**
-   * Called when the native `FamilyActivitySelection` changes. The string is JSON from `JSONEncoder`
-   * and is suitable for persisting or passing to Managed Settings / Device Activity APIs later.
-   */
-  onSelectionChange?: (encodedSelectionJson: string) => void;
+  onSelectionChange?: (selectionDataJson: string) => void;
 };
 
 const NativeFamilyPicker =
@@ -25,7 +22,7 @@ type FamilyPickerNativeProps = ViewProps & {
 };
 
 /**
- * iOS-only native view that wraps `FamilyActivityPicker`. On other platforms renders `null`.
+ * iOS-only native view wrapping `FamilyActivityPicker`. On other platforms renders `null`.
  */
 export function FamilyPicker({ onSelectionChange, ...viewProps }: FamilyPickerProps) {
   if (!NativeFamilyPicker) {
@@ -34,7 +31,7 @@ export function FamilyPicker({ onSelectionChange, ...viewProps }: FamilyPickerPr
 
   const handleSelection = React.useCallback(
     (event: NativeSyntheticEvent<FamilySelectionChangePayload>) => {
-      onSelectionChange?.(event.nativeEvent.encodedSelection);
+      onSelectionChange?.(event.nativeEvent.selectionData);
     },
     [onSelectionChange]
   );

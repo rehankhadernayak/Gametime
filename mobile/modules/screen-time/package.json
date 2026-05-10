@@ -1,13 +1,13 @@
 {
-  "name": "@gametime/screen-time",
+  "name": "gametime-screen-time",
   "version": "1.0.0",
-  "description": "FamilyActivityPicker bridge for Screen Time app selection (iOS).",
-  "main": "src/index.ts",
-  "license": "MIT",
-  "author": "Gametime",
-  "homepage": "https://github.com/gametime/gametime",
+  "private": true,
+  "description": "Gametime Family Controls / Screen Time native bridge",
+  "main": "index.ts",
+  "license": "UNLICENSED",
   "peerDependencies": {
     "expo": "*",
+    "expo-modules-core": "*",
     "react": "*",
     "react-native": "*"
   }
