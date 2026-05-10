@@ -25,7 +25,7 @@
        no competing inline animation from StringTune on the h1.
    ============================================================================= */
 
-/* Geist is injected via next/font in app/layout.tsx (geist/font/sans). */
+/* Plus Jakarta Sans is loaded via next/font/google in app/layout.tsx. */
 
 /* ── Track ─────────────────────────────────────────────────────────────────
    The 500vh tall scroll surface that drives the StringTune timeline. Its

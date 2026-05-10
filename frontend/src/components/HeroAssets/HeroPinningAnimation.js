@@ -1,11 +1,7 @@
 /**
  * HeroPinningAnimation
- * 
- * Avant-Garde Full-Viewport Hero
- * - Pins for 300vh (3x viewport height)
- * - Flying text blur-to-focus animation
- * - Background parallax movement
- * - Center-stage cinema composition
+ *
+ * Full-viewport hero: pins for 300vh, scroll-driven glass card + copy reveal.
  */
 
 import gsap from 'gsap';
@@ -13,30 +9,23 @@ import ScrollTrigger from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export const initializeHeroPinning = (
-  pinWrapper,
-  glassCard,
-  textContainer
-) => {
+/**
+ * @param {HTMLElement} pinWrapper
+ * @param {HTMLElement | null} glassCard
+ * @param {HTMLElement | null} textContainer
+ * @returns {() => void}
+ */
+export const initializeHeroPinning = (pinWrapper, glassCard, textContainer) => {
   if (!pinWrapper) {
-    console.warn('Hero pinning: pinWrapper is missing');
-    return;
+    return () => {};
   }
 
-  console.log('✓ Initializing avant-garde hero (300vh pinning)...');
-
-  // Kill any previous triggers on this wrapper
-  ScrollTrigger.getAll().forEach(trigger => {
-    if (trigger.trigger === pinWrapper || trigger.trigger === '.hero-pin-wrapper') {
+  ScrollTrigger.getAll().forEach((trigger) => {
+    if (trigger.trigger === pinWrapper) {
       trigger.kill();
     }
   });
 
-  /* ──────────────────────────────────────────────────────────────────────── */
-  /* INITIALIZE: Set starting state for all animated elements              */
-  /* ──────────────────────────────────────────────────────────────────────── */
-
-  // GLASS CARD: Start transparent and small
   if (glassCard) {
     gsap.set(glassCard, {
       opacity: 0,
@@ -45,7 +34,6 @@ export const initializeHeroPinning = (
     });
   }
 
-  // TEXT CONTAINER (secondary content): Start heavily blurred and scaled up
   if (textContainer) {
     gsap.set(textContainer, {
       filter: 'blur(40px)',
@@ -54,16 +42,14 @@ export const initializeHeroPinning = (
     });
   }
 
-  // Quest pills in card
   const questPills = glassCard?.querySelectorAll('.quest-pill');
-  if (questPills && questPills.length > 0) {
+  if (questPills?.length) {
     gsap.set(questPills, {
       opacity: 0,
       x: 50,
     });
   }
 
-  // Progress bar in card
   const progressBar = glassCard?.querySelector('.progress-bar-fill');
   if (progressBar) {
     gsap.set(progressBar, {
@@ -72,12 +58,8 @@ export const initializeHeroPinning = (
     });
   }
 
-  /* ──────────────────────────────────────────────────────────────────────── */
-  /* CREATE ANIMATION TIMELINE (tied to 300vh scroll)                      */
-  /* ──────────────────────────────────────────────────────────────────────── */
   const tl = gsap.timeline();
 
-  // PHASE 1 (0% - 30%): Glass card scales in and fades to full opacity
   if (glassCard) {
     tl.to(
       glassCard,
@@ -92,8 +74,6 @@ export const initializeHeroPinning = (
     );
   }
 
-  // PHASE 2 (20% - 70%): Secondary text blur-to-focus "violent" reveal
-  // blur(40px) scale(1.5) opacity (0) → blur(0px) scale(1) opacity (1)
   if (textContainer) {
     tl.to(
       textContainer,
@@ -108,8 +88,7 @@ export const initializeHeroPinning = (
     );
   }
 
-  // PHASE 3 (30% - 80%): Quest pills stagger slide-in
-  if (questPills && questPills.length > 0) {
+  if (questPills?.length) {
     tl.to(
       questPills,
       {
@@ -123,7 +102,6 @@ export const initializeHeroPinning = (
     );
   }
 
-  // PHASE 4 (60% - 100%): Progress bar fills
   if (progressBar) {
     tl.to(
       progressBar,
@@ -136,27 +114,19 @@ export const initializeHeroPinning = (
     );
   }
 
-  /* ──────────────────────────────────────────────────────────────────────── */
-  /* SCROLLTRIGGER PIN (300vh, drives timeline)                            */
-  /* ──────────────────────────────────────────────────────────────────────── */
-  ScrollTrigger.create({
-    trigger: '.hero-pin-wrapper',
-    pin: true,                    // PIN the hero in place
-    start: 'top top',             // Start pinning when hero hits top
-    end: '+=300%',                // Pin for 300% of viewport height (3x)
-    animation: tl,                // DRIVE timeline with scroll
-    scrub: 1,                     // 1 second lag for cinematic feel
-    onEnter: () => {
-      console.log('✓ Hero pinning ACTIVATED (300vh) - page scroll LOCKED');
-    },
-    onLeave: () => {
-      console.log('✓ Hero animation COMPLETE - page scroll UNLOCKED');
-    },
+  const st = ScrollTrigger.create({
+    trigger: pinWrapper,
+    pin: true,
+    start: 'top top',
+    end: '+=300%',
+    animation: tl,
+    scrub: 1,
   });
 
-  console.log('✓ Avant-garde hero initialized (300vh pinned, StringTune physics active)');
-
-  return tl;
+  return () => {
+    st.kill();
+    tl.kill();
+  };
 };
 
 export default initializeHeroPinning;

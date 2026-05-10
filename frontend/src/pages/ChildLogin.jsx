@@ -183,7 +183,7 @@ export default function ChildLogin({ onAuth }) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form className="al-form al-form--stack" onSubmit={handleSubmit} noValidate>
             {mode === 'email' ? (
               <>
                 {/* Email */}
