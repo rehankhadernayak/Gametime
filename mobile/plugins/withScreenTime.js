@@ -17,16 +17,28 @@ const NS_FAMILY_CONTROLS_USAGE_DESCRIPTION = 'NSFamilyControlsUsageDescription';
 const NS_FAMILY_CONTROLS_USAGE_DESCRIPTION_VALUE =
   'Gametime requires Family Controls to strictly enforce gaming limits and block apps when the operational timer expires.';
 
-/** @param {import('@expo/config-plugins').ExpoConfig} config */
+/**
+ * Ensures iOS is configured for Apple Family Controls (Screen Time API):
+ * entitlement + NSFamilyControlsUsageDescription for App Store / system prompts.
+ *
+ * @param {import('@expo/config-plugins').ExportedConfig} config
+ * @returns {import('@expo/config-plugins').ExportedConfig}
+ */
 function withScreenTimeInternal(config) {
   config = withEntitlementsPlist(config, (mod) => {
-    mod.modResults[FAMILY_CONTROLS_ENTITLEMENT] = true;
+    const entitlements = mod.modResults;
+    if (entitlements && entitlements[FAMILY_CONTROLS_ENTITLEMENT] !== true) {
+      entitlements[FAMILY_CONTROLS_ENTITLEMENT] = true;
+    }
     return mod;
   });
 
   config = withInfoPlist(config, (mod) => {
-    mod.modResults[NS_FAMILY_CONTROLS_USAGE_DESCRIPTION] =
-      NS_FAMILY_CONTROLS_USAGE_DESCRIPTION_VALUE;
+    const info = mod.modResults;
+    if (info) {
+      info[NS_FAMILY_CONTROLS_USAGE_DESCRIPTION] =
+        NS_FAMILY_CONTROLS_USAGE_DESCRIPTION_VALUE;
+    }
     return mod;
   });
 
