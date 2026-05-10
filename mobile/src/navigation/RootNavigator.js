@@ -37,6 +37,9 @@ import EvidenceSubmitScreen from '../screens/child/EvidenceSubmitScreen';
 import TaskProofScreen from '../screens/child/TaskProofScreen';
 
 import ParentNotificationsScreen from '../screens/parent/ParentNotificationsScreen';
+import ParentChildDetailScreen from '../screens/parent/ParentChildDetailScreen';
+import OneBitAsciiHeader from '../components/ui/OneBitAsciiHeader';
+import { ONE_BIT } from '../components/ui/oneBitTheme';
 
 /** Child reward store header — matches ChildDashboard Time Bank cream theme */
 const TIME_BANK_CREAM = '#F9F9F4';
@@ -145,6 +148,19 @@ function ParentStack() {
         name="ParentHome"
         component={ParentHomeScreen}
         options={{ headerShown: false, title: 'Dashboard' }}
+      />
+      <ParentStackNav.Screen
+        name="ParentChildDetail"
+        component={ParentChildDetailScreen}
+        options={({ route }) => ({
+          headerShown: true,
+          headerTitle: () => (
+            <OneBitAsciiHeader compact title={route.params?.childName || 'CHILD'} />
+          ),
+          headerStyle: { backgroundColor: ONE_BIT.background },
+          headerTintColor: ONE_BIT.ink,
+          headerShadowVisible: false
+        })}
       />
       <ParentStackNav.Screen
         name="ParentGaming"

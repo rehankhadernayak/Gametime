@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +17,9 @@ import { useAuth } from '../../context/AuthContext';
 import { apiRequest } from '../../api/client';
 import { getErrorMessage } from '../../utils/format';
 import { normalizeTasksListResponse } from '../../utils/tasksList.js';
+import { childTelemetry } from '../../utils/oneBitTelemetry.js';
+import BrutalistBox from '../../components/ui/BrutalistBox';
+import StatusLine from '../../components/ui/StatusLine';
 import { ONE_BIT, monoFont } from '../../theme/oneBit';
 
 const TITLE_FULL = 'DASHBOARD';
@@ -27,7 +31,10 @@ type Child = {
   giftcardPointsBalance?: number;
   currentStreakDays?: number;
   streak?: number;
+  createdAt?: string;
 };
+
+type GamingSession = { status?: string; childId?: string; startedAt?: string };
 
 type TaskItem = {
   id: string;
@@ -81,24 +88,30 @@ function ApprovalRow({
 function ChildCard({
   child,
   tasks,
+  activeSessions,
   onSwitchToChild,
+  onOpenDetail,
 }: {
   child: Child;
   tasks: TaskItem[];
+  activeSessions: GamingSession[];
   onSwitchToChild: (id: string) => void;
+  onOpenDetail: (c: Child) => void;
 }) {
   const pending = tasks.filter((t) => t.childId === child.id && t.state === 'PendingApproval').length;
   const active = tasks.filter((t) => t.childId === child.id && t.state === 'Active').length;
   const initial = child.name?.charAt(0)?.toUpperCase() || '?';
+  const tel = childTelemetry(child.id, tasks, activeSessions, child.createdAt);
 
   return (
-    <View style={styles.card}>
+    <BrutalistBox style={styles.brutalCard}>
       <View style={styles.childHeader}>
         <View style={[styles.avatar, styles.border2]}>
           <Text style={[styles.avatarTxt, { fontFamily: monoFont.bold }]}>{initial}</Text>
         </View>
-        <View style={styles.flex1}>
+        <TouchableOpacity style={styles.flex1} activeOpacity={0.85} onPress={() => onOpenDetail(child)}>
           <Text style={[styles.childName, { fontFamily: monoFont.bold }]}>{child.name}</Text>
+          <StatusLine status={tel.status} lastSync={tel.lastSync} style={styles.childStatusLine} />
           <View style={styles.badgeRow}>
             {pending > 0 ? (
               <Text style={[styles.badgeTxt, { fontFamily: monoFont.regular }]}>{pending} PENDING</Text>
@@ -107,7 +120,7 @@ function ChildCard({
               <Text style={[styles.badgeTxt, { fontFamily: monoFont.regular }]}>{active} ACTIVE</Text>
             ) : null}
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
       <View style={styles.listSep} />
       <View style={styles.balanceRow}>
@@ -126,7 +139,7 @@ function ChildCard({
       <MobileButton variant="secondary" onPress={() => onSwitchToChild(child.id)}>
         OPEN CHILD VIEW
       </MobileButton>
-    </View>
+    </BrutalistBox>
   );
 }
 
@@ -161,7 +174,7 @@ export default function Home() {
   const [notifications, setNotifications] = useState<{ id?: string; type?: string; message?: string; createdAt: string }[]>(
     []
   );
-  const [activeSessions, setActiveSessions] = useState<{ status?: string }[]>([]);
+  const [activeSessions, setActiveSessions] = useState<GamingSession[]>([]);
   const [weeklyMinutes, setWeeklyMinutes] = useState(0);
   const [parentGpBalance, setParentGpBalance] = useState(0);
   const [insights, setInsights] = useState<{ narrative?: string } | null>(null);
@@ -209,7 +222,9 @@ export default function Home() {
         setChildren(childList);
         setTasks(normalizeTasksListResponse(taskListRaw).tasks as TaskItem[]);
         setNotifications(notificationList);
-        setActiveSessions(Array.isArray(sessions) ? sessions.filter((s) => s.status === 'Started') : []);
+        setActiveSessions(
+          Array.isArray(sessions) ? (sessions.filter((s) => s.status === 'Started') as GamingSession[]) : []
+        );
         setWeeklyMinutes(reports.reduce((sum, r) => sum + (r?.totals?.totalMinutes || 0), 0));
         setParentGpBalance(Number(gpSummary.parentGpBalance || 0));
         setInsights(insightsData);
@@ -270,17 +285,20 @@ export default function Home() {
 
   const firstName = user?.name?.split(' ')[0] || 'PARENT';
   const typedTitle = TITLE_FULL.slice(0, titleIndex);
+  const fabBottom = insets.bottom + 16;
+  const scrollBottomPad = fabBottom + 72;
 
   return (
-    <ScrollView
-      testID="parent-dashboard-screen"
-      style={styles.screenBg}
-      contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top }]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} tintColor={ONE_BIT.ink} />
-      }
-    >
+    <View style={styles.screenFill}>
+      <ScrollView
+        testID="parent-dashboard-screen"
+        style={styles.screenBg}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top, paddingBottom: scrollBottomPad }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} tintColor={ONE_BIT.ink} />
+        }
+      >
       <OneBitAsciiHeader
         routeLine="HOME / OVERVIEW"
         showBack
@@ -391,7 +409,18 @@ export default function Home() {
           <View style={styles.childrenList}>
             {children.map((child) => (
               <View key={child.id} style={styles.sepBottom}>
-                <ChildCard child={child} tasks={tasks} onSwitchToChild={switchToChild} />
+                <ChildCard
+                  child={child}
+                  tasks={tasks}
+                  activeSessions={activeSessions}
+                  onSwitchToChild={switchToChild}
+                  onOpenDetail={(c) =>
+                    navigation.navigate(
+                      'ParentChildDetail' as never,
+                      { childId: c.id, childName: c.name } as never
+                    )
+                  }
+                />
               </View>
             ))}
           </View>
@@ -432,13 +461,33 @@ export default function Home() {
       ) : null}
 
       <View style={{ height: 32 }} />
-    </ScrollView>
+      </ScrollView>
+
+      <View style={[styles.fabWrap, { bottom: fabBottom }]} pointerEvents="box-none">
+        <MobileButton
+          variant="primary"
+          style={styles.fabBtn}
+          onPress={() =>
+            children.length
+              ? navigation.navigate('ParentGaming' as never)
+              : navigation.navigate('ParentTabs' as never, { screen: 'ParentChildren' } as never)
+          }
+        >
+          {children.length ? 'EMERGENCY_LOCK' : 'ADD_NODE'}
+        </MobileButton>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screenFill: { flex: 1, backgroundColor: ONE_BIT.bg },
   screenBg: { flex: 1, backgroundColor: ONE_BIT.bg },
   scrollContent: { paddingBottom: 8, backgroundColor: ONE_BIT.bg },
+  sepBottom: {
+    borderBottomWidth: ONE_BIT.borderWidth,
+    borderBottomColor: ONE_BIT.ink,
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   loadingTxt: { color: ONE_BIT.ink, fontSize: 12 },
   hero: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, gap: 12 },
@@ -489,7 +538,8 @@ const styles = StyleSheet.create({
   rowSub: { fontSize: 11, color: ONE_BIT.ink, opacity: 0.75 },
   verdict: { fontSize: 10, color: ONE_BIT.ink },
   points: { fontSize: 12, color: ONE_BIT.ink },
-  card: { paddingHorizontal: 16, paddingVertical: 12, gap: 10, backgroundColor: ONE_BIT.bg },
+  brutalCard: { paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
+  childStatusLine: { marginTop: 6 },
   border2: {
     borderWidth: ONE_BIT.borderWidth,
     borderColor: ONE_BIT.ink,
@@ -532,4 +582,12 @@ const styles = StyleSheet.create({
   dismissTxt: { fontSize: 10, textTransform: 'none' },
   insights: { marginHorizontal: 16, padding: 12, marginBottom: 8 },
   insightsTxt: { fontSize: 12, color: ONE_BIT.ink, lineHeight: 18 },
+  fabWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+  },
+  fabBtn: {
+    width: '100%',
+  },
 });
