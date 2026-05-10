@@ -5,6 +5,7 @@ import { StringParallax, StringTune } from '@fiddle-digital/string-tune';
 import App from './App.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import './styles/app.css';
+import './index.css';
 
 // Initialize StringTune physics engine (client-side only)
 if (typeof window !== 'undefined') {
