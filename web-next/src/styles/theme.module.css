@@ -17,9 +17,9 @@
   --gt-font-sans: var(--font-sans);
   --gt-font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --gt-bg: #ffffff;
-  --gt-bg-soft: #f4f5f7;
-  --gt-bg-elevated: #fafafa;
+  --gt-bg: #fafafa;
+  --gt-bg-soft: #f4f4f5;
+  --gt-bg-elevated: #f8f9fa;
   --gt-surface: rgba(255, 255, 255, 0.92);
   --gt-ink: #111827;
   --gt-ink-soft: #52525b;
@@ -74,7 +74,7 @@
   font-family: var(--gt-font-sans);
   min-height: 100vh;
   color: #111827;
-  background: radial-gradient(circle at top left, #ffffff 0%, #f4f5f7 100%);
+  background: radial-gradient(circle at top left, #fafafa 0%, #f4f4f5 100%);
 }
 
 /* ── Child: dark-centric, neon accents, launcher feel ────────────────────── */

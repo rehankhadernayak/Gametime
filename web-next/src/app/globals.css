@@ -5,13 +5,13 @@
   --z-nav-overlay: 800;
   --z-sidebar-bottom-bar: 700;
 
-  --font-sans: var(--font-geist-sans), "Geist", system-ui, sans-serif;
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-sans: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", system-ui, sans-serif;
+  --background: #fafafa;
+  --foreground: #111827;
   /* Light surface tokens (aligned with landing.module.css) */
-  --gt-bg: #ffffff;
+  --gt-bg: #fafafa;
   --gt-bg-soft: #f4f4f5;
-  --gt-ink: #0a0a0a;
+  --gt-ink: #111827;
   --gt-ink-soft: #52525b;
   --gt-line: rgba(0, 0, 0, 0.08);
   --gt-red: #dc2626;
@@ -22,6 +22,9 @@
 
 html {
   color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 html,
@@ -41,6 +44,8 @@ body {
   background: var(--background);
   font-family: var(--font-sans);
   letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
@@ -88,6 +93,6 @@ input:where(
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #000000;
+  border-color: #111827;
   box-shadow: none;
 }
