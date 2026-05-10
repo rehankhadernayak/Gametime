@@ -248,3 +248,9 @@
 **Rule:** Implement local Expo config plugins that use `@expo/config-plugins` with CommonJS `require('@expo/config-plugins')` and `module.exports`, unless the project explicitly uses a pattern verified to support ESM named imports.
 
 ---
+
+### 2026-05-10 — Unique Supabase migration version prefixes
+**What happened:** Two files shared `20250503190000_*.sql`; Supabase records migration version from the timestamp, so `schema_migrations` insert failed with duplicate key `23505` and branch DB provisioning never finished.
+**Rule:** Every file in `supabase/migrations/` must have a **globally unique** leading timestamp (no two files may share the same `YYYYMMDDHHMMSS` prefix).
+
+---
