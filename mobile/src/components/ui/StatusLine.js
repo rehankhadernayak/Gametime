@@ -13,10 +13,24 @@ const COPY = {
  *   variant?: 'system_ok' | 'user_logged_in',
  *   status?: string,
  *   lastSync?: string,
+ *   message?: string,
  *   style?: import('react-native').ViewStyle
  * }} props
  */
-export default function StatusLine({ variant = 'system_ok', status, lastSync, style }) {
+export default function StatusLine({ variant = 'system_ok', status, lastSync, message, style }) {
+  if (message != null && String(message).trim() !== '') {
+    const label = String(message).toUpperCase();
+    return (
+      <View style={[styles.row, style]} accessibilityRole="text">
+        <View style={styles.bar} />
+        <Text style={styles.meta} numberOfLines={3}>
+          {label}
+        </Text>
+        <View style={styles.bar} />
+      </View>
+    );
+  }
+
   const hasTelemetry = status != null || lastSync != null;
   const label = hasTelemetry
     ? [

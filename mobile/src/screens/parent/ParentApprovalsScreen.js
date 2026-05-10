@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Screen from '../../components/Screen';
-import Card from '../../components/Card';
-import PageHeader from '../../components/PageHeader';
-import InputField from '../../components/InputField';
-import Button from '../../components/Button';
-import StatusPill from '../../components/StatusPill';
 import Banner from '../../components/Banner';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
+import BrutalistBox from '../../components/ui/BrutalistBox';
+import MobileButton from '../../components/ui/MobileButton';
+import MobileInput from '../../components/ui/MobileInput';
+import OneBitAsciiHeader from '../../components/ui/OneBitAsciiHeader';
+import StatusLine from '../../components/ui/StatusLine';
+import { ONE_BIT } from '../../components/ui/oneBitTheme';
 import { apiRequest, getApiUrl } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { fmtDateTime, getErrorMessage } from '../../utils/format';
 import { DEFAULT_PARENT_SETTINGS, loadParentSettings } from '../../utils/parentSettings';
@@ -63,17 +64,20 @@ function AiRecommendationBadge({ recommendation, confidence, reason, aiStatus })
 
 const aiBadgeStyles = StyleSheet.create({
   wrap: {
-    borderRadius: 10,
+    borderRadius: 0,
     padding: spacing.sm,
-    gap: 3
+    gap: 3,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    backgroundColor: ONE_BIT.background
   },
-  approve: { backgroundColor: '#dcfce7', borderWidth: 1, borderColor: '#86efac' },
-  reject: { backgroundColor: '#fee2e2', borderWidth: 1, borderColor: '#fca5a5' },
-  review: { backgroundColor: '#fef9c3', borderWidth: 1, borderColor: '#fde047' },
-  pending: { backgroundColor: colors.border + '55', borderWidth: 1, borderColor: colors.border },
-  unavailable: { backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: colors.border },
-  label: { fontSize: 13, fontWeight: '700', color: colors.text },
-  reason: { fontSize: 12, color: colors.textMuted, lineHeight: 16 }
+  approve: { borderLeftWidth: 4, borderLeftColor: ONE_BIT.ink },
+  reject: { borderLeftWidth: 4, borderLeftColor: ONE_BIT.ink, opacity: 0.85 },
+  review: { borderLeftWidth: 4, borderLeftColor: ONE_BIT.ink },
+  pending: { opacity: 0.75 },
+  unavailable: { opacity: 0.8 },
+  label: { fontSize: 12, fontFamily: ONE_BIT.fontBold, color: ONE_BIT.ink },
+  reason: { fontSize: 11, fontFamily: ONE_BIT.fontRegular, color: ONE_BIT.ink, opacity: 0.8, lineHeight: 16 }
 });
 
 // Fetch evidence as a base64 data URI (React Native Image compatible)
@@ -95,7 +99,7 @@ async function fetchEvidenceDataUri(completionId, token) {
   }
 }
 
-function ApprovalCard({ task, token, parentSettings, decisionNote, onNoteChange, onDecide, onRefresh }) {
+function ApprovalCard({ task, token, parentSettings, decisionNote, onNoteChange, onDecide }) {
   const [evidenceUri, setEvidenceUri] = useState(null);
   const [evidenceLoading, setEvidenceLoading] = useState(false);
 
@@ -120,51 +124,50 @@ function ApprovalCard({ task, token, parentSettings, decisionNote, onNoteChange,
   }
 
   return (
-    <Card>
-      {/* Header */}
-      <View style={styles.approvalHeader}>
+    <BrutalistBox style={styles.dossier}>
+      <View style={styles.dossierHeader}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.childName}>{task.childName}</Text>
-          <Text style={styles.taskTitle}>{task.title}</Text>
+          <Text style={styles.dossierKicker}>{String(task.childName || '?').toUpperCase()}</Text>
+          <Text style={styles.dossierTitle}>{task.title}</Text>
         </View>
-        <StatusPill state={task.state} />
+        <View style={styles.stateStrip}>
+          <Text style={styles.stateStripText}>{String(task.state || '').toUpperCase()}</Text>
+        </View>
       </View>
 
-      {task.description ? <Text style={styles.description}>{task.description}</Text> : null}
-      <Text style={styles.meta}>Submitted {fmtDateTime(task.updatedAt)}</Text>
+      {task.description ? <Text style={styles.dossierBody}>{task.description}</Text> : null}
+      <StatusLine message={`SUBMITTED: ${fmtDateTime(task.updatedAt)}`} style={styles.dossierMeta} />
 
-      {/* Evidence */}
       {task.evidenceType === 'Photo' && task.hasEvidence ? (
         evidenceLoading ? (
           <View style={styles.evidenceLoadingWrap}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.videoLabel}>Loading evidence…</Text>
+            <ActivityIndicator size="small" color={ONE_BIT.ink} />
+            <Text style={styles.videoLabel}>LOADING_EVIDENCE…</Text>
           </View>
         ) : evidenceUri ? (
           <Image source={{ uri: evidenceUri }} style={styles.evidenceImage} resizeMode="cover" />
         ) : (
           <View style={styles.videoPlaceholder}>
-            <Text style={styles.videoLabel}>Could not load photo</Text>
+            <Text style={styles.videoLabel}>PHOTO_LOAD_FAILED</Text>
           </View>
         )
       ) : task.evidenceType === 'Video' && task.hasEvidence ? (
         <View style={styles.videoPlaceholder}>
-          <Text style={styles.videoLabel}>Video evidence attached</Text>
+          <Text style={styles.videoLabel}>VIDEO_ATTACHMENT // PREVIEW_N/A</Text>
         </View>
       ) : (
         <View style={styles.videoPlaceholder}>
-          <Text style={styles.videoLabel}>No evidence file</Text>
+          <Text style={styles.videoLabel}>NO_EVIDENCE_FILE</Text>
         </View>
       )}
 
       {task.evidenceNote ? (
         <View style={styles.childNoteWrap}>
-          <Text style={styles.childNoteLabel}>Child's note</Text>
+          <Text style={styles.childNoteLabel}>FIELD_NOTE</Text>
           <Text style={styles.childNoteText}>{task.evidenceNote}</Text>
         </View>
       ) : null}
 
-      {/* AI Recommendation */}
       <AiRecommendationBadge
         recommendation={task.aiRecommendation}
         confidence={task.aiConfidence}
@@ -172,21 +175,24 @@ function ApprovalCard({ task, token, parentSettings, decisionNote, onNoteChange,
         aiStatus={task.aiStatus}
       />
 
-      {/* Approval note */}
-      <InputField
-        label={`Approval note ${parentSettings.requireApprovalNotes ? '(required)' : '(optional)'}`}
+      <Text style={styles.fieldLabel}>
+        APPROVAL_NOTE {parentSettings.requireApprovalNotes ? '(REQUIRED)' : '(OPTIONAL)'}
+      </Text>
+      <MobileInput
         value={decisionNote}
         onChangeText={onNoteChange}
         maxLength={200}
         multiline
-        style={{ minHeight: 64, textAlignVertical: 'top' }}
+        style={styles.noteInput}
+        textAlignVertical="top"
+        placeholder="ADD_NOTE"
       />
 
-      <View style={styles.decisionRow}>
-        <Button title="Approve ✓" onPress={() => confirmDecide('approve')} style={{ flex: 1 }} />
-        <Button title="Reject ✗" tone="secondary" onPress={() => confirmDecide('reject')} style={{ flex: 1 }} />
+      <View style={styles.actionStack}>
+        <MobileButton title="AUTHORIZE" onPress={() => confirmDecide('approve')} />
+        <MobileButton title="REJECT" onPress={() => confirmDecide('reject')} />
       </View>
-    </Card>
+    </BrutalistBox>
   );
 }
 
@@ -249,10 +255,19 @@ export default function ParentApprovalsScreen() {
   const pending = useMemo(() => tasks.filter((t) => t.state === 'PendingApproval'), [tasks]);
 
   return (
-    <Screen refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-      <PageHeader
-        title="Approvals"
-        subtitle={pending.length > 0 ? `${pending.length} task${pending.length === 1 ? '' : 's'} waiting for your review` : 'All caught up!'}
+    <Screen
+      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+      contentContainerStyle={{ backgroundColor: '#FFFFFF', gap: spacing.md }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      <OneBitAsciiHeader compact title="DOSSIER QUEUE" />
+      <StatusLine
+        message={
+          pending.length > 0
+            ? `${pending.length} PENDING // AWAITING_PARENT_CLEARANCE`
+            : 'QUEUE_EMPTY // ALL_CLEAR'
+        }
+        style={styles.queueStrip}
       />
 
       <Banner message={error} />
@@ -279,50 +294,92 @@ export default function ParentApprovalsScreen() {
       )}
 
       {!loading && tasks.filter((t) => t.state !== 'PendingApproval' && t.state !== 'Active').length > 0 ? (
-        <Card>
-          <Text style={styles.section}>Recently decided</Text>
+        <BrutalistBox style={styles.historyBox}>
+          <Text style={styles.section}>RECENTLY_DECIDED</Text>
           {tasks
             .filter((t) => ['Approved', 'Rejected'].includes(t.state))
             .slice(0, 5)
             .map((task) => (
               <View key={task.id} style={styles.historyItem}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.historyName}>{task.childName} — {task.title}</Text>
+                  <Text style={styles.historyName}>
+                    {task.childName} — {task.title}
+                  </Text>
                   <Text style={styles.meta}>{fmtDateTime(task.updatedAt)}</Text>
                 </View>
-                <StatusPill state={task.state} />
+                <View style={styles.historyState}>
+                  <Text style={styles.historyStateText}>{String(task.state).toUpperCase()}</Text>
+                </View>
               </View>
             ))}
-        </Card>
+        </BrutalistBox>
       ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  section: { fontSize: 15, fontWeight: '700', color: colors.text },
+  queueStrip: { marginTop: -4 },
 
-  approvalHeader: {
+  dossier: {
+    padding: spacing.md,
+    gap: spacing.sm
+  },
+  dossierHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm
   },
-  childName: { fontSize: 12, fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  taskTitle: { fontSize: 17, fontWeight: '800', color: colors.text, marginTop: 2 },
-  description: { fontSize: 13, color: colors.textMuted, lineHeight: 18 },
-  meta: { fontSize: 11, color: colors.textMuted },
+  dossierKicker: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 11,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase'
+  },
+  dossierTitle: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 16,
+    color: ONE_BIT.ink,
+    marginTop: 4,
+    lineHeight: 22
+  },
+  dossierBody: {
+    fontFamily: ONE_BIT.fontRegular,
+    fontSize: 13,
+    color: ONE_BIT.ink,
+    opacity: 0.85,
+    lineHeight: 18
+  },
+  dossierMeta: { marginVertical: 2 },
+  stateStrip: {
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: ONE_BIT.background
+  },
+  stateStripText: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 9,
+    letterSpacing: 0.4,
+    color: ONE_BIT.ink
+  },
 
   evidenceImage: {
     width: '100%',
     height: 220,
-    borderRadius: 10,
-    backgroundColor: colors.border
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 0,
+    backgroundColor: ONE_BIT.background
   },
   evidenceLoadingWrap: {
     width: '100%',
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: colors.border + '55',
+    minHeight: 80,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -330,33 +387,68 @@ const styles = StyleSheet.create({
   },
   videoPlaceholder: {
     width: '100%',
-    height: 64,
-    borderRadius: 10,
-    backgroundColor: colors.border + '55',
+    minHeight: 64,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  videoLabel: { fontSize: 13, color: colors.textMuted },
+  videoLabel: {
+    fontFamily: ONE_BIT.fontRegular,
+    fontSize: 11,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase'
+  },
 
   childNoteWrap: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    borderRadius: 0,
     padding: spacing.sm,
-    gap: 2
+    gap: 4,
+    backgroundColor: ONE_BIT.background
   },
-  childNoteLabel: { fontSize: 11, fontWeight: '600', color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.4 },
-  childNoteText: { fontSize: 13, color: colors.text },
+  childNoteLabel: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 10,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase'
+  },
+  childNoteText: { fontFamily: ONE_BIT.fontRegular, fontSize: 13, color: ONE_BIT.ink },
 
-  decisionRow: { flexDirection: 'row', gap: spacing.sm },
+  fieldLabel: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 11,
+    color: ONE_BIT.ink,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginTop: 4
+  },
+  noteInput: { minHeight: 72 },
 
+  actionStack: { gap: 10, marginTop: 4 },
+
+  section: { fontFamily: ONE_BIT.fontBold, fontSize: 14, color: ONE_BIT.ink, marginBottom: 4 },
+  historyBox: { padding: spacing.md, gap: spacing.sm },
   historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderColor: colors.border,
+    borderTopWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
     marginTop: spacing.xs
   },
-  historyName: { fontSize: 13, fontWeight: '600', color: colors.text },
+  historyName: { fontFamily: ONE_BIT.fontBold, fontSize: 12, color: ONE_BIT.ink },
+  meta: { fontFamily: ONE_BIT.fontRegular, fontSize: 10, color: ONE_BIT.ink, opacity: 0.65 },
+  historyState: {
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.borderColor,
+    paddingHorizontal: 8,
+    paddingVertical: 4
+  },
+  historyStateText: { fontFamily: ONE_BIT.fontBold, fontSize: 9, color: ONE_BIT.ink }
 });

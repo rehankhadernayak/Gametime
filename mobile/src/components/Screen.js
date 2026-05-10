@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 import { spacing } from '../theme/spacing';
 
-export default function Screen({ children, scroll = true, testID, ...rest }) {
+export default function Screen({ children, scroll = true, testID, contentContainerStyle, ...rest }) {
   const insets = useSafeAreaInsets();
 
   if (scroll) {
@@ -16,7 +16,8 @@ export default function Screen({ children, scroll = true, testID, ...rest }) {
           {
             paddingTop: insets.top + spacing.md,
             paddingBottom: insets.bottom + spacing.xl
-          }
+          },
+          contentContainerStyle
         ]}
       >
         {children}
