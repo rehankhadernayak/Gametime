@@ -32,6 +32,7 @@ type Child = {
   currentStreakDays?: number;
   streak?: number;
   createdAt?: string;
+  hasScreenTimeSelection?: boolean;
 };
 
 type GamingSession = { status?: string; childId?: string; startedAt?: string };
@@ -417,7 +418,11 @@ export default function Home() {
                   onOpenDetail={(c) =>
                     navigation.navigate(
                       'ParentChildDetail' as never,
-                      { childId: c.id, childName: c.name } as never
+                      {
+                        childId: c.id,
+                        childName: c.name,
+                        hasScreenTimeSelection: Boolean(c.hasScreenTimeSelection),
+                      } as never
                     )
                   }
                 />

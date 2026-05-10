@@ -4,7 +4,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
-import { childCreateSchema, childPinSetSchema } from '../utils/validation.js';
+import { childCreateSchema, childPinSetSchema, childScreenTimeSelectionSchema } from '../utils/validation.js';
 import { ApiError } from '../utils/errors.js';
 import { verifyEmailExists } from '../services/emailExistenceService.js';
 import { env } from '../config/env.js';
@@ -113,6 +113,8 @@ export async function listChildren(req, res, next) {
               pin_hash as pinHash,
               points_balance as pointsBalance,
               giftcard_points_balance as giftcardPointsBalance,
+              avatar_url as avatarUrl,
+              (CASE WHEN COALESCE(screen_time_selection, '') <> '' THEN 1 ELSE 0 END) AS hasScreenTimeSelection,
               created_at as createdAt
        FROM child_profiles
        WHERE parent_id = ?
@@ -130,7 +132,8 @@ export async function listChildren(req, res, next) {
       avatarUrl: child.avatarUrl || null,
       createdAt: child.createdAt,
       hasPasswordLogin: Boolean(child.passwordHash),
-      hasPinLogin: Boolean(child.pinHash)
+      hasPinLogin: Boolean(child.pinHash),
+      hasScreenTimeSelection: Boolean(child.hasScreenTimeSelection)
     })));
   } catch (error) {
     next(error);
@@ -166,6 +169,55 @@ export async function leaderboard(req, res, next) {
     );
 
     return res.json(rows.map((r, i) => ({ ...r, rank: i + 1 })));
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * PATCH /children/:id/screen-time-selection
+ * Parent stores opaque Screen Time selection JSON for the child's device to fetch.
+ */
+export async function updateChildScreenTimeSelection(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { encodedSelectionJson } = childScreenTimeSelectionSchema.parse(req.body);
+    const db = await getDb();
+
+    const child = await db.get(
+      'SELECT id FROM child_profiles WHERE id = ? AND parent_id = ?',
+      [id, req.auth.parentId]
+    );
+    if (!child) throw new ApiError(404, 'Child not found');
+
+    const now = new Date().toISOString();
+    await db.run(
+      'UPDATE child_profiles SET screen_time_selection = ?, updated_at = ? WHERE id = ?',
+      [encodedSelectionJson, now, id]
+    );
+
+    return res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * GET /children/screen-time-selection
+ * Authenticated child retrieves the saved Screen Time selection blob.
+ */
+export async function getMyScreenTimeSelection(req, res, next) {
+  try {
+    const db = await getDb();
+    const row = await db.get(
+      'SELECT screen_time_selection AS encodedSelectionJson FROM child_profiles WHERE id = ?',
+      [req.auth.childId]
+    );
+    if (!row) throw new ApiError(404, 'Child not found');
+
+    return res.json({
+      encodedSelectionJson: row.encodedSelectionJson || null
+    });
   } catch (error) {
     next(error);
   }

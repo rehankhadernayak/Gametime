@@ -58,6 +58,11 @@ export const childPinSetSchema = z.object({
   pin: z.string().regex(/^\d{4}$/, 'PIN must be exactly 4 digits')
 });
 
+/** Opaque Screen Time selection blob from FamilyActivityPicker (UTF-8 JSON). */
+export const childScreenTimeSelectionSchema = z.object({
+  encodedSelectionJson: z.string().min(1).max(500_000)
+});
+
 export const childLoginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1)

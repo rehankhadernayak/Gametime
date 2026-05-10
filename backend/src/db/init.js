@@ -124,6 +124,7 @@ async function initPostgres(db) {
     'INTEGER NOT NULL DEFAULT 0 CHECK (daily_spend_limit >= 0 AND daily_spend_limit <= 10080)'
   );
   await ensureColumnPostgres(db, 'child_profiles', 'family_id', 'TEXT');
+  await ensureColumnPostgres(db, 'child_profiles', 'screen_time_selection', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_brand', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_denomination_cents', 'INTEGER');
 }
@@ -289,6 +290,7 @@ async function initSqlite(db) {
     'daily_spend_limit INTEGER NOT NULL DEFAULT 0 CHECK(daily_spend_limit >= 0 AND daily_spend_limit <= 10080)'
   );
   await ensureColumnSqlite(db, 'child_profiles', 'family_id', 'family_id TEXT');
+  await ensureColumnSqlite(db, 'child_profiles', 'screen_time_selection', 'screen_time_selection TEXT');
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS achievements (
