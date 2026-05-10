@@ -394,7 +394,13 @@ export default function ParentChildrenScreen() {
                   <TouchableOpacity
                     style={styles.childMeta}
                     activeOpacity={0.85}
-                    onPress={() => navigation.navigate('ParentChildDetail', { childId: child.id, childName: child.name })}
+                    onPress={() =>
+                      navigation.navigate('ParentChildDetail', {
+                        childId: child.id,
+                        childName: child.name,
+                        hasScreenTimeSelection: Boolean(child.hasScreenTimeSelection)
+                      })
+                    }
                   >
                     <Text style={styles.childName}>{child.name}</Text>
                     <StatusLine status={tel.status} lastSync={tel.lastSync} />
