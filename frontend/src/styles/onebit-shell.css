@@ -241,3 +241,25 @@ html[data-app-shell='1bit'] .glass {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+
+/* ── Utility bar + dashboard breadcrumb: square brutalist icon buttons ── */
+html[data-app-shell='1bit'] .utility-bar .icon-button,
+html[data-app-shell='1bit'] .dashboard-breadcrumb > .icon-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 0;
+  border: 2px solid var(--line);
+  background: var(--bg-panel);
+  color: var(--text-main);
+}
+
+html[data-app-shell='1bit'] .utility-bar .icon-button:hover,
+html[data-app-shell='1bit'] .dashboard-breadcrumb > .icon-button:hover {
+  background: var(--bg-muted-action-hover);
+  color: var(--text-main);
+}
+
+html[data-app-shell='1bit'] .dashboard-breadcrumb .hamburger {
+  border-radius: 0;
+  border: 2px solid var(--line);
+}

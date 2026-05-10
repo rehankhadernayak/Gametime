@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFadeInWhenVisible } from '../hooks/useFadeInWhenVisible.js';
 
@@ -52,7 +53,7 @@ function LandingNav({ auth }) {
       className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-black pb-4"
       aria-label="Site navigation"
     >
-      <pre className="leading-none text-[0.45rem] sm:text-[0.55rem] md:text-[0.65rem] overflow-x-auto max-w-full">
+      <pre className="leading-none text-[5px] md:text-[8px] max-w-full overflow-hidden whitespace-pre">
         {ASCII_MARK}
       </pre>
       <div className="flex flex-wrap gap-6 text-sm font-bold uppercase tracking-widest">
@@ -95,6 +96,7 @@ function LandingNav({ auth }) {
 
 export default function HomePage({ auth }) {
   const navigate = useNavigate();
+  const [ledgerEmail, setLedgerEmail] = useState('');
 
   return (
     <div className="relative min-h-screen bg-white text-black font-mono p-4 md:p-8">
@@ -216,18 +218,18 @@ export default function HomePage({ auth }) {
           ].map((item) => (
             <article
               key={item.title}
-              className="group border-2 border-black p-6 space-y-4 hover:bg-black hover:text-white transition-all duration-300"
+              className="group border-2 border-black p-6 space-y-4 text-black hover:bg-black hover:text-white transition-all duration-300"
             >
               <div className="flex justify-between items-start gap-4">
-                <h3 className="text-xl font-bold underline">{item.title}</h3>
-                <span className="text-xs shrink-0">[{item.year}]</span>
+                <h3 className="text-xl font-bold underline text-inherit">{item.title}</h3>
+                <span className="text-xs shrink-0 text-inherit">[{item.year}]</span>
               </div>
-              <p className="text-sm leading-relaxed">{item.body}</p>
+              <p className="text-sm leading-relaxed text-inherit">{item.body}</p>
               <div className="flex gap-4 text-xs font-bold">
-                <Link to="/signup" className="hover:underline">
+                <Link to="/signup" className="text-inherit group-hover:text-white hover:underline">
                   SIGN_UP -&gt;
                 </Link>
-                <Link to="/login" className="hover:underline">
+                <Link to="/login" className="text-inherit group-hover:text-white hover:underline">
                   PARENT_LOGIN -&gt;
                 </Link>
               </div>
@@ -303,18 +305,21 @@ export default function HomePage({ auth }) {
           <div className="border-2 border-black p-8 text-center space-y-4">
             <p className="text-xl">Need help or a demo walkthrough?</p>
             <p className="text-2xl font-bold">
-              <Link to="/support" className="hover:underline decoration-4">
+              <Link to="/support" className="text-black visited:text-black hover:underline decoration-4">
                 Open support
               </Link>
             </p>
             <div className="flex flex-wrap justify-center gap-8 pt-4 text-sm font-bold">
-              <Link to="/privacy" className="hover:underline underline-offset-4">
+              <Link to="/privacy" className="text-black visited:text-black hover:underline underline-offset-4">
                 Privacy (PDPA)
               </Link>
-              <Link to="/child-login" className="hover:underline underline-offset-4">
+              <Link to="/child-login" className="text-black visited:text-black hover:underline underline-offset-4">
                 Child login
               </Link>
-              <a href="mailto:hello@gametime.sg" className="hover:underline underline-offset-4">
+              <a
+                href="mailto:hello@gametime.sg"
+                className="text-black visited:text-black hover:underline underline-offset-4"
+              >
                 hello@gametime.sg
               </a>
             </div>
@@ -337,22 +342,28 @@ export default function HomePage({ auth }) {
                 type="email"
                 name="email"
                 placeholder="EMAIL_ADDRESS"
-                className="border-0 px-4 py-2 text-sm flex-1 md:w-64 outline-none focus:ring-2 focus:ring-black focus:ring-inset font-mono bg-white"
+                value={ledgerEmail}
+                onChange={(e) => setLedgerEmail(e.target.value)}
+                className="border-0 px-4 py-2 text-sm flex-1 md:w-64 outline-none focus:ring-2 focus:ring-black focus:ring-inset font-mono bg-white text-black"
                 autoComplete="email"
               />
               <button
-                type="submit"
+                type="button"
                 className="bg-black text-white px-6 py-2 text-sm font-bold uppercase hover:bg-white hover:text-black border-l-2 border-black transition-colors"
+                onClick={() => {
+                  setLedgerEmail('');
+                  alert('Subscribed to Ledger');
+                }}
               >
                 Join
               </button>
             </form>
           </div>
-          <div className="text-xs flex gap-4 opacity-50">
-            <Link to="/works" className="hover:underline">
+          <div className="text-xs flex gap-4">
+            <Link to="/works" className="text-black visited:text-black hover:underline">
               WORKS
             </Link>
-            <Link to="/blog" className="hover:underline">
+            <Link to="/blog" className="text-black visited:text-black hover:underline">
               BLOG
             </Link>
           </div>

@@ -15,6 +15,15 @@
   line-height: 1.45;
 }
 
+/* Beat global app.css `a` / `input` rules — auth must stay high-contrast on white */
+.auth-brutal-shell a {
+  color: #000000;
+}
+
+.auth-brutal-shell a:hover {
+  color: #000000;
+}
+
 .ascii-bg {
   background-color: #ffffff;
   background-image: linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
@@ -134,6 +143,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: #ffffff;
+  color: #000000;
 }
 
 .brutalist-form-title {
@@ -142,6 +152,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  color: #000000;
 }
 
 .brutalist-field {
@@ -159,13 +170,14 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  color: #000000;
 }
 
 .brutalist-input {
   box-sizing: border-box;
   width: 100%;
   padding: 0.65rem 0.75rem;
-  border: var(--brutal-border);
+  border: 2px solid #000000;
   border-radius: 0;
   background: #ffffff;
   color: #000000;
@@ -174,7 +186,7 @@
 }
 
 .brutalist-input::placeholder {
-  color: rgba(0, 0, 0, 0.45);
+  color: #525252;
 }
 
 .brutalist-input:focus-visible {
