@@ -21,7 +21,7 @@
         "NSCameraUsageDescription": "Gametime needs camera access for task evidence uploads.",
         "NSPhotoLibraryUsageDescription": "Gametime needs photo library access for task evidence uploads.",
         "NSMicrophoneUsageDescription": "Gametime needs microphone access for video evidence uploads.",
-        "NSFamilyControlsUsageDescription": "Gametime needs Screen Time access so parents can choose which apps to manage for their children.",
+        "NSFamilyControlsUsageDescription": "Gametime uses Screen Time so parents can manage gaming limits on this device.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
