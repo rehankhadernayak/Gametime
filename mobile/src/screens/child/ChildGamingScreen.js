@@ -17,6 +17,7 @@ import { apiRequest } from '../../api/client';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { getErrorMessage, sanitizeText } from '../../utils/format';
+import { syncSystemRestrictions } from '../../utils/syncSystemRestrictions';
 
 const ALLOWED_PLATFORMS = ['iOS', 'Android', 'Windows', 'macOS', 'Web', 'Console', 'Other', 'Unknown'];
 const DENIAL_MESSAGES = {
@@ -198,6 +199,7 @@ export default function ChildGamingScreen() {
         token,
         body: { sessionId: activeSession.id, actualMinutes: activeSession.grantedMinutes || 1 }
       });
+      await syncSystemRestrictions(token);
       setMessage('Session ended. Time recorded.');
       await load(true);
     } catch (e) {

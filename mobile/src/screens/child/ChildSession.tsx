@@ -16,6 +16,7 @@ import { apiRequest } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { monoFont } from '../../theme/oneBit';
 import { getErrorMessage } from '../../utils/format';
+import { syncSystemRestrictions } from '../../utils/syncSystemRestrictions';
 import { CHILD_OS, DataGauge } from '../../components/childOs';
 
 const BG = '#000000';
@@ -59,6 +60,11 @@ export default function ChildSession() {
     return () => clearInterval(id);
   }, [expiresAt]);
 
+  useEffect(() => {
+    if (!token) return;
+    void syncSystemRestrictions(token);
+  }, [token]);
+
   const actualMinutesForEnd = useCallback(() => {
     const elapsedMs = Math.max(0, Date.now() - startedMs);
     return Math.max(1, Math.min(grantedMinutes, Math.ceil(elapsedMs / 60_000)));
@@ -74,6 +80,7 @@ export default function ChildSession() {
         token,
         body: { sessionId, actualMinutes: actualMinutesForEnd() },
       } as never);
+      await syncSystemRestrictions(token);
       navigation.goBack();
     } catch (e) {
       setEnding(false);
