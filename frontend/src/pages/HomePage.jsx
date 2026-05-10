@@ -50,10 +50,10 @@ function FadeSection({ children, className = '', id }) {
 function LandingNav({ auth }) {
   return (
     <nav
-      className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-black pb-4"
+      className="flex flex-col md:flex-row flex-wrap justify-between items-start md:items-center gap-4 border-b-2 border-black pb-4"
       aria-label="Site navigation"
     >
-      <pre className="leading-none text-[5px] md:text-[8px] max-w-full overflow-hidden whitespace-pre">
+      <pre className="leading-none text-[4px] sm:text-[6px] md:text-[8px] whitespace-pre shrink-0">
         {ASCII_MARK}
       </pre>
       <div className="flex flex-wrap gap-6 text-sm font-bold uppercase tracking-widest">
