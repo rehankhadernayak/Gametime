@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../components/InputField';
 import { useAuth } from '../context/AuthContext';
@@ -42,14 +41,14 @@ export default function ParentLoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {/* Gradient header */}
-        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
+        {/* Header */}
+        <View style={[styles.hero, { paddingTop: insets.top + 48 }]}>
           <View style={styles.logoWrap}>
             <Text style={styles.logoEmoji}>GT</Text>
           </View>
           <Text style={styles.heroTitle}>Welcome back</Text>
           <Text style={styles.heroSub}>Sign in to manage your family</Text>
-        </LinearGradient>
+        </View>
 
         {/* Form card */}
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
@@ -108,6 +107,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 40,
     gap: 8,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
   },
   logoWrap: {
     width: 64,
@@ -126,18 +128,15 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    borderWidth: 1,
+    borderRadius: 0,
+    borderWidth: 2,
     borderColor: colors.border,
     margin: 16,
     padding: 20,
     gap: 12,
     marginTop: -20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    elevation: 0,
+    shadowOpacity: 0,
   },
 
   errorBanner: {

@@ -41,9 +41,7 @@
   letter-spacing: 0.06em;
   font-size: clamp(3.5rem, 14vw, 8rem);
   color: var(--white-accent);
-  text-shadow:
-    0 0 24px var(--neon-blue-glow-bright),
-    0 0 60px rgba(0, 217, 255, 0.25);
+  text-shadow: none;
   font-variant-numeric: tabular-nums;
 }
 
@@ -71,10 +69,8 @@
   font-weight: 700;
   letter-spacing: 0.35em;
   color: var(--data-green);
-  text-shadow:
-    0 0 12px rgba(0, 255, 0, 0.55),
-    0 0 28px rgba(0, 255, 0, 0.35);
-  animation: active-timer-status-glow 1.4s ease-in-out infinite;
+  text-shadow: none;
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

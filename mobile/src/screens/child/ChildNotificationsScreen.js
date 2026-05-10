@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spinner from '../../components/Spinner';
 import { apiRequest } from '../../api/client';
@@ -95,7 +94,7 @@ export default function ChildNotificationsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.headerTitle}>Notifications</Text>
@@ -109,7 +108,7 @@ export default function ChildNotificationsScreen() {
             </TouchableOpacity>
           ) : null}
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={{ flex: 1 }}
@@ -168,19 +167,25 @@ function NotifRow({ n }) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingBottom: 16 },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
-  headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2 },
+  headerSub: { color: '#525252', fontSize: 13, marginTop: 2 },
   markAllBtn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  markAllText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  markAllText: { color: '#000000', fontSize: 13, fontWeight: '700' },
 
   content: { padding: 16, gap: 8 },
 

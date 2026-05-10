@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../components/InputField';
 import { apiRequest, getApiUrl, getSuggestedApiUrl, setApiUrl } from '../api/client';
@@ -57,10 +56,10 @@ export default function ApiSettingsScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 40 }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 40 }]}>
           <Text style={styles.heroTitle}>Connection Settings</Text>
           <Text style={styles.heroSub}>Point the app at your Gametime backend server</Text>
-        </LinearGradient>
+        </View>
 
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
           {toast ? (
@@ -117,15 +116,30 @@ export default function ApiSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 40, gap: 8 },
+  hero: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    gap: 8,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
   heroIcon: { fontSize: 36, marginBottom: 4 },
   heroTitle: { color: '#000000', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
   heroSub: { color: '#525252', fontSize: 14, textAlign: 'center' },
 
   card: {
-    backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border,
-    margin: 16, padding: 20, gap: 12, marginTop: -20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
+    backgroundColor: colors.surface,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: colors.border,
+    margin: 16,
+    padding: 20,
+    gap: 12,
+    marginTop: -20,
+    elevation: 0,
+    shadowOpacity: 0,
   },
 
   toast: { backgroundColor: colors.secondary, borderRadius: 10, padding: 12 },

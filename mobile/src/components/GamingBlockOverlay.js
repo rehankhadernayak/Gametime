@@ -1,6 +1,5 @@
 import React from 'react';
 import { Modal, Text, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 
@@ -13,15 +12,14 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 16,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: colors.border,
     padding: 24,
     width: '85%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   icon: {
     marginBottom: 16,
@@ -44,7 +42,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: colors.border,
     minWidth: 120,
     alignItems: 'center',
   },

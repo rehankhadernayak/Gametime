@@ -273,47 +273,13 @@ export const useSwipeGesture = (
 };
 
 /**
- * useGlowAnimation Hook
- * Animated glow effect for emphasis
- * @param {string} color - Base glow color
- * @param {number} intensity - Glow intensity (0-1)
- * @returns { animatedStyle }
+ * useGlowAnimation — legacy hook name; brutalist shell uses flat surfaces (no neon glow).
  */
-export const useGlowAnimation = (color = '#00D9FF', intensity = 0.5) => {
-  const glowOpacity = useSharedValue(intensity);
-
-  React.useEffect(() => {
-    const animate = () => {
-      glowOpacity.value = withTiming(intensity * 1.5, {
-        duration: 1500,
-        easing: Easing.sin,
-      });
-
-      setTimeout(() => {
-        glowOpacity.value = withTiming(intensity, {
-          duration: 1500,
-          easing: Easing.sin,
-        });
-      }, 1500);
-
-      setTimeout(animate, 3000);
-    };
-
-    animate();
-
-    return () => {
-      glowOpacity.value = intensity;
-    };
-  }, [intensity]);
-
+export const useGlowAnimation = () => {
   const animatedStyle = useAnimatedStyle(() => ({
-    shadowOpacity: glowOpacity.value,
-    shadowColor: color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0,
+    elevation: 0,
   }));
-
   return { animatedStyle };
 };
 

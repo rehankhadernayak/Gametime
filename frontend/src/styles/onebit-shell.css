@@ -214,3 +214,30 @@ html[data-app-shell='1bit'] h5,
 html[data-app-shell='1bit'] h6 {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
 }
+
+/* Child OS terminal — mono ink variables (no cyan/purple chrome) */
+html[data-app-shell='1bit'] {
+  --neon-blue: #ffffff;
+  --neon-blue-light: #ffffff;
+  --neon-blue-glow: transparent;
+  --neon-blue-glow-bright: transparent;
+  --neon-red: #ffffff;
+  --neon-red-light: #ffffff;
+  --neon-red-glow: transparent;
+  --neon-red-glow-bright: transparent;
+  --white-accent: #ffffff;
+  --white-secondary: #e5e5e5;
+  --white-tertiary: #a3a3a3;
+  --black-base: #000000;
+  --glass-darker: #000000;
+  --glass-dark: #0a0a0a;
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-border-bright: #ffffff;
+  --bg-layer-0: #000000;
+  --data-green: #ffffff;
+}
+
+html[data-app-shell='1bit'] .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
