@@ -7,6 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: 'dist',
+  },
   resolve: {
     alias: {
       // Matches Next.js `gametime-web-nav` → nav shim (see web-next/next.config.ts)
