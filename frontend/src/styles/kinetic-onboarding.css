@@ -389,14 +389,3 @@
     transition: none;
   }
 }
-
-/* ===== DARK MODE ===== */
-@media (prefers-color-scheme: dark) {
-  .onboarding-kinetic-container {
-    background: var(--black-base);
-  }
-
-  .onboarding-bg {
-    background: linear-gradient(135deg, #1a1a2e 0%, rgba(0, 0, 0, 0.8) 100%) !important;
-  }
-}
