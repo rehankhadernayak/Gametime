@@ -5158,7 +5158,7 @@ body.sidebar-open { overflow: hidden; }
   align-items: center;
   gap: 0.35rem;
 }
-.icon-button {
+.task-row-actions .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5172,8 +5172,8 @@ body.sidebar-open { overflow: hidden; }
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
-.icon-button:hover { background: var(--bg-panel-2); color: var(--text-1); }
-.icon-button.danger-hover:hover {
+.task-row-actions .icon-button:hover { background: var(--bg-panel-2); color: var(--text-1); }
+.task-row-actions .icon-button.danger-hover:hover {
   background: color-mix(in srgb, #ef4444 12%, transparent);
   border-color: #ef4444;
   color: #ef4444;
