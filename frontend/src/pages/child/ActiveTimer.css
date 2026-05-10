@@ -1,0 +1,103 @@
+.active-timer {
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0));
+  background: var(--black-base);
+  color: var(--white-accent);
+}
+
+.active-timer__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 36rem;
+}
+
+.active-timer__meta {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--neon-blue);
+  text-align: center;
+}
+
+.active-timer__clock {
+  margin: 0;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-size: clamp(3.5rem, 14vw, 8rem);
+  color: var(--white-accent);
+  text-shadow:
+    0 0 24px var(--neon-blue-glow-bright),
+    0 0 60px rgba(0, 217, 255, 0.25);
+  font-variant-numeric: tabular-nums;
+}
+
+.active-timer__progress-wrap {
+  width: 100%;
+  max-width: min(100%, 26rem);
+  margin-top: 1.75rem;
+}
+
+.active-timer__footer {
+  margin-top: auto;
+  padding-top: 2rem;
+  width: 100%;
+  max-width: 20rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.active-timer__status {
+  margin: 0;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: var(--data-green);
+  text-shadow:
+    0 0 12px rgba(0, 255, 0, 0.55),
+    0 0 28px rgba(0, 255, 0, 0.35);
+  animation: active-timer-status-glow 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-timer__status {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+@keyframes active-timer-status-glow {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.55;
+    filter: brightness(1.35);
+  }
+}
+
+.active-timer__loading {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+}
