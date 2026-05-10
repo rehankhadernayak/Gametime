@@ -65,10 +65,19 @@ EXCEPTION
   WHEN undefined_object THEN NULL;
 END $$;
 
-DO $$ BEGIN
-  ALTER TABLE public.child_profiles ADD CONSTRAINT child_profiles_user_id_key UNIQUE USING INDEX child_profiles_user_id_key;
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class rel ON rel.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = rel.relnamespace
+    WHERE n.nspname = 'public'
+      AND rel.relname = 'child_profiles'
+      AND c.conname = 'child_profiles_user_id_key'
+  ) THEN
+    ALTER TABLE public.child_profiles ADD CONSTRAINT child_profiles_user_id_key UNIQUE USING INDEX child_profiles_user_id_key;
+  END IF;
 END $$;
 
 DO $$ BEGIN
