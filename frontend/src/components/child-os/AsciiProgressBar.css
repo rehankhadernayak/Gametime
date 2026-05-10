@@ -1,0 +1,19 @@
+.ascii-progress-bar {
+  margin: 0;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: clamp(0.65rem, 2.8vw, 0.85rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  color: var(--data-green);
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.35);
+  white-space: pre;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ascii-progress-bar {
+    text-shadow: none;
+  }
+}

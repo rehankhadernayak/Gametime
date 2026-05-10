@@ -26,7 +26,7 @@ import ParentAiScreen from '../screens/parent/ParentAiScreen';
 import ParentMobileKinetic from '../screens/ParentMobileKinetic';
 import AccountScreen from '../screens/AccountScreen';
 
-import ChildDashboard from '../screens/child/ChildDashboard';
+import ChildHome from '../screens/child/ChildHome';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
 import ChildRewardsScreen from '../screens/child/ChildRewardsScreen';
 import ChildRewardsStore from '../screens/child/ChildRewardsStore';
@@ -35,8 +35,12 @@ import ChildAiScreen from '../screens/child/ChildAiScreen';
 import ChildNotificationsScreen from '../screens/child/ChildNotificationsScreen';
 import EvidenceSubmitScreen from '../screens/child/EvidenceSubmitScreen';
 import TaskProofScreen from '../screens/child/TaskProofScreen';
+import ChildSession from '../screens/child/ChildSession';
 
 import ParentNotificationsScreen from '../screens/parent/ParentNotificationsScreen';
+import ParentChildDetailScreen from '../screens/parent/ParentChildDetailScreen';
+import OneBitAsciiHeader from '../components/ui/OneBitAsciiHeader';
+import { ONE_BIT } from '../components/ui/oneBitTheme';
 
 /** Child reward store header — matches ChildDashboard Time Bank cream theme */
 const TIME_BANK_CREAM = '#F9F9F4';
@@ -70,7 +74,11 @@ function AuthStack({ childMustLinkFamily }) {
     >
       <AuthStackNav.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <AuthStackNav.Screen name="ParentLogin" component={ParentLoginScreen} options={{ title: 'Parent Login' }} />
-      <AuthStackNav.Screen name="ParentSignup" component={ParentSignupScreen} options={{ title: 'Create Account' }} />
+      <AuthStackNav.Screen
+        name="ParentSignup"
+        component={ParentSignupScreen}
+        options={{ headerShown: false, title: 'Create Account' }}
+      />
       <AuthStackNav.Screen name="ChildLogin" component={ChildLoginScreen} options={{ title: 'Child Login' }} />
       <AuthStackNav.Screen name="LinkFamily" component={LinkFamilyScreen} options={{ headerShown: false, title: 'Join family' }} />
       <AuthStackNav.Screen name="ApiSettings" component={ApiSettingsScreen} options={{ title: 'Connection Settings' }} />
@@ -140,7 +148,20 @@ function ParentStack() {
       <ParentStackNav.Screen
         name="ParentHome"
         component={ParentHomeScreen}
-        options={{ headerShown: true, title: 'Dashboard', headerStyle: { backgroundColor: colors.surface }, headerTitleStyle: { color: colors.text, fontWeight: '700' }, headerTintColor: colors.primaryDark }}
+        options={{ headerShown: false, title: 'Dashboard' }}
+      />
+      <ParentStackNav.Screen
+        name="ParentChildDetail"
+        component={ParentChildDetailScreen}
+        options={({ route }) => ({
+          headerShown: true,
+          headerTitle: () => (
+            <OneBitAsciiHeader compact title={route.params?.childName || 'CHILD'} />
+          ),
+          headerStyle: { backgroundColor: ONE_BIT.background },
+          headerTintColor: ONE_BIT.ink,
+          headerShadowVisible: false
+        })}
       />
       <ParentStackNav.Screen
         name="ParentGaming"
@@ -160,7 +181,24 @@ function ParentStack() {
       <ParentStackNav.Screen
         name="Account"
         component={AccountScreen}
-        options={{ headerShown: true, title: 'Account', headerStyle: { backgroundColor: colors.surface }, headerTitleStyle: { color: colors.text, fontWeight: '700' }, headerTintColor: colors.primaryDark }}
+        options={{
+          headerShown: true,
+          title: '/// SETTINGS ///',
+          headerStyle: {
+            backgroundColor: ONE_BIT.background,
+            borderBottomWidth: ONE_BIT.borderWidth,
+            borderBottomColor: ONE_BIT.ink,
+          },
+          headerTitleStyle: {
+            color: ONE_BIT.ink,
+            fontFamily: ONE_BIT.fontBold,
+            fontSize: 11,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          },
+          headerTintColor: ONE_BIT.ink,
+          headerShadowVisible: false,
+        }}
       />
       <ParentStackNav.Screen
         name="ParentMobileKinetic"
@@ -174,7 +212,7 @@ function ParentStack() {
 // ─── Child bottom tabs ────────────────────────────────────────────────────────
 
 const CHILD_TABS = [
-  { name: 'ChildHome',    component: ChildDashboard,    label: 'Home',    icon: 'home' },
+  { name: 'ChildHome',    component: ChildHome,    label: 'Home',    icon: 'home' },
   { name: 'ChildTasks',   component: ChildTasksScreen,   label: 'Tasks',   icon: 'checkbox' },
   { name: 'ChildGaming',  component: ChildGamingScreen,  label: 'Gaming',  icon: 'game-controller' },
   { name: 'ChildRewards', component: ChildRewardsScreen, label: 'Rewards', icon: 'gift' },
@@ -261,10 +299,21 @@ function ChildStack() {
         component={AccountScreen}
         options={{
           headerShown: true,
-          title: 'Account',
-          headerStyle: { backgroundColor: colors.surface },
-          headerTitleStyle: { color: colors.text, fontWeight: '700' },
-          headerTintColor: colors.childAccentDark,
+          title: '/// SETTINGS ///',
+          headerStyle: {
+            backgroundColor: ONE_BIT.background,
+            borderBottomWidth: ONE_BIT.borderWidth,
+            borderBottomColor: ONE_BIT.ink,
+          },
+          headerTitleStyle: {
+            color: ONE_BIT.ink,
+            fontFamily: ONE_BIT.fontBold,
+            fontSize: 11,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          },
+          headerTintColor: ONE_BIT.ink,
+          headerShadowVisible: false,
         }}
       />
       <ChildStackNav.Screen
@@ -287,6 +336,15 @@ function ChildStack() {
           headerTitleStyle: { color: TEXT_DARK_CHILD_NAV, fontWeight: '800' },
           headerTintColor: colors.primaryDark,
           headerShadowVisible: false,
+        }}
+      />
+      <ChildStackNav.Screen
+        name="ChildSession"
+        component={ChildSession}
+        options={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#000000' },
+          presentation: 'fullScreenModal',
         }}
       />
     </ChildStackNav.Navigator>

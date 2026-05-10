@@ -1,0 +1,14 @@
+{
+  "name": "gametime-screen-time",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gametime Family Controls / Screen Time native bridge",
+  "main": "index.ts",
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "expo": "*",
+    "expo-modules-core": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

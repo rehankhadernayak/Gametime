@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import Card from '../../components/Card';
 import PageHeader from '../../components/PageHeader';
@@ -95,6 +96,7 @@ const activeStyles = StyleSheet.create({
 });
 
 export default function ChildGamingScreen() {
+  const navigation = useNavigation();
   const { token } = useAuth();
   const [overview, setOverview] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -168,6 +170,14 @@ export default function ChildGamingScreen() {
       } else {
         setMessage(response.message || `Session started! ${response.grantedMinutes} minutes granted.`);
         setForm((prev) => ({ ...prev, gameName: '' }));
+        if (response.sessionId && response.expiresAt && response.grantedMinutes != null) {
+          navigation.navigate('ChildSession', {
+            sessionId: response.sessionId,
+            expiresAt: response.expiresAt,
+            grantedMinutes: response.grantedMinutes,
+            gameName: response.gameName
+          });
+        }
       }
       await load(true);
     } catch (e) {

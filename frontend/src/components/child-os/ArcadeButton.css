@@ -1,0 +1,63 @@
+.arcade-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neon-blue);
+  background: transparent;
+  border: 2px solid var(--neon-blue);
+  box-shadow:
+    0 0 12px var(--neon-blue-glow),
+    inset 0 0 12px rgba(0, 217, 255, 0.08);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.arcade-button:hover:not(:disabled) {
+  color: var(--black-base);
+  background: var(--neon-blue);
+  box-shadow:
+    0 0 24px var(--neon-blue-glow-bright),
+    inset 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.arcade-button:focus-visible {
+  outline: 2px solid var(--neon-blue-light);
+  outline-offset: 3px;
+}
+
+.arcade-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.arcade-button--block {
+  width: 100%;
+}
+
+.arcade-button--danger {
+  color: var(--neon-red);
+  border-color: var(--neon-red);
+  box-shadow:
+    0 0 12px var(--neon-red-glow),
+    inset 0 0 12px rgba(255, 46, 90, 0.06);
+}
+
+.arcade-button--danger:hover:not(:disabled) {
+  color: var(--black-base);
+  background: var(--neon-red);
+  box-shadow:
+    0 0 24px var(--neon-red-glow-bright),
+    inset 0 0 20px rgba(0, 0, 0, 0.15);
+}

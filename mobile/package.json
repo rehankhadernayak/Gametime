@@ -13,6 +13,7 @@
     "submit:ios": "eas submit --platform ios"
   },
   "dependencies": {
+    "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
     "@expo/metro-runtime": "~6.1.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/slider": "5.0.1",
@@ -33,6 +34,7 @@
     "expo-secure-store": "~15.0.7",
     "expo-status-bar": "~3.0.8",
     "expo-updates": "~29.0.17",
+    "gametime-screen-time": "file:./modules/screen-time",
     "moti": "^0.30.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",

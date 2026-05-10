@@ -10,6 +10,7 @@ import {
   View
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import InputField from '../../components/InputField';
@@ -23,21 +24,15 @@ import { colors } from '../../theme/colors';
 import { spacing, radius } from '../../theme/spacing';
 import { getErrorMessage, sanitizeText } from '../../utils/format';
 import { DEFAULT_PARENT_SETTINGS, loadParentSettings, saveParentSettings } from '../../utils/parentSettings';
-
-// Avatar colour palette — cycle through these for initial circles
-const AVATAR_COLORS = [
-  { bg: '#EDE9FE', text: '#6D28D9' },
-  { bg: '#DBEAFE', text: '#1D4ED8' },
-  { bg: '#D1FAE5', text: '#065F46' },
-  { bg: '#FEF3C7', text: '#92400E' },
-  { bg: '#FCE7F3', text: '#9D174D' },
-  { bg: '#E0E7FF', text: '#3730A3' }
-];
-
-function avatarColors(name) {
-  const code = (name || 'A').charCodeAt(0) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[code];
-}
+import { normalizeTasksListResponse } from '../../utils/tasksList.js';
+import { childTelemetry } from '../../utils/oneBitTelemetry.js';
+import BrutalistBox from '../../components/ui/BrutalistBox';
+import BrutalistHeader from '../../components/ui/BrutalistHeader';
+import FabMobileButton from '../../components/ui/MobileButton';
+import { MobileButton } from '../../components/MobileButton';
+import { MobileInput } from '../../components/MobileInput';
+import StatusLine from '../../components/ui/StatusLine';
+import { ONE_BIT } from '../../components/ui/oneBitTheme';
 
 function getAgeYears(dateOfBirth) {
   const dob = new Date(dateOfBirth);
@@ -52,8 +47,11 @@ const initialForm = { name: '', dateOfBirth: '', email: '', password: '', pin: '
 
 export default function ParentChildrenScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { token, loginWithToken, logout } = useAuth();
   const [children, setChildren]             = useState([]);
+  const [tasks, setTasks]                   = useState([]);
+  const [activeSessions, setActiveSessions] = useState([]);
   const [uploadingChildId, setUploadingChildId] = useState(null);
   const [apiBase, setApiBase]               = useState('');
   const [message, setMessage]               = useState('');
@@ -70,8 +68,14 @@ export default function ParentChildrenScreen() {
   const [deleteBusy, setDeleteBusy] = useState(false);
 
   const loadChildren = useCallback(async () => {
-    const list = await apiRequest('/children/list', { token });
+    const [list, taskListRaw, sessions] = await Promise.all([
+      apiRequest('/children/list', { token }),
+      apiRequest('/tasks/list', { token }),
+      apiRequest('/gaming/sessions/audit?limit=20', { token }).catch(() => [])
+    ]);
     setChildren(list);
+    setTasks(normalizeTasksListResponse(taskListRaw).tasks);
+    setActiveSessions(Array.isArray(sessions) ? sessions.filter((s) => s.status === 'Started') : []);
   }, [token]);
 
   useEffect(() => {
@@ -121,10 +125,18 @@ export default function ParentChildrenScreen() {
     setLoading(true); setMessage(''); setError('');
     try {
       const name = sanitizeText(form.name);
-      const dateOfBirth = form.dateOfBirth.trim();
-      const email = form.email.trim().toLowerCase();
-      const password = form.password;
-      const pin = form.pin.trim();
+      let dateOfBirth = form.dateOfBirth.trim();
+      let email = form.email.trim().toLowerCase();
+      let password = form.password;
+      let pin = form.pin.trim();
+
+      if (!dateOfBirth && pin && name && !email && !password) {
+        const d = new Date();
+        d.setUTCFullYear(d.getUTCFullYear() - 8);
+        d.setUTCMonth(0, 1);
+        dateOfBirth = d.toISOString().slice(0, 10);
+      }
+
       if (!name) throw new Error('Child name is required.');
       const parsedDob = new Date(dateOfBirth);
       if (!dateOfBirth || Number.isNaN(parsedDob.getTime()))
@@ -182,13 +194,17 @@ export default function ParentChildrenScreen() {
     } catch (e) { setError(getErrorMessage(e)); }
   }
 
+  const fabBottom = insets.bottom + 16;
+  const scrollBottomPad = fabBottom + 64;
+
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
-    >
+    <View style={styles.screenRoot}>
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingBottom: scrollBottomPad }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={ONE_BIT.ink} />}
+      >
       <Modal
         visible={deleteGateOpen}
         transparent
@@ -282,16 +298,26 @@ export default function ParentChildrenScreen() {
 
       {/* ── Header ── */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Family</Text>
-          <Text style={styles.headerSub}>{children.length} child{children.length !== 1 ? 'ren' : ''} in your account</Text>
+        <View style={{ flex: 1 }}>
+          <BrutalistHeader title="FAMILY_NODES" />
+          <Text style={styles.headerSub}>
+            {children.length} NODE{children.length !== 1 ? 'S' : ''}_REGISTERED
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.addBtn}
-          onPress={() => { setShowAddForm((v) => !v); setError(''); setMessage(''); }}
+          onPress={() => {
+            setShowAddForm((v) => {
+              const next = !v;
+              if (next) setForm(initialForm);
+              return next;
+            });
+            setError('');
+            setMessage('');
+          }}
           activeOpacity={0.8}
         >
-          <Text style={styles.addBtnText}>{showAddForm ? '✕ Cancel' : '+ Add Child'}</Text>
+          <Text style={styles.addBtnText}>{showAddForm ? 'CANCEL' : '+ ADD'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -314,16 +340,19 @@ export default function ParentChildrenScreen() {
       {/* ── Add child form ── */}
       {showAddForm && (
         <View style={styles.formCard}>
-          <Text style={styles.formTitle}>Add New Child</Text>
-          <InputField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
-          <InputField label="Date of Birth (YYYY-MM-DD)" value={form.dateOfBirth} onChangeText={(v) => setForm({ ...form, dateOfBirth: v })} />
-          <View style={styles.formHint}>
-            <Text style={styles.formHintText}>Ages 6–9 can use a PIN. Ages 10–13 need email + password.</Text>
-          </View>
-          <InputField label="Child Email (optional for age 6–9)" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} autoCapitalize="none" keyboardType="email-address" />
-          <InputField label="Child Password (required for age 10+)" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} secureTextEntry />
-          <InputField label="4-digit PIN (age 6–9 only)" value={form.pin} onChangeText={(v) => setForm({ ...form, pin: v })} keyboardType="number-pad" maxLength={4} />
-          <Button title={loading ? 'Creating…' : 'Create Child Account'} onPress={createChild} loading={loading} disabled={!form.name || !form.dateOfBirth} />
+          <Text style={styles.provisionHeader}>/// PROVISION NODE ///</Text>
+          <MobileInput label="NAME" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
+          <MobileInput
+            label="ACCESS_PIN"
+            value={form.pin}
+            onChangeText={(v) => setForm({ ...form, pin: v })}
+            keyboardType="number-pad"
+            maxLength={4}
+            secureTextEntry
+          />
+          <MobileButton onPress={createChild} disabled={loading || !form.name.trim() || !/^\d{4}$/.test(form.pin.trim())}>
+            {loading ? 'INITIALIZING…' : 'INITIALIZE_OPERATIVE'}
+          </MobileButton>
         </View>
       )}
 
@@ -335,10 +364,9 @@ export default function ParentChildrenScreen() {
       ) : (
         <View style={styles.childrenList}>
           {children.map((child) => {
-            const ac = avatarColors(child.name);
+            const tel = childTelemetry(child.id, tasks, activeSessions, child.createdAt);
             return (
-              <View key={child.id} style={styles.childCard}>
-                {/* Avatar + name row */}
+              <BrutalistBox key={child.id} style={styles.childCard}>
                 <View style={styles.childTop}>
                   <View style={styles.avatarWrap}>
                     {child.avatarUrl && apiBase ? (
@@ -347,8 +375,8 @@ export default function ParentChildrenScreen() {
                         style={styles.avatarImg}
                       />
                     ) : (
-                      <View style={[styles.avatarCircle, { backgroundColor: ac.bg }]}>
-                        <Text style={[styles.avatarInitial, { color: ac.text }]}>
+                      <View style={[styles.avatarCircle, { backgroundColor: ONE_BIT.background, borderColor: ONE_BIT.ink, borderWidth: ONE_BIT.borderWidth }]}>
+                        <Text style={[styles.avatarInitial, { color: ONE_BIT.ink }]}>
                           {(child.name || '?').charAt(0).toUpperCase()}
                         </Text>
                       </View>
@@ -359,12 +387,23 @@ export default function ParentChildrenScreen() {
                       disabled={uploadingChildId === child.id}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.avatarEditIcon}>{uploadingChildId === child.id ? '…' : 'Edit'}</Text>
+                      <Text style={styles.avatarEditIcon}>{uploadingChildId === child.id ? '…' : 'EDIT'}</Text>
                     </TouchableOpacity>
                   </View>
 
-                  <View style={styles.childMeta}>
+                  <TouchableOpacity
+                    style={styles.childMeta}
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      navigation.navigate('ParentChildDetail', {
+                        childId: child.id,
+                        childName: child.name,
+                        hasScreenTimeSelection: Boolean(child.hasScreenTimeSelection)
+                      })
+                    }
+                  >
                     <Text style={styles.childName}>{child.name}</Text>
+                    <StatusLine status={tel.status} lastSync={tel.lastSync} />
                     <View style={styles.loginBadges}>
                       {child.hasPasswordLogin && (
                         <View style={styles.loginBadge}>
@@ -377,7 +416,7 @@ export default function ParentChildrenScreen() {
                         </View>
                       )}
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 </View>
 
                 {/* Balance row */}
@@ -408,9 +447,9 @@ export default function ParentChildrenScreen() {
                   onPress={() => switchToChild(child.id, child.name)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.switchBtnText}>Open Child View →</Text>
+                  <Text style={styles.switchBtnText}>OPEN_CHILD_VIEW</Text>
                 </TouchableOpacity>
-              </View>
+              </BrutalistBox>
             );
           })}
         </View>
@@ -475,30 +514,59 @@ export default function ParentChildrenScreen() {
       )}
 
       <View style={{ height: spacing.xl }} />
-    </ScrollView>
+      </ScrollView>
+
+      <View style={[styles.fabWrap, { bottom: fabBottom }]} pointerEvents="box-none">
+        <FabMobileButton
+          title={children.length ? 'EMERGENCY_LOCK' : 'ADD_NODE'}
+          onPress={() => {
+            if (children.length) navigation.navigate('ParentGaming');
+            else {
+              setForm(initialForm);
+              setShowAddForm(true);
+            }
+          }}
+          style={styles.fabButton}
+        />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
+  screenRoot: { flex: 1, backgroundColor: ONE_BIT.background },
+  screen: { flex: 1, backgroundColor: ONE_BIT.background },
   content: { padding: spacing.md, gap: spacing.md },
   bannerPad: { marginHorizontal: 0 },
 
   // ── Header ──
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between'
   },
-  headerTitle: { fontSize: 22, fontWeight: '900', color: colors.text },
-  headerSub: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  headerSub: {
+    fontFamily: ONE_BIT.fontRegular,
+    fontSize: 10,
+    color: ONE_BIT.ink,
+    marginTop: 4,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase'
+  },
   addBtn: {
-    backgroundColor: colors.primary,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.ink,
     paddingHorizontal: spacing.md,
     paddingVertical: 9,
-    borderRadius: radius.full
+    backgroundColor: ONE_BIT.background
   },
-  addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  addBtnText: {
+    color: ONE_BIT.ink,
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 12,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase'
+  },
 
   // ── Quick links ──
   quickLinks: {
@@ -519,22 +587,23 @@ const styles = StyleSheet.create({
   quickLinkIcon: { fontSize: 20 },
   quickLinkLabel: { fontSize: 11, fontWeight: '700', color: colors.textMuted },
 
-  // ── Add form ──
+  // ── Add form (1-bit provision node) ──
   formCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: ONE_BIT.background,
+    borderRadius: ONE_BIT.radius,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.ink,
     padding: spacing.md,
-    gap: spacing.sm
+    gap: spacing.md
   },
-  formTitle: { fontSize: 16, fontWeight: '800', color: colors.text },
-  formHint: {
-    backgroundColor: colors.primarySurface,
-    borderRadius: radius.md,
-    padding: spacing.sm
+  provisionHeader: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 12,
+    letterSpacing: 0.6,
+    color: ONE_BIT.ink,
+    textAlign: 'center',
+    textTransform: 'uppercase'
   },
-  formHintText: { fontSize: 12, color: colors.primaryDark },
 
   // ── Children list ──
   childrenList: { gap: spacing.md },
@@ -542,17 +611,8 @@ const styles = StyleSheet.create({
 
   // ── Child card ──
   childCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
-    gap: spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2
+    gap: spacing.md
   },
   childTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatarWrap: { position: 'relative', width: 56, height: 56 },
@@ -581,7 +641,12 @@ const styles = StyleSheet.create({
   avatarEditIcon: { fontSize: 13 },
 
   childMeta: { flex: 1, gap: 6 },
-  childName: { fontSize: 18, fontWeight: '900', color: colors.text },
+  childName: {
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 15,
+    color: ONE_BIT.ink,
+    textTransform: 'uppercase'
+  },
   loginBadges: { flexDirection: 'row', gap: 6 },
   loginBadge: {
     backgroundColor: colors.primarySurface,
@@ -608,12 +673,26 @@ const styles = StyleSheet.create({
   // ── Switch btn ──
   switchBtn: {
     paddingVertical: 11,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
+    borderWidth: ONE_BIT.borderWidth,
+    borderColor: ONE_BIT.ink,
     alignItems: 'center'
   },
-  switchBtnText: { color: colors.primary, fontWeight: '700', fontSize: 14 },
+  switchBtnText: {
+    color: ONE_BIT.ink,
+    fontFamily: ONE_BIT.fontBold,
+    fontSize: 12,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase'
+  },
+
+  fabWrap: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md
+  },
+  fabButton: {
+    width: '100%'
+  },
 
   // ── Settings ──
   settingsToggle: {

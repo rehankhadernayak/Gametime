@@ -1,0 +1,136 @@
+.child-os-dash__balance-label {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--white-tertiary);
+}
+
+.child-os-dash__balance-value {
+  margin: 0 0 1rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--white-accent);
+  text-shadow: 0 0 40px var(--neon-blue-glow);
+}
+
+.child-os-dash__missions-head {
+  margin: 2rem 0 0.75rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--neon-blue);
+}
+
+.child-os-dash__empty {
+  margin: 0;
+  padding: 1rem 0;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--white-tertiary);
+}
+
+.child-os-dash__panel-head {
+  margin: 2rem 0 0.65rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--white-tertiary);
+}
+
+.child-os-dash__aux {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.child-os-gaming-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.child-os-gaming-modal {
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.25rem;
+  background: var(--glass-darker);
+  border: 2px solid var(--neon-blue);
+  box-shadow: 0 0 32px var(--neon-blue-glow);
+}
+
+.child-os-gaming-modal h2 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--neon-blue);
+}
+
+.child-os-gaming-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.65rem;
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  color: var(--white-secondary);
+}
+
+.child-os-gaming-modal input,
+.child-os-gaming-modal select {
+  padding: 0.5rem 0.55rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--white-accent);
+  background: var(--black-base);
+  border: 1px solid var(--glass-border-bright);
+}
+
+.child-os-gaming-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.child-os-dash .notice,
+.child-os-dash .error {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.75rem;
+}
+
+.child-os-dash details.child-os-dash__supply {
+  margin-top: 2rem;
+  border: 1px solid var(--glass-border);
+  padding: 0.75rem 1rem;
+  background: var(--glass-dark);
+}
+
+.child-os-dash details.child-os-dash__supply summary {
+  font-family: var(--font-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  color: var(--white-secondary);
+}
+
+.child-os-dash details.child-os-dash__supply .reward-store-wrap {
+  margin-top: 1rem;
+}

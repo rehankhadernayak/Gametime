@@ -1,0 +1,352 @@
+/* 1-bit design DNA: white field, black ink, 2px borders, IBM Plex Mono, 0 radius */
+
+.auth-brutal-shell {
+  --brutal-ink: #000000;
+  --brutal-bg: #ffffff;
+  --brutal-border: 2px solid #000000;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--brutal-bg);
+  color: var(--brutal-ink);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.ascii-bg {
+  background-color: #ffffff;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+.brutalist-top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding: 1rem 1.25rem;
+  border-bottom: var(--brutal-border);
+  background: #ffffff;
+}
+
+.brutalist-logo-pre {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+  white-space: pre;
+  color: #000000;
+}
+
+.brutalist-nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+.brutalist-nav-link {
+  color: #000000;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid transparent;
+}
+
+.brutalist-nav-link:hover {
+  border-bottom-color: #000000;
+}
+
+.brutalist-nav-link:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+.auth-brutal-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.brutalist-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 26rem;
+}
+
+.brutalist-mode-btn {
+  flex: 1;
+  min-width: 7rem;
+  padding: 0.55rem 0.75rem;
+  border: var(--brutal-border);
+  border-radius: 0;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.brutalist-mode-btn[aria-pressed='true'] {
+  background: #000000;
+  color: #ffffff;
+}
+
+.brutalist-mode-btn:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+.brutalist-card {
+  width: 100%;
+  max-width: 26rem;
+  border: var(--brutal-border);
+  border-radius: 0;
+  background: #ffffff;
+  padding: 1.25rem 1.25rem 1.5rem;
+}
+
+.brutalist-status-badge {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.6rem;
+  border: var(--brutal-border);
+  border-radius: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #ffffff;
+}
+
+.brutalist-form-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.brutalist-field {
+  margin-bottom: 1rem;
+}
+
+.brutalist-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.brutalist-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.brutalist-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: var(--brutal-border);
+  border-radius: 0;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.brutalist-input::placeholder {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.brutalist-input:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+.brutalist-submit {
+  margin-top: 1.25rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: var(--brutal-border);
+  border-radius: 0;
+  background: #000000;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.brutalist-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.brutalist-submit:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 3px;
+}
+
+.brutalist-error {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.75rem;
+}
+
+.brutalist-success {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.brutalist-footer-links {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.brutalist-footer-links a {
+  color: #000000;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.brutalist-footer-links a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Minimal stubs for /works and /blog (linked from auth nav) */
+.brutal-stub-page {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.brutal-stub-inner {
+  width: 100%;
+  max-width: 32rem;
+  border: var(--brutal-border);
+  padding: 1.5rem;
+  background: #ffffff;
+}
+
+.brutal-stub-h1 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.brutal-stub-link {
+  color: #000000;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.brutal-stub-inner--legal {
+  max-width: 42rem;
+}
+
+.legal-static-prose {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.legal-static-prose h2 {
+  margin: 1.35rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.legal-static-prose h2:first-child {
+  margin-top: 0;
+}
+
+.legal-static-prose p {
+  margin: 0 0 0.65rem;
+}
+
+.legal-static-prose ul {
+  margin: 0 0 0.65rem;
+  padding-left: 1.15rem;
+}
+
+.legal-static-prose li {
+  margin-bottom: 0.35rem;
+}
+
+.legal-static-prose a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.legal-static-meta {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.65rem;
+  border: var(--brutal-border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #ffffff;
+}
+
+.legal-static-back {
+  margin: 1rem 0 0;
+}
+
+.support-card-section {
+  margin: 0 0 0.65rem;
+}
+
+.support-card-section:last-child {
+  margin-bottom: 0;
+}
+
+.support-card-heading {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

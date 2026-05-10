@@ -22,7 +22,6 @@ import {
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { HAPTIC_PATTERNS } from '../../theme/kinetic-mobile-theme.js';
-import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/supabase';
 
 /** Matches ChildDashboard (Time Bank) kinetic cream theme. */
 const TIME_BANK_CREAM = '#F9F9F4';

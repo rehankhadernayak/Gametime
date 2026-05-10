@@ -1,10 +1,10 @@
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import ParentSignUp from './pages/ParentSignUp.jsx';
-import ParentLogin from './pages/ParentLogin.jsx';
+import Auth, { BrutalistPathStub } from './pages/Auth.jsx';
 import ChildLogin from './pages/ChildLogin.jsx';
 import ParentDashboard from './pages/ParentDashboard.jsx';
-import ChildDashboard from './pages/ChildDashboard.jsx';
+import ChildDashboard from './pages/child/ChildDashboard.jsx';
+import ActiveTimer from './pages/child/ActiveTimer.jsx';
 import HomePage from './pages/HomePage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import AiWorkspacePage from './pages/AiWorkspacePage.jsx';
@@ -13,6 +13,8 @@ import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
 import ParentOnboarding from './pages/ParentOnboarding.jsx';
 import AdminPage from './pages/AdminPage.jsx';
+import Privacy from './pages/Privacy.jsx';
+import Support from './pages/Support.jsx';
 import { apiRequest, syncDemoModeFromUrl } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ThemeToggleButton from './components/ThemeToggleButton.jsx';
@@ -130,7 +132,8 @@ export default function App() {
     }
   }
 
-  const showUtility = !auth.token;
+  const onAuthShell = /^\/(login|signup|works|blog)\/?$/.test(location.pathname);
+  const showUtility = !auth.token && !onAuthShell;
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   return (
@@ -157,8 +160,12 @@ export default function App() {
       {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} isAdmin={Boolean(auth.user?.isAdmin)} />}
       <Routes>
         <Route path="/" element={<HomePage auth={auth} />} />
-        <Route path="/signup" element={<ParentSignUp onAuth={handleAuth} />} />
-        <Route path="/login" element={<ParentLogin onAuth={handleAuth} />} />
+        <Route path="/signup" element={<Auth onAuth={handleAuth} />} />
+        <Route path="/login" element={<Auth onAuth={handleAuth} />} />
+        <Route path="/works" element={<BrutalistPathStub title="WORKS" />} />
+        <Route path="/blog" element={<BrutalistPathStub title="BLOG" />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/child-login" element={<ChildLogin onAuth={handleAuth} />} />
         <Route
           path="/parent/dashboard"
@@ -178,6 +185,10 @@ export default function App() {
         <Route
           path="/child/dashboard"
           element={auth.role === 'child' ? <ChildDashboard token={auth.token} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/child/active-timer"
+          element={auth.role === 'child' ? <ActiveTimer token={auth.token} /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/parent/ai"
