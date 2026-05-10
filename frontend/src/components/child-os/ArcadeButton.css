@@ -12,9 +12,7 @@
   color: var(--neon-blue);
   background: transparent;
   border: 2px solid var(--neon-blue);
-  box-shadow:
-    0 0 12px var(--neon-blue-glow),
-    inset 0 0 12px rgba(0, 217, 255, 0.08);
+  box-shadow: none;
   cursor: pointer;
   transition:
     color 0.15s ease,
@@ -26,9 +24,7 @@
 .arcade-button:hover:not(:disabled) {
   color: var(--black-base);
   background: var(--neon-blue);
-  box-shadow:
-    0 0 24px var(--neon-blue-glow-bright),
-    inset 0 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }
 
 .arcade-button:focus-visible {
@@ -49,15 +45,11 @@
 .arcade-button--danger {
   color: var(--neon-red);
   border-color: var(--neon-red);
-  box-shadow:
-    0 0 12px var(--neon-red-glow),
-    inset 0 0 12px rgba(255, 46, 90, 0.06);
+  box-shadow: none;
 }
 
 .arcade-button--danger:hover:not(:disabled) {
   color: var(--black-base);
   background: var(--neon-red);
-  box-shadow:
-    0 0 24px var(--neon-red-glow-bright),
-    inset 0 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }

@@ -14,7 +14,7 @@
   line-height: 0.95;
   letter-spacing: -0.02em;
   color: var(--white-accent);
-  text-shadow: 0 0 40px var(--neon-blue-glow);
+  text-shadow: none;
 }
 
 .child-os-dash__missions-head {
@@ -69,7 +69,7 @@
   padding: 1.25rem;
   background: var(--glass-darker);
   border: 2px solid var(--neon-blue);
-  box-shadow: 0 0 32px var(--neon-blue-glow);
+  box-shadow: none;
 }
 
 .child-os-gaming-modal h2 {

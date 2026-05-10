@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../../components/InputField';
 import Spinner from '../../components/Spinner';
@@ -195,8 +194,8 @@ export default function ParentGamingScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* ── Gradient Header ── */}
-      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>Gaming Controls</Text>
         <Text style={styles.headerSub}>Caps, conversion rates, and game access rules</Text>
 
@@ -216,7 +215,7 @@ export default function ParentGamingScreen() {
             </View>
           ) : null}
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={{ flex: 1 }}
@@ -399,21 +398,31 @@ export default function ParentGamingScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingBottom: 20 },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
   headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
-  headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2, marginBottom: 14 },
+  headerSub: { color: '#525252', fontSize: 13, marginTop: 2, marginBottom: 14 },
   headerStats: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   headerStatPill: {
-    flexDirection: 'column', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 14,
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  headerStatValue: { color: '#fff', fontSize: 16, fontWeight: '900' },
-  headerStatLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
+  headerStatValue: { color: '#000000', fontSize: 16, fontWeight: '900' },
+  headerStatLabel: { color: '#525252', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
   activeSessionPill: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.secondary },
-  activeSessionText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  activeSessionText: { color: '#000000', fontSize: 13, fontWeight: '700' },
 
   content: { padding: 16, gap: 12 },
 

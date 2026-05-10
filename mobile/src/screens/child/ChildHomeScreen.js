@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { MotiView } from 'moti';
@@ -55,26 +54,7 @@ function HeroBalanceCard({ rp, gp }) {
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <LinearGradient
-        colors={colors.gradientHero}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={heroStyles.card}
-      >
-        {/* Animated glow overlay */}
-        <MotiView
-          style={heroStyles.glowOverlay}
-          animate={{
-            opacity: [0.1, 0.3, 0.1],
-          }}
-          transition={{
-            type: 'timing',
-            duration: 3000,
-            loop: true,
-            easing: Easing.inOut(Easing.ease),
-          }}
-        />
-
+      <View style={heroStyles.card}>
         <View style={heroStyles.row}>
           {/* RP Column */}
           <MotiView
@@ -112,7 +92,7 @@ function HeroBalanceCard({ rp, gp }) {
             <Text style={heroStyles.unit}>Gift Points</Text>
           </MotiView>
         </View>
-      </LinearGradient>
+      </View>
     </Animated.View>
   );
 }
@@ -120,25 +100,15 @@ function HeroBalanceCard({ rp, gp }) {
 const heroStyles = StyleSheet.create({
   card: {
     borderRadius: 0,
+    backgroundColor: colors.surface,
     paddingVertical: spacing[6],
     paddingHorizontal: spacing[6],
     borderWidth: 2,
     borderColor: '#000000',
-    shadowColor: '#000000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 0,
-    elevation: 4,
+    elevation: 0,
+    shadowOpacity: 0,
     overflow: 'hidden',
     marginVertical: spacing.md,
-  },
-  glowOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   row: {
     flexDirection: 'row',
