@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api/client";
@@ -405,7 +406,16 @@ export function ParentSignUpForm() {
     <div className={styles.signupRoot}>
       <div className={styles.signupPromo}>
         <div className={styles.signupBrandBlock}>
-          <div className={styles.signupBrandLogo} aria-hidden="true" />
+          <div className={styles.signupBrandLogo} aria-hidden="true">
+            <Image
+              src="/gametime-mark.svg"
+              alt=""
+              width={32}
+              height={32}
+              className={styles.signupBrandLogoImg}
+              draggable={false}
+            />
+          </div>
           <h1 className={styles.signupBrandName}>Gametime</h1>
           <p className={styles.signupBrandTagline}>Family gaming, fairly managed.</p>
         </div>

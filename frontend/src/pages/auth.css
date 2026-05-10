@@ -51,6 +51,19 @@
   color: #000000;
 }
 
+.al-logo-mark .gt-mark,
+.al-card-logo-mark .gt-mark {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+}
+
+.al-card-logo-mark .gt-mark {
+  width: 20px;
+  height: 20px;
+}
+
 .al-logo-mark svg path {
   fill: currentColor;
 }

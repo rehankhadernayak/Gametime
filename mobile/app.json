@@ -29,7 +29,7 @@
       "package": "com.gametime.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#7C3AED"
+        "backgroundColor": "#E9EBED"
       },
       "permissions": [
         "android.permission.RECORD_AUDIO"

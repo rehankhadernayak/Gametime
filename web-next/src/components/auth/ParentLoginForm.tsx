@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
@@ -59,13 +60,14 @@ export function ParentLoginForm() {
         <div className={styles.splitPromoInner}>
           <div className={styles.splitLogoRow}>
             <div className={styles.splitLogoMark} aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path
-                  d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                  fill="white"
-                  fillOpacity="0.9"
-                />
-              </svg>
+              <Image
+                src="/gametime-mark.svg"
+                alt=""
+                width={22}
+                height={22}
+                className={styles.splitLogoImg}
+                draggable={false}
+              />
             </div>
             <span className={styles.splitBrandName}>Gametime</span>
           </div>

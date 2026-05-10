@@ -191,12 +191,16 @@ html[data-app-shell='1bit'] body {
 
 html[data-app-shell='1bit'] .nav-logo-mark {
   border-radius: 0;
-  background: var(--text-main);
+  background: var(--bg-root);
+  border: 2px solid var(--text-main);
 }
 
-html[data-app-shell='1bit'] .nav-logo-mark-inner {
-  border-radius: 0;
-  background: var(--bg-root);
+html[data-app-shell='1bit'] .nav-logo-img {
+  filter: none;
+}
+
+html[data-app-shell='1bit'][data-theme='dark'] .nav-logo-img {
+  filter: invert(1);
 }
 
 html[data-app-shell='1bit'] .nav-brand-name {

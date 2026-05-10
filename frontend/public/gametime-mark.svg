@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+  <title>Gametime</title>
+  <!-- Two interlocking rounded bands forming a right-facing play silhouette -->
+  <path
+    fill="#000000"
+    d="M22 86V38c0-10 8-18 18-18 5 0 10 2 13 6l28 24c6 5 6 15 0 20L53 94c-3 3-8 6-13 6-10 0-18-8-18-18zm16-8c0 2 2 4 4 4 1 0 2-1 3-2l28-24c2-2 2-6 0-8L45 26c-1-1-2-2-3-2-2 0-4 2-4 4v50z"
+  />
+  <path
+    fill="#000000"
+    d="M98 34v48c0 10-8 18-18 18-5 0-10-2-13-6L39 70c-6-5-6-15 0-20l28-24c3-3 8-6 13-6 10 0 18 8 18 18zm-16 8c0-2-2-4-4-4-1 0-2 1-3 2L47 64c-2 2-2 6 0 8l28 24c1 1 2 2 3 2 2 0 4-2 4-4V42z"
+  />
+</svg>

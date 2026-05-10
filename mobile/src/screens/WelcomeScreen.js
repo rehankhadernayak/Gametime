@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
 
@@ -19,9 +19,12 @@ export default function WelcomeScreen({ navigation }) {
         {/* Logo mark */}
         <View style={styles.logoWrap}>
           <View style={styles.logoOuter}>
-            <View style={styles.logoInner}>
-              <Text style={styles.logoEmoji}>GT</Text>
-            </View>
+            <Image
+              source={require('../../assets/gametime-app-icon.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+            />
           </View>
         </View>
 
@@ -113,17 +116,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000000',
   },
-  logoInner: {
-    width: 76,
-    height: 76,
-    borderRadius: 0,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#000000',
+  logoImage: {
+    width: 72,
+    height: 72,
+    tintColor: '#000000',
   },
-  logoEmoji: { fontSize: 38, color: '#000000', fontWeight: '800' },
   appName: {
     fontSize: 46,
     fontWeight: '900',

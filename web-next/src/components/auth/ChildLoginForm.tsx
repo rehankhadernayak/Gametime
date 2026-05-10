@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { apiRequest } from "@/lib/api/client";
@@ -109,13 +110,14 @@ export function ChildLoginForm() {
         <div className={styles.splitPromoInner}>
           <div className={styles.splitLogoRow}>
             <div className={styles.splitLogoMark} aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path
-                  d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                  fill="white"
-                  fillOpacity="0.9"
-                />
-              </svg>
+              <Image
+                src="/gametime-mark.svg"
+                alt=""
+                width={22}
+                height={22}
+                className={styles.splitLogoImg}
+                draggable={false}
+              />
             </div>
             <span className={styles.splitBrandName}>Gametime</span>
           </div>
@@ -134,11 +136,17 @@ export function ChildLoginForm() {
               <span className={styles.splitFeatureIcon} aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path
-                    d="M8 1.5L9.8 6H14.5L10.5 8.8L12 13.5L8 10.8L4 13.5L5.5 8.8L1.5 6H6.2L8 1.5Z"
+                    d="M8 1.5A1.5 1.5 0 0 1 9.5 3v.5H13A1.5 1.5 0 0 1 14.5 5v8A1.5 1.5 0 0 1 13 14.5H3A1.5 1.5 0 0 1 1.5 13V5A1.5 1.5 0 0 1 3 3.5h3.5V3A1.5 1.5 0 0 1 8 1.5Z"
                     stroke="white"
-                    strokeWidth="1.2"
+                    strokeWidth="1.25"
                     strokeLinejoin="round"
-                    fill="rgba(255,255,255,0.15)"
+                  />
+                  <path
+                    d="M5.5 9l1.75 1.75L10.5 7"
+                    stroke="white"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   />
                 </svg>
               </span>

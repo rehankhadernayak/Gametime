@@ -33,7 +33,7 @@ export default function NavBar({ role, token, onLogout, isAdmin, showParentChrom
       {/* Left: Logo */}
       <div className="nav-brand">
         <div className="nav-logo-mark" aria-hidden="true">
-          <div className="nav-logo-mark-inner" />
+          <img className="nav-logo-img gt-mark" src="/gametime-mark.svg" alt="" width={22} height={22} draggable={false} />
         </div>
         <span className="nav-brand-name">Gametime</span>
       </div>

@@ -93,10 +93,7 @@ export default function ChildLogin({ onAuth }) {
         {/* Logo */}
         <div className="al-logo">
           <div className="al-logo-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                fill="currentColor" />
-            </svg>
+            <img className="gt-mark" src="/gametime-mark.svg" alt="" width={22} height={22} draggable={false} />
           </div>
           <span className="al-logo-name">Gametime</span>
         </div>
@@ -112,8 +109,19 @@ export default function ChildLogin({ onAuth }) {
             <li className="al-feature-item">
               <span className="al-feature-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 1.5L9.8 6H14.5L10.5 8.8L12 13.5L8 10.8L4 13.5L5.5 8.8L1.5 6H6.2L8 1.5Z"
-                    stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" fill="none" />
+                  <path
+                    d="M8 1.5A1.5 1.5 0 0 1 9.5 3v.5H13A1.5 1.5 0 0 1 14.5 5v8A1.5 1.5 0 0 1 13 14.5H3A1.5 1.5 0 0 1 1.5 13V5A1.5 1.5 0 0 1 3 3.5h3.5V3A1.5 1.5 0 0 1 8 1.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M5.5 9l1.75 1.75L10.5 7"
+                    stroke="currentColor"
+                    strokeWidth="1.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </span>
               <span className="al-feature-text">
