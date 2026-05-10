@@ -1,0 +1,68 @@
+/* Monochrome Google SSO — matches 1-bit auth surfaces */
+
+.brutalist-oauth-or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: #000000;
+}
+
+.brutalist-oauth-or::before,
+.brutalist-oauth-or::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: #000000;
+}
+
+.brutalist-google-btn {
+  width: 100%;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #000000;
+  border-radius: 0;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+
+.brutalist-google-btn:hover:not(:disabled) {
+  background: #000000;
+  color: #ffffff;
+}
+
+.brutalist-google-btn:focus-visible {
+  outline: 2px solid #000000;
+  outline-offset: 2px;
+}
+
+.brutalist-google-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.brutalist-google-g {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid currentColor;
+  font-weight: 900;
+  font-size: 0.85rem;
+  line-height: 1;
+}

@@ -8,6 +8,7 @@ import {
   deleteAccount,
   exportData,
   forgotPassword,
+  googleAuth,
   login,
   logout,
   me,
@@ -24,6 +25,7 @@ const authLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 20 });
 const resetLimiter = createRateLimiter({ windowMs: 15 * 60_000, maxRequests: 5 });
 
 router.post('/signup', authLimiter, signup);
+router.post('/google', authLimiter, googleAuth);
 router.post('/login', authLimiter, login);
 router.post('/child-login', requireParentAuth, childLogin);
 router.post('/child-login-direct', authLimiter, childDirectLogin);

@@ -78,6 +78,37 @@ export const childSessionLoginSchema = z.object({
   childId: z.string().uuid()
 });
 
+export const googleAuthSchema = z
+  .object({
+    role: z.enum(['parent', 'child']),
+    intent: z.enum(['signin', 'signup']).optional(),
+    idToken: z.string().min(20).optional(),
+    accessToken: z.string().min(10).optional()
+  })
+  .superRefine((data, ctx) => {
+    if (!data.idToken && !data.accessToken) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Provide idToken or accessToken from Google.',
+        path: ['idToken']
+      });
+    }
+    if (data.role === 'parent' && !data.intent) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'intent is required for parent (signin or signup).',
+        path: ['intent']
+      });
+    }
+    if (data.role === 'child' && data.intent) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'intent must not be sent for child Google sign-in.',
+        path: ['intent']
+      });
+    }
+  });
+
 /** Child session proves parent identity to receive a parent JWT (same household). */
 export const childElevateToParentSchema = z.object({
   password: z.string().min(1).max(200)

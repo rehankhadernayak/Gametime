@@ -3,7 +3,10 @@ import { useLocation } from 'react-router-dom';
 import { GametimeLink, useAppRouter } from '../shims/nav.vite.jsx';
 import { apiRequest, isReviewerDemoParentEmail, setDemoMode } from '../api/client.js';
 import BrutalistCard from '../components/BrutalistCard.jsx';
+import BrutalistGoogleAuthBlock from '../components/BrutalistGoogleAuthBlock.jsx';
 import './auth-brutal.css';
+
+const GOOGLE_WEB_CLIENT_ID = String(import.meta.env?.VITE_GOOGLE_CLIENT_ID ?? '').trim();
 
 /** ASCII-style mark (box-drawing); monospace rendering in .brutalist-logo-pre */
 const ASCII_LOGO = `╔══════════════════╗
@@ -149,6 +152,38 @@ export default function Auth({ onAuth }) {
           <h1 className="brutalist-form-title" id="auth-form-title">
             {isRegister ? 'Parent registration' : 'Parent sign in'}
           </h1>
+
+          {GOOGLE_WEB_CLIENT_ID ? (
+            <BrutalistGoogleAuthBlock
+              role="parent"
+              parentIntent={isRegister ? 'signup' : 'signin'}
+              disabled={busy || Boolean(successLine)}
+              onError={setError}
+              onAuthed={async (data) => {
+                setError('');
+                if (isReviewerDemoParentEmail(data.parent?.email)) {
+                  setDemoMode(true);
+                }
+                if (isRegister && typeof window !== 'undefined') {
+                  localStorage.setItem(
+                    'gametime_signup_context',
+                    JSON.stringify({
+                      numChildren: '',
+                      children: [],
+                      primaryConcern: '',
+                      referralSource: '',
+                    }),
+                  );
+                  localStorage.setItem('gametime_new_parent', '1');
+                }
+                setSuccessLine(isRegister ? 'Status: Account created' : 'Status: Signed in with Google');
+                window.setTimeout(() => {
+                  onAuth({ token: data.token, role: 'parent', user: data.parent });
+                  router.push(isRegister ? '/parent/onboarding' : '/parent/ai');
+                }, 320);
+              }}
+            />
+          ) : null}
 
           {isRegister ? (
             <form onSubmit={handleRegister} noValidate>

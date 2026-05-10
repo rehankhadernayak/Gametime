@@ -127,6 +127,14 @@ async function initPostgres(db) {
   await ensureColumnPostgres(db, 'child_profiles', 'screen_time_selection', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_brand', 'TEXT');
   await ensureColumnPostgres(db, 'rewards', 'giftcard_denomination_cents', 'INTEGER');
+  await ensureColumnPostgres(db, 'parent_accounts', 'google_sub', 'TEXT');
+  await ensureColumnPostgres(db, 'child_profiles', 'google_sub', 'TEXT');
+  await db.exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_parent_accounts_google_sub ON parent_accounts (google_sub) WHERE google_sub IS NOT NULL'
+  );
+  await db.exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_child_profiles_google_sub ON child_profiles (google_sub) WHERE google_sub IS NOT NULL'
+  );
 }
 
 async function initSqlite(db) {
@@ -165,6 +173,8 @@ async function initSqlite(db) {
     'gp_balance INTEGER NOT NULL DEFAULT 0 CHECK(gp_balance >= 0 AND gp_balance <= 1000000)'
   );
   await ensureColumnSqlite(db, 'parent_accounts', 'notification_preferences', 'notification_preferences TEXT');
+  await ensureColumnSqlite(db, 'parent_accounts', 'google_sub', 'google_sub TEXT');
+  await ensureColumnSqlite(db, 'child_profiles', 'google_sub', 'google_sub TEXT');
   await ensureColumnSqlite(db, 'tasks', 'gp_points', 'gp_points INTEGER NOT NULL DEFAULT 0 CHECK(gp_points >= 0 AND gp_points <= 1000)');
   await ensureColumnSqlite(db, 'tasks', 'category', "category TEXT NOT NULL DEFAULT 'other'");
   await ensureColumnSqlite(db, 'tasks', 'recurrence_days', 'recurrence_days TEXT');
@@ -198,6 +208,12 @@ async function initSqlite(db) {
      WHERE status = 'Started'`
   );
   await db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_child_profiles_email_unique ON child_profiles(email) WHERE email IS NOT NULL');
+  await db.exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_parent_accounts_google_sub ON parent_accounts(google_sub) WHERE google_sub IS NOT NULL'
+  );
+  await db.exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_child_profiles_google_sub ON child_profiles(google_sub) WHERE google_sub IS NOT NULL'
+  );
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS family_ai_memory (

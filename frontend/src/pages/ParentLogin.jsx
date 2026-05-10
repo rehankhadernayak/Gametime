@@ -2,7 +2,10 @@ import { useState, useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { GametimeLink, useAppRouter } from '../shims/nav.vite.jsx';
 import { apiRequest, isReviewerDemoParentEmail, setDemoMode } from '../api/client.js';
+import BrutalistGoogleAuthBlock from '../components/BrutalistGoogleAuthBlock.jsx';
 import './auth.css';
+
+const GOOGLE_WEB_CLIENT_ID = String(import.meta.env?.VITE_GOOGLE_CLIENT_ID ?? '').trim();
 
 export default function ParentLogin({ onAuth }) {
   const introRootRef = useRef(null);
@@ -143,8 +146,26 @@ export default function ParentLogin({ onAuth }) {
           </div>
 
           <form className="al-form al-form--stack" onSubmit={handleSubmit} noValidate>
+            {GOOGLE_WEB_CLIENT_ID ? (
+              <div data-al-intro="2">
+                <BrutalistGoogleAuthBlock
+                  role="parent"
+                  parentIntent="signin"
+                  disabled={loading}
+                  onError={setError}
+                  onAuthed={async (data) => {
+                    setError('');
+                    if (isReviewerDemoParentEmail(data.parent?.email)) {
+                      setDemoMode(true);
+                    }
+                    onAuth({ token: data.token, role: 'parent', user: data.parent });
+                    router.push('/parent/ai');
+                  }}
+                />
+              </div>
+            ) : null}
             {/* Email */}
-            <div className="al-field" data-al-intro="2">
+            <div className="al-field" data-al-intro="3">
               <label className="al-label" htmlFor="pl-email">Email</label>
               <div className="al-input-wrap">
                 <input
@@ -161,7 +182,7 @@ export default function ParentLogin({ onAuth }) {
             </div>
 
             {/* Password */}
-            <div className="al-field" data-al-intro="3">
+            <div className="al-field" data-al-intro="4">
               <label className="al-label" htmlFor="pl-password">Password</label>
               <div className="al-input-wrap">
                 <input
@@ -196,7 +217,7 @@ export default function ParentLogin({ onAuth }) {
             </div>
 
             {/* Forgot link */}
-            <div className="al-field-footer" data-al-intro="4">
+            <div className="al-field-footer" data-al-intro="5">
               <GametimeLink href="/forgot-password" className="al-link">Forgot password?</GametimeLink>
             </div>
 
@@ -204,7 +225,7 @@ export default function ParentLogin({ onAuth }) {
             {error && <p className="al-error" role="alert">{error}</p>}
 
             {/* Submit */}
-            <button type="submit" className="al-btn" data-al-intro="5" disabled={loading}>
+            <button type="submit" className="al-btn" data-al-intro="6" disabled={loading}>
               {loading ? (
                 <>
                   <svg className="al-spinner" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

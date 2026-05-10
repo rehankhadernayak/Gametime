@@ -1,5 +1,6 @@
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as WebBrowser from 'expo-web-browser';
 import {
   useFonts,
   IBMPlexMono_400Regular,
@@ -14,6 +15,8 @@ import RootNavigator from './src/navigation/RootNavigator';
 import GametimeRootErrorBoundary from './src/components/GametimeRootErrorBoundary';
 import { navigationRef } from './src/navigation/navigationRef';
 import { colors } from './src/theme/colors';
+
+WebBrowser.maybeCompleteAuthSession();
 
 // ─── Foreground notification display ──────────────────────────────────────────
 // By default Expo suppresses notifications while the app is in the foreground.
