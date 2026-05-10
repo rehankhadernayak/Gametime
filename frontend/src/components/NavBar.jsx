@@ -1,4 +1,3 @@
-import './NavBar.css';
 import NotificationBell from './NotificationBell.jsx';
 import { useAppRouter } from 'gametime-web-nav';
 import { useAuth } from '../context/AuthContext.jsx';

@@ -40,7 +40,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   if (sent) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
           <Text style={styles.sentIconLg}>Email sent</Text>
           <Text style={styles.heroTitle}>Check your email</Text>
         </LinearGradient>
@@ -59,7 +59,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
           <Text style={styles.heroIcon}>Reset</Text>
           <Text style={styles.heroTitle}>Reset password</Text>
           <Text style={styles.heroSub}>Enter your email and we'll send a reset link</Text>
@@ -104,8 +104,8 @@ export default function ForgotPasswordScreen({ navigation }) {
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 40, gap: 8 },
   heroIcon: { fontSize: 40, marginBottom: 4 },
-  heroTitle: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: 'rgba(255,255,255,0.78)', fontSize: 14, textAlign: 'center' },
+  heroTitle: { color: '#000000', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: '#525252', fontSize: 14, textAlign: 'center' },
   sentIconLg: { fontSize: 56 },
   sentMessage: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 22 },
   sentEmailBold: { color: colors.primary, fontWeight: '700' },

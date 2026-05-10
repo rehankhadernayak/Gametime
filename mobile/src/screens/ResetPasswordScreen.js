@@ -43,7 +43,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
   if (done) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <LinearGradient colors={['#22C55E', '#16A34A']} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
           <Text style={styles.doneIcon}>Done</Text>
           <Text style={styles.heroTitle}>Password updated!</Text>
         </LinearGradient>
@@ -62,7 +62,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
           <Text style={styles.heroTitle}>New password</Text>
           <Text style={styles.heroSub}>Enter the reset token from your email</Text>
         </LinearGradient>
@@ -119,8 +119,8 @@ export default function ResetPasswordScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 40, gap: 8 },
   heroIcon: { fontSize: 40, marginBottom: 4 },
-  heroTitle: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: 'rgba(255,255,255,0.78)', fontSize: 14, textAlign: 'center' },
+  heroTitle: { color: '#000000', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: '#525252', fontSize: 14, textAlign: 'center' },
   doneIcon: { fontSize: 56 },
   doneMessage: { color: colors.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 22 },
 

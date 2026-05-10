@@ -16,7 +16,7 @@ async function ensureAndroidChannel() {
     name: 'Gametime Notifications',
     importance: Notifications.AndroidImportance.MAX,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#7C3AED'
+    lightColor: '#000000'
   });
 }
 

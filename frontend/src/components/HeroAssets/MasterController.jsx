@@ -8,7 +8,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import '../../styles/kinetic-master-controller.css';
+import '../../styles/master-controller.css';
 
 gsap.registerPlugin(ScrollTrigger);
 

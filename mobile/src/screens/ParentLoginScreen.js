@@ -43,7 +43,7 @@ export default function ParentLoginScreen({ navigation }) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {/* Gradient header */}
-        <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
           <View style={styles.logoWrap}>
             <Text style={styles.logoEmoji}>GT</Text>
           </View>
@@ -110,15 +110,19 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logoWrap: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)',
+    width: 64,
+    height: 64,
+    borderRadius: 0,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
     marginBottom: 8,
   },
-  logoEmoji: { fontSize: 30 },
-  heroTitle: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: 'rgba(255,255,255,0.78)', fontSize: 14 },
+  logoEmoji: { fontSize: 30, color: '#000000', fontWeight: '800' },
+  heroTitle: { color: '#000000', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: '#525252', fontSize: 14 },
 
   card: {
     backgroundColor: colors.surface,

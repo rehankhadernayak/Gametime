@@ -242,7 +242,7 @@ export default function ParentRewardsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* ── Gradient Header ── */}
-      <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>Rewards & Points</Text>
         <Text style={styles.headerSub}>Manage rewards, GP wallet, and point adjustments</Text>
         <View style={styles.gpRow}>
@@ -482,7 +482,7 @@ export default function ParentRewardsScreen() {
 const styles = StyleSheet.create({
   // Header
   header: { paddingHorizontal: 20, paddingBottom: 20 },
-  headerTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
+  headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
   headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2, marginBottom: 14 },
   gpRow: { flexDirection: 'row', gap: 12 },
   gpPill: {
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
   },
-  gpValue: { color: '#fff', fontSize: 20, fontWeight: '900' },
+  gpValue: { color: '#000000', fontSize: 20, fontWeight: '900' },
   gpLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600' },
 
   content: { padding: 16, gap: 10 },
