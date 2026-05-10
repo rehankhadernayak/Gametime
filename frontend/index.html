@@ -13,8 +13,10 @@
     <!-- Apply saved theme before React renders to prevent dark-flash on light mode -->
     <script>
       (function () {
+        document.documentElement.setAttribute('data-app-shell', '1bit');
         var t = localStorage.getItem('gametime_theme');
-        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+        if (t !== 'light' && t !== 'dark') t = 'light';
+        document.documentElement.setAttribute('data-theme', t);
       })();
     </script>
   </head>

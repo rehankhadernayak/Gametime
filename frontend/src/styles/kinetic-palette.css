@@ -62,9 +62,9 @@
   --shadow-neon-blue-bright: 0 0 40px var(--neon-blue-glow-bright);
 }
 
-/* ===== APPLY ROOT COLORS ===== */
-html,
-body {
+/* ===== APPLY ROOT COLORS (kinetic landing / marketing only) ===== */
+html:not([data-app-shell='1bit']),
+html:not([data-app-shell='1bit']) body {
   background-color: var(--black-base);
   color: var(--white-accent);
 }

@@ -1,0 +1,216 @@
+/**
+ * 1-bit product shell — monochrome tokens + document surface.
+ * Loaded after kinetic + app tokens so `html[data-app-shell='1bit']` wins.
+ */
+
+html[data-app-shell='1bit'][data-theme='light'] {
+  color-scheme: light;
+
+  --bg-root: #ffffff;
+  --bg-shell: #ffffff;
+  --bg-panel: #ffffff;
+  --bg-panel-2: #ffffff;
+  --bg-panel-3: #f4f4f4;
+
+  --bg-action: #000000;
+  --bg-action-hover: #1a1a1a;
+  --bg-muted-action: rgba(0, 0, 0, 0.06);
+  --bg-muted-action-hover: rgba(0, 0, 0, 0.12);
+  --bg-danger: #000000;
+
+  --gradient-brand: linear-gradient(180deg, #000000 0%, #000000 100%);
+  --gradient-child: linear-gradient(180deg, #000000 0%, #000000 100%);
+  --gradient-success: linear-gradient(180deg, #000000 0%, #000000 100%);
+  --gradient-gold: linear-gradient(180deg, #000000 0%, #000000 100%);
+  --gradient-dark: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+
+  --color-energy: #000000;
+  --color-energy-dark: #000000;
+  --color-energy-surface: rgba(0, 0, 0, 0.06);
+
+  --color-success: #000000;
+  --color-success-dark: #000000;
+  --color-success-surface: rgba(0, 0, 0, 0.06);
+  --color-warning: #000000;
+  --color-warning-dark: #000000;
+  --color-warning-surface: rgba(0, 0, 0, 0.06);
+  --color-error: #000000;
+  --color-error-dark: #000000;
+  --color-error-surface: rgba(0, 0, 0, 0.06);
+  --color-info: #000000;
+  --color-info-surface: rgba(0, 0, 0, 0.06);
+
+  --color-xp-gold: #000000;
+  --color-xp-gold-surface: rgba(0, 0, 0, 0.06);
+  --color-level-teal: #000000;
+  --color-streak: #000000;
+
+  --text-main: #000000;
+  --text-sub: #1a1a1a;
+  --text-dim: #404040;
+
+  --line: #000000;
+  --line-soft: #cccccc;
+  --line-strong: #000000;
+
+  --green: #000000;
+  --amber: #000000;
+  --red: #000000;
+  --cyan: #000000;
+
+  --glass-bg: #ffffff;
+  --glass-border: #000000;
+
+  --shadow-sm: 0 1px 0 #000000;
+  --shadow: 0 2px 0 #000000;
+  --shadow-lg: 0 3px 0 #000000;
+  --shadow-xl: 0 4px 0 #000000;
+
+  --focus: 0 0 0 2px #000000;
+  --focus-energy: 0 0 0 2px #000000;
+  --sidebar-glass-bg: #ffffff;
+}
+
+html[data-app-shell='1bit'] {
+  background-color: var(--bg-root);
+}
+
+html[data-app-shell='1bit'][data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-root: #000000;
+  --bg-shell: #000000;
+  --bg-panel: #000000;
+  --bg-panel-2: #0a0a0a;
+  --bg-panel-3: #111111;
+
+  --bg-action: #ffffff;
+  --bg-action-hover: #e5e5e5;
+  --bg-muted-action: rgba(255, 255, 255, 0.08);
+  --bg-muted-action-hover: rgba(255, 255, 255, 0.16);
+  --bg-danger: #ffffff;
+
+  --gradient-brand: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+  --gradient-child: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+  --gradient-success: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+  --gradient-gold: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+  --gradient-dark: linear-gradient(180deg, #000000 0%, #000000 100%);
+
+  --color-energy: #ffffff;
+  --color-energy-dark: #ffffff;
+  --color-energy-surface: rgba(255, 255, 255, 0.08);
+
+  --color-success: #ffffff;
+  --color-success-dark: #ffffff;
+  --color-success-surface: rgba(255, 255, 255, 0.08);
+  --color-warning: #ffffff;
+  --color-warning-dark: #ffffff;
+  --color-warning-surface: rgba(255, 255, 255, 0.08);
+  --color-error: #ffffff;
+  --color-error-dark: #ffffff;
+  --color-error-surface: rgba(255, 255, 255, 0.08);
+  --color-info: #ffffff;
+  --color-info-surface: rgba(255, 255, 255, 0.08);
+
+  --color-xp-gold: #ffffff;
+  --color-xp-gold-surface: rgba(255, 255, 255, 0.08);
+  --color-level-teal: #ffffff;
+  --color-streak: #ffffff;
+
+  --text-main: #ffffff;
+  --text-sub: #e5e5e5;
+  --text-dim: #a3a3a3;
+
+  --line: #ffffff;
+  --line-soft: #404040;
+  --line-strong: #ffffff;
+
+  --green: #ffffff;
+  --amber: #ffffff;
+  --red: #ffffff;
+  --cyan: #ffffff;
+
+  --glass-bg: #000000;
+  --glass-border: #ffffff;
+
+  --shadow-sm: 0 1px 0 #ffffff;
+  --shadow: 0 2px 0 #ffffff;
+  --shadow-lg: 0 3px 0 #ffffff;
+  --shadow-xl: 0 4px 0 #ffffff;
+
+  --focus: 0 0 0 2px #ffffff;
+  --focus-energy: 0 0 0 2px #ffffff;
+  --sidebar-glass-bg: #000000;
+}
+
+html[data-app-shell='1bit'] body {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  color: var(--text-main);
+  background-color: var(--bg-root);
+}
+
+html[data-app-shell='1bit'] .nav-logo-mark {
+  border-radius: 0;
+  background: var(--text-main);
+}
+
+html[data-app-shell='1bit'] .nav-logo-mark-inner {
+  border-radius: 0;
+  background: var(--bg-root);
+}
+
+html[data-app-shell='1bit'] .nav-brand-name {
+  background: none;
+  -webkit-text-fill-color: var(--text-main);
+  color: var(--text-main);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+html[data-app-shell='1bit'][data-theme='light'] .nav,
+html[data-app-shell='1bit'][data-theme='dark'] .nav {
+  background: var(--bg-panel);
+  border-bottom: 2px solid var(--line);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-app-shell='1bit'] .nav-icon-btn {
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--bg-panel);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-app-shell='1bit'] .nav-icon-btn:hover {
+  background: var(--bg-muted-action-hover);
+  border-color: var(--line);
+}
+
+html[data-app-shell='1bit'] .nav-role-pill.parent,
+html[data-app-shell='1bit'] .nav-role-pill.child {
+  border-radius: 0;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border: 2px solid var(--line);
+}
+
+html[data-app-shell='1bit'][data-theme='dark'] .nav-role-pill.parent,
+html[data-app-shell='1bit'][data-theme='dark'] .nav-role-pill.child {
+  background: var(--bg-panel);
+  color: var(--text-main);
+  border-color: var(--line);
+}
+
+html[data-app-shell='1bit'] h1,
+html[data-app-shell='1bit'] h2,
+html[data-app-shell='1bit'] h3,
+html[data-app-shell='1bit'] h4,
+html[data-app-shell='1bit'] h5,
+html[data-app-shell='1bit'] h6 {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
