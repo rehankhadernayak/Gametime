@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MobileButton } from '../../components/MobileButton';
