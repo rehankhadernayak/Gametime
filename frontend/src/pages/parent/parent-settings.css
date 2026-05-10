@@ -1,0 +1,192 @@
+/* 1-bit parent settings / ledger — matches auth-brutal DNA */
+
+.parent-brutal-settings {
+  --led-ink: #000000;
+  --led-bg: #ffffff;
+  --led-border: 2px solid #000000;
+
+  min-height: 100vh;
+  background: var(--led-bg);
+  color: var(--led-ink);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.parent-led-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.parent-led-scroll.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.parent-led-scroll.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.parent-led-section-code {
+  margin: 0 0 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.parent-led-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.parent-led-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.65rem 0;
+  border-bottom: var(--led-border);
+}
+
+.parent-led-row-key {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.parent-led-row-val {
+  font-size: 0.875rem;
+  text-align: right;
+  word-break: break-word;
+}
+
+.parent-brutal-switch {
+  position: relative;
+  width: 3rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  border: var(--led-border);
+  background: var(--led-bg);
+  cursor: pointer;
+  padding: 0;
+}
+
+.parent-brutal-switch:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.parent-brutal-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 4px);
+  height: calc(100% - 4px);
+  background: var(--led-ink);
+  transition: transform 0.15s ease;
+}
+
+.parent-brutal-switch.on .parent-brutal-switch-thumb {
+  transform: translateX(100%);
+}
+
+.parent-brutal-choice {
+  border: var(--led-border);
+  background: var(--led-bg);
+  color: var(--led-ink);
+  padding: 0.45rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.parent-brutal-choice:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.parent-brutal-choice.active {
+  background: var(--led-ink);
+  color: var(--led-bg);
+}
+
+.parent-brutal-exec-btn {
+  margin-top: 1rem;
+  width: 100%;
+  border: var(--led-border);
+  background: var(--led-ink);
+  color: var(--led-bg);
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.parent-brutal-exec-btn:hover:not(:disabled) {
+  background: var(--led-bg);
+  color: var(--led-ink);
+}
+
+.parent-brutal-exec-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.parent-brutal-secondary-btn {
+  border: var(--led-border);
+  background: var(--led-bg);
+  color: var(--led-ink);
+  padding: 0.5rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.parent-brutal-secondary-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.parent-brutal-danger-btn {
+  border: var(--led-border);
+  background: var(--led-bg);
+  color: var(--led-ink);
+  padding: 0.5rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.parent-brutal-danger-btn:hover {
+  background: var(--led-ink);
+  color: var(--led-bg);
+}
+
+.parent-roster-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .parent-roster-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
