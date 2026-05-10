@@ -52,9 +52,11 @@ function LandingNav({ auth }) {
       className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-black pb-4"
       aria-label="Site navigation"
     >
-      <pre className="leading-none text-[0.45rem] sm:text-[0.55rem] md:text-[0.65rem] overflow-x-auto max-w-full">
-        {ASCII_MARK}
-      </pre>
+      <div className="shrink-0">
+        <pre className="leading-none text-[8px] md:text-[10px] overflow-visible whitespace-pre">
+          {ASCII_MARK}
+        </pre>
+      </div>
       <div className="flex flex-wrap gap-6 text-sm font-bold uppercase tracking-widest">
         <a href="#about" className="hover:underline underline-offset-4">
           /about
@@ -100,10 +102,10 @@ export default function HomePage({ auth }) {
     <div className="relative min-h-screen bg-white text-black font-mono p-4 md:p-8">
       <div className="ascii-bg" aria-hidden />
 
-      <main className="max-w-3xl mx-auto space-y-24 mb-32">
+      <main className="max-w-3xl mx-auto space-y-8 md:space-y-12 mb-12">
         <LandingNav auth={auth} />
 
-        <section className="space-y-6 pt-8 md:pt-12">
+        <section className="space-y-6 pt-4 md:pt-8">
           <div className="inline-block border-2 border-black p-2 text-xs font-bold uppercase bg-black text-white">
             Status: {auth.token ? 'Signed in' : 'Accepting new families'}
           </div>
@@ -195,7 +197,7 @@ export default function HomePage({ auth }) {
           </div>
         </FadeSection>
 
-        <FadeSection id="features" className="space-y-12 scroll-mt-24">
+        <FadeSection id="features" className="space-y-8 scroll-mt-24">
           <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">03. Product surface</h2>
           {[
             {
@@ -300,7 +302,7 @@ export default function HomePage({ auth }) {
 
         <FadeSection id="contact" className="space-y-6 scroll-mt-24">
           <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">06. Transmission</h2>
-          <div className="border-2 border-black p-8 text-center space-y-4">
+          <div className="border-2 border-black p-6 md:p-8 text-center space-y-4">
             <p className="text-xl">Need help or a demo walkthrough?</p>
             <p className="text-2xl font-bold">
               <Link to="/support" className="hover:underline decoration-4">
@@ -322,7 +324,7 @@ export default function HomePage({ auth }) {
         </FadeSection>
 
         <FadeSection className="space-y-6">
-          <div className="border-t-2 border-black pt-8 flex flex-col md:flex-row gap-4 items-center">
+          <div className="border-t-2 border-black pt-6 flex flex-col md:flex-row gap-4 items-center">
             <div className="flex-1">
               <h3 className="font-bold uppercase">The ledger</h3>
               <p className="text-xs text-neutral-600">Product updates — no fluff, no spam.</p>
@@ -358,7 +360,7 @@ export default function HomePage({ auth }) {
           </div>
         </FadeSection>
 
-        <footer className="border-t-2 border-black pt-12 text-xs flex flex-col md:flex-row justify-between gap-4 opacity-70">
+        <footer className="border-t-2 border-black pt-6 md:pt-8 text-xs flex flex-col md:flex-row justify-between gap-4 opacity-70">
           <div>
             © {new Date().getFullYear()} Gametime · Singapore
             <br />
