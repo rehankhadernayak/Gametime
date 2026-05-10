@@ -181,7 +181,24 @@ function ParentStack() {
       <ParentStackNav.Screen
         name="Account"
         component={AccountScreen}
-        options={{ headerShown: true, title: 'Account', headerStyle: { backgroundColor: colors.surface }, headerTitleStyle: { color: colors.text, fontWeight: '700' }, headerTintColor: colors.primaryDark }}
+        options={{
+          headerShown: true,
+          title: '/// SETTINGS ///',
+          headerStyle: {
+            backgroundColor: ONE_BIT.background,
+            borderBottomWidth: ONE_BIT.borderWidth,
+            borderBottomColor: ONE_BIT.ink,
+          },
+          headerTitleStyle: {
+            color: ONE_BIT.ink,
+            fontFamily: ONE_BIT.fontBold,
+            fontSize: 11,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          },
+          headerTintColor: ONE_BIT.ink,
+          headerShadowVisible: false,
+        }}
       />
       <ParentStackNav.Screen
         name="ParentMobileKinetic"
@@ -282,10 +299,21 @@ function ChildStack() {
         component={AccountScreen}
         options={{
           headerShown: true,
-          title: 'Account',
-          headerStyle: { backgroundColor: colors.surface },
-          headerTitleStyle: { color: colors.text, fontWeight: '700' },
-          headerTintColor: colors.childAccentDark,
+          title: '/// SETTINGS ///',
+          headerStyle: {
+            backgroundColor: ONE_BIT.background,
+            borderBottomWidth: ONE_BIT.borderWidth,
+            borderBottomColor: ONE_BIT.ink,
+          },
+          headerTitleStyle: {
+            color: ONE_BIT.ink,
+            fontFamily: ONE_BIT.fontBold,
+            fontSize: 11,
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          },
+          headerTintColor: ONE_BIT.ink,
+          headerShadowVisible: false,
         }}
       />
       <ChildStackNav.Screen

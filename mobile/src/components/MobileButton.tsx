@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, type PressableProps, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
-import { ONE_BIT, monoFont } from '../theme/oneBit';
+import { ONE_BIT } from '../theme/oneBit';
+import { MonoBold } from '../styles/global';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
 
@@ -42,7 +43,7 @@ export function MobileButton({
             variant === 'primary' && styles.textPrimary,
             variant === 'secondary' && styles.textSecondary,
             variant === 'ghost' && styles.textGhost,
-            { fontFamily: monoFont.semibold },
+            MonoBold,
             textStyle,
           ]}
         >

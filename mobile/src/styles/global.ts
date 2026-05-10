@@ -1,6 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { COLORS, MonoBold } from './theme';
 
+export { MonoReg, MonoBold } from './theme';
+
 export const globalStyles = StyleSheet.create({
   BrutalBox: {
     borderWidth: 2,

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TextInput, View, type TextInputProps, type ViewStyle } from 'react-native';
-import { ONE_BIT, monoFont } from '../theme/oneBit';
+import { ONE_BIT } from '../theme/oneBit';
+import { MonoBold, MonoReg } from '../styles/global';
 
 type Props = TextInputProps & {
   label?: string;
@@ -11,12 +12,12 @@ export function MobileInput({ label, error = '', containerStyle, style, ...props
   return (
     <View style={[styles.wrap, containerStyle]}>
       {label ? (
-        <Text style={[styles.label, { fontFamily: monoFont.semibold }]}>{label}</Text>
+        <Text style={[styles.label, MonoBold]}>{label}</Text>
       ) : null}
       <TextInput
         style={[
           styles.input,
-          { fontFamily: monoFont.regular },
+          MonoReg,
           error ? styles.inputError : null,
           style,
         ]}
@@ -25,7 +26,7 @@ export function MobileInput({ label, error = '', containerStyle, style, ...props
         {...props}
       />
       {error ? (
-        <Text style={[styles.errorText, { fontFamily: monoFont.regular }]}>{error}</Text>
+        <Text style={[styles.errorText, MonoReg]}>{error}</Text>
       ) : null}
     </View>
   );
