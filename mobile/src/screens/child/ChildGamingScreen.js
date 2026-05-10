@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Platform, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import Card from '../../components/Card';
@@ -13,10 +13,12 @@ import StatusPill from '../../components/StatusPill';
 import { GamingBlockOverlay } from '../../components/GamingBlockOverlay';
 import { useGamingBlocker } from '../../hooks/useGamingBlocker';
 import { useAuth } from '../../context/AuthContext';
+import { useChildScreenTime } from '../../context/ChildScreenTimeContext';
 import { apiRequest } from '../../api/client';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 import { getErrorMessage, sanitizeText } from '../../utils/format';
+import { applyShieldWhenSessionEnds, removeShieldWhenSessionStarts } from '../../utils/screenTimeShield';
 import { syncSystemRestrictions } from '../../utils/syncSystemRestrictions';
 
 const ALLOWED_PLATFORMS = ['iOS', 'Android', 'Windows', 'macOS', 'Web', 'Console', 'Other', 'Unknown'];
@@ -99,6 +101,7 @@ const activeStyles = StyleSheet.create({
 export default function ChildGamingScreen() {
   const navigation = useNavigation();
   const { token } = useAuth();
+  const { screenTimeSelectionJson } = useChildScreenTime();
   const [overview, setOverview] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [blockedGames, setBlockedGames] = useState([]);
@@ -172,6 +175,9 @@ export default function ChildGamingScreen() {
         setMessage(response.message || `Session started! ${response.grantedMinutes} minutes granted.`);
         setForm((prev) => ({ ...prev, gameName: '' }));
         if (response.sessionId && response.expiresAt && response.grantedMinutes != null) {
+          if (Platform.OS === 'ios') {
+            await removeShieldWhenSessionStarts();
+          }
           navigation.navigate('ChildSession', {
             sessionId: response.sessionId,
             expiresAt: response.expiresAt,
@@ -194,6 +200,7 @@ export default function ChildGamingScreen() {
     setMessage('');
     setError('');
     try {
+      await applyShieldWhenSessionEnds(screenTimeSelectionJson);
       await apiRequest('/gaming/sessions/end', {
         method: 'POST',
         token,
