@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { LayoutGroup, motion } from 'framer-motion';
 import { useAppRouter } from 'gametime-web-nav';
 import { API_BASE, apiRequest, isDemoMode, isReviewerDemoParentEmail, setDemoMode } from '../api/client.js';
@@ -84,6 +86,8 @@ import fortniteCardImage from '../assets/giftcards/fortnite.svg';
 import minecraftCardImage from '../assets/giftcards/minecraft.svg';
 import './ParentDashboard.css';
 
+gsap.registerPlugin(useGSAP);
+
 const SETTINGS_KEY = 'gametime_parent_settings';
 const PARENT_GAME_RULE_SUGGESTIONS = [
   { id: 'block-roblox-ios', name: 'Roblox', platform: 'iOS', status: 'Blocked' },
@@ -146,6 +150,7 @@ function pickGiftcardImage(card) {
 export default function ParentDashboard({ token, onSwitchToChild, parentName }) {
   /* ── Shell navigation ref - lets us drive DashboardShell section changes ── */
   const shellRef = useRef({});
+  const homeStatsGridRef = useRef(null);
   const router = useAppRouter();
 
 
@@ -679,6 +684,27 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
 
   const showReviewerDemoTools = isReviewerDemoParentEmail(parentEmail);
 
+  useGSAP(
+    () => {
+      if (loading) return;
+      const root = homeStatsGridRef.current;
+      if (!root) return;
+      const cards = root.querySelectorAll('.stat-card');
+      if (!cards.length) return;
+      if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+      gsap.from(cards, {
+        opacity: 0,
+        y: 18,
+        duration: 0.52,
+        stagger: 0.075,
+        ease: 'power2.out',
+      });
+    },
+    { scope: homeStatsGridRef, dependencies: [loading], revertOnUpdate: true },
+  );
+
   const sections = [
     {
       id: 'home',
@@ -775,12 +801,16 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               </div>
             )}
             {!loading && (
-              <div className="stats-grid">
+              <div ref={homeStatsGridRef} className="stats-grid">
                 {quickStatCards.map((card, index) => (
                   <div key={card.key} className={`stat-card tone-${(index % 6) + 1}`}>
-                    <div className="stat-icon" aria-hidden="true"><MetricIcon name={card.icon} /></div>
-                    <span className="stat-label">{card.label}</span>
-                    <strong>{quickStats[card.key]}</strong>
+                    <div className="stat-card__head">
+                      <span className="stat-label">{card.label}</span>
+                      <div className="stat-icon" aria-hidden="true">
+                        <MetricIcon name={card.icon} />
+                      </div>
+                    </div>
+                    <strong className="stat-value">{quickStats[card.key]}</strong>
                   </div>
                 ))}
               </div>
