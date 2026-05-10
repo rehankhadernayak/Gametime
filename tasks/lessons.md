@@ -242,3 +242,9 @@
 **Rule:** When adding imports to a file, scan for an existing import from the same module and extend that block instead of appending a second duplicate line.
 
 ---
+
+### 2026-05-10 — Expo local config plugins: use require() for @expo/config-plugins
+**What happened:** A local plugin using ESM `import { createRunOncePlugin, ... } from '@expo/config-plugins'` made `npx expo config` fail with "does not provide an export named 'createRunOncePlugin'" because the package is CommonJS and named ESM interop breaks under Expo’s plugin import path.
+**Rule:** Implement local Expo config plugins that use `@expo/config-plugins` with CommonJS `require('@expo/config-plugins')` and `module.exports`, unless the project explicitly uses a pattern verified to support ESM named imports.
+
+---
