@@ -113,9 +113,8 @@ const headerStyles = StyleSheet.create({
 function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
   return (
     <ScrollView contentContainerStyle={s1.container} showsVerticalScrollIndicator={false}>
-      {/* Task card — purple gradient via layered views */}
+      {/* Task card — flat mono panel */}
       <View style={s1.card}>
-        <View style={s1.cardGradient} />
         <View style={s1.rpPill}>
           <Text style={s1.rpText}>+{taskPoints} RP</Text>
         </View>
@@ -127,7 +126,7 @@ function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
 
       {/* Photo button */}
       <TouchableOpacity style={[s1.choiceBtn, s1.photoBtn]} onPress={onPhoto} activeOpacity={0.8}>
-        <View style={[s1.choiceIcon, { backgroundColor: '#F3E8FF' }]}>
+        <View style={[s1.choiceIcon, { backgroundColor: '#F5F5F5', borderWidth: 2, borderColor: colors.border }]}>
           <Text style={s1.choiceIconText}>CAM</Text>
         </View>
         <View style={s1.choiceText}>
@@ -139,7 +138,7 @@ function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
 
       {/* Video button */}
       <TouchableOpacity style={[s1.choiceBtn, s1.videoBtn]} onPress={onVideo} activeOpacity={0.8}>
-        <View style={[s1.choiceIcon, { backgroundColor: '#DBEAFE' }]}>
+        <View style={[s1.choiceIcon, { backgroundColor: '#F5F5F5', borderWidth: 2, borderColor: colors.border }]}>
           <Text style={s1.choiceIconText}>VID</Text>
         </View>
         <View style={s1.choiceText}>
@@ -159,38 +158,33 @@ function TaskOverview({ taskTitle, taskPoints, onPhoto, onVideo, onLibrary }) {
 const s1 = StyleSheet.create({
   container: { padding: spacing[5], gap: spacing[5] },
   card: {
-    borderRadius: 24,
-    backgroundColor: colors.childAccent,
+    borderRadius: 0,
+    backgroundColor: colors.surface,
     padding: spacing[6],
     overflow: 'hidden',
-    shadowColor: colors.childAccent,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  cardGradient: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.childAccentDark,
-    opacity: 0.4,
-    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: colors.border,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   rpPill: {
     position: 'absolute',
     top: spacing[4],
     right: spacing[4],
-    backgroundColor: '#FFD700',
-    borderRadius: 9999,
+    backgroundColor: '#000000',
+    borderRadius: 0,
     paddingHorizontal: 14,
     paddingVertical: 6,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  rpText: { fontSize: 13, fontWeight: '800', color: colors.childAccent },
+  rpText: { fontSize: 13, fontWeight: '800', color: '#FFFFFF' },
   cardEmoji: { fontSize: 44, marginBottom: spacing[2] },
-  cardTitle: { fontSize: 22, fontWeight: '900', color: '#FFFFFF', marginBottom: spacing[2] },
-  cardSub: { fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 20 },
+  cardTitle: { fontSize: 22, fontWeight: '900', color: colors.text, marginBottom: spacing[2] },
+  cardSub: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
   motivate: {
     textAlign: 'center',
-    color: colors.childAccent,
+    color: colors.text,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -199,21 +193,18 @@ const s1 = StyleSheet.create({
     alignItems: 'center',
     gap: spacing[4],
     backgroundColor: colors.surface,
-    borderRadius: 20,
+    borderRadius: 0,
     padding: spacing[4],
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   photoBtn: { borderColor: colors.childAccent },
   videoBtn: { borderColor: colors.primary },
   choiceIcon: {
     width: 52,
     height: 52,
-    borderRadius: 26,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

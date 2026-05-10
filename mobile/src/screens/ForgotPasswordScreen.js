@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import InputField from '../components/InputField';
 import { apiRequest } from '../api/client';
@@ -40,10 +39,10 @@ export default function ForgotPasswordScreen({ navigation }) {
   if (sent) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 48, paddingBottom: 60 }]}>
           <Text style={styles.sentIconLg}>Email sent</Text>
           <Text style={styles.heroTitle}>Check your email</Text>
-        </LinearGradient>
+        </View>
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
           <Text style={styles.sentMessage}>
             If <Text style={styles.sentEmailBold}>{email.trim()}</Text> is registered, we've sent a password reset link. Check your inbox and spam folder.
@@ -59,11 +58,11 @@ export default function ForgotPasswordScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 48 }]}>
+        <View style={[styles.hero, { paddingTop: insets.top + 48 }]}>
           <Text style={styles.heroIcon}>Reset</Text>
           <Text style={styles.heroTitle}>Reset password</Text>
           <Text style={styles.heroSub}>Enter your email and we'll send a reset link</Text>
-        </LinearGradient>
+        </View>
 
         <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
           {error ? (
@@ -102,7 +101,15 @@ export default function ForgotPasswordScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 40, gap: 8 },
+  hero: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    gap: 8,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
   heroIcon: { fontSize: 40, marginBottom: 4 },
   heroTitle: { color: '#000000', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
   heroSub: { color: '#525252', fontSize: 14, textAlign: 'center' },
@@ -111,9 +118,16 @@ const styles = StyleSheet.create({
   sentEmailBold: { color: colors.primary, fontWeight: '700' },
 
   card: {
-    backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border,
-    margin: 16, padding: 20, gap: 12, marginTop: -20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
+    backgroundColor: colors.surface,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: colors.border,
+    margin: 16,
+    padding: 20,
+    gap: 12,
+    marginTop: -20,
+    elevation: 0,
+    shadowOpacity: 0,
   },
 
   errorBanner: {

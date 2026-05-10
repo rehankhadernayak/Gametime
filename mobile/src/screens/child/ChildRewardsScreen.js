@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Spinner from '../../components/Spinner';
 import { apiRequest } from '../../api/client';
@@ -111,8 +110,8 @@ export default function ChildRewardsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* ── Gradient Header ── */}
-      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>Rewards</Text>
         <Text style={styles.headerSub}>Spend your points on rewards and gift cards</Text>
 
@@ -127,7 +126,7 @@ export default function ChildRewardsScreen() {
             <Text style={[styles.balanceLabel, styles.balanceLabelGold]}>GP</Text>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         style={{ flex: 1 }}
@@ -153,11 +152,11 @@ export default function ChildRewardsScreen() {
         {/* ── Revealed Code ── */}
         {revealedCode ? (
           <View style={styles.revealCard}>
-            <LinearGradient colors={['#000000', '#000000']} style={styles.revealGradient}>
+            <View style={styles.revealGradient}>
               <Text style={styles.revealTitle}>Your Gift Card</Text>
               <Text style={styles.revealName}>{revealedCode.rewardTitle || revealedCode.giftcardName || 'Gift Card'}</Text>
               {revealedCode.skuName ? <Text style={styles.revealSku}>{revealedCode.skuName}</Text> : null}
-            </LinearGradient>
+            </View>
             <View style={styles.revealBody}>
               <Text style={styles.revealCodeLabel}>Code</Text>
               <Text style={styles.revealCode}>{revealedCode.code}</Text>
@@ -300,26 +299,36 @@ function RewardCard({ reward, currency, userBalance, onRedeem, busy }) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingBottom: 20 },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: colors.bgRoot,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
   headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
-  headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2, marginBottom: 16 },
+  headerSub: { color: '#525252', fontSize: 13, marginTop: 2, marginBottom: 16 },
   balanceRow: { flexDirection: 'row', gap: 12 },
   balancePill: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  balancePillGold: { backgroundColor: 'rgba(245,158,11,0.25)', borderColor: 'rgba(245,158,11,0.5)' },
-  balanceValue: { color: '#fff', fontSize: 22, fontWeight: '900' },
-  balanceValueGold: { color: '#FCD34D' },
-  balanceLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: '700' },
-  balanceLabelGold: { color: '#FCD34D' },
+  balancePillGold: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  balanceValue: { color: '#000000', fontSize: 22, fontWeight: '900' },
+  balanceValueGold: { color: '#000000' },
+  balanceLabel: { color: '#525252', fontSize: 13, fontWeight: '700' },
+  balanceLabelGold: { color: '#525252' },
 
   content: { padding: 16, gap: 10 },
 
@@ -342,16 +351,15 @@ const styles = StyleSheet.create({
 
   // Revealed code
   revealCard: {
-    borderRadius: 16,
+    borderRadius: 0,
     overflow: 'hidden',
-    shadowColor: colors.xpGold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 6,
+    borderWidth: 2,
+    borderColor: '#000000',
+    elevation: 0,
+    shadowOpacity: 0,
     marginBottom: 4,
   },
-  revealGradient: { padding: 16 },
+  revealGradient: { padding: 16, backgroundColor: '#000000' },
   revealTitle: { color: '#fff', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   revealName: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 2 },
   revealSku: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 2 },

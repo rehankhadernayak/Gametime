@@ -58,7 +58,7 @@ const colors = {
   gradientSuccess: ['#FFFFFF', '#F5F5F5'],
   gradientGold: ['#FFFFFF', '#F5F5F5'],
   gradientDark: ['#FFFFFF', '#F5F5F5'],
-  /** Flat headers — use with LinearGradient for layout compat */
+  /** Solid hero fills — flat headers use plain Views */
   gradientHero: ['#FFFFFF', '#FFFFFF'],
 
   stateActive: '#000000',
