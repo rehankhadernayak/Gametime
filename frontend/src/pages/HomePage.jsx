@@ -550,11 +550,15 @@ export default function HomePage({ auth }) {
                   <div className="hp-footer-col-title">Company</div>
                   <span className="hp-footer-link hp-footer-link--muted">About</span>
                   <span className="hp-footer-link hp-footer-link--muted">Blog</span>
-                  <span className="hp-footer-link hp-footer-link--muted">Contact</span>
+                  <Link to="/support" className="hp-footer-link hp-motion-hover">
+                    Contact
+                  </Link>
                 </div>
                 <div className="hp-footer-col">
                   <div className="hp-footer-col-title">Legal</div>
-                  <span className="hp-footer-link hp-footer-link--muted">Privacy (PDPA)</span>
+                  <Link to="/privacy" className="hp-footer-link hp-motion-hover">
+                    Privacy (PDPA)
+                  </Link>
                   <span className="hp-footer-link hp-footer-link--muted">Terms of Use</span>
                   <span className="hp-footer-link hp-footer-link--muted">Cookie Policy</span>
                 </div>
