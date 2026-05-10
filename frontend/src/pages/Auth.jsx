@@ -11,21 +11,6 @@ const ASCII_LOGO = `╔══════════════════╗
 ║  [ FAMILY v1 ]   ║
 ╚══════════════════╝`;
 
-function BrutalistPathStub({ title }) {
-  return (
-    <div className="auth-brutal-shell ascii-bg brutal-stub-page">
-      <div className="brutal-stub-inner">
-        <h1 className="brutal-stub-h1">{title}</h1>
-        <GametimeLink href="/" className="brutal-stub-link">
-          ← Home
-        </GametimeLink>
-      </div>
-    </div>
-  );
-}
-
-export { BrutalistPathStub };
-
 export default function Auth({ onAuth }) {
   const location = useLocation();
   const router = useAppRouter();
@@ -127,13 +112,13 @@ export default function Auth({ onAuth }) {
         </pre>
         <ul className="brutalist-nav-links">
           <li>
-            <GametimeLink href="/works" className="brutalist-nav-link">
-              /WORKS
+            <GametimeLink href="/" className="brutalist-nav-link">
+              /HOME
             </GametimeLink>
           </li>
           <li>
-            <GametimeLink href="/blog" className="brutalist-nav-link">
-              /BLOG
+            <GametimeLink href="/support" className="brutalist-nav-link">
+              /SUPPORT
             </GametimeLink>
           </li>
         </ul>

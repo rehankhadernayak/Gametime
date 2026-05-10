@@ -258,7 +258,7 @@
   text-decoration-thickness: 2px;
 }
 
-/* Minimal stubs for /works and /blog (linked from auth nav) */
+/* Legal/support shells reuse brutal-stub-* (Privacy, Support) */
 .brutal-stub-page {
   flex: 1;
   display: flex;

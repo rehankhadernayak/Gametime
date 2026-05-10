@@ -63,11 +63,8 @@ function LandingNav({ auth }) {
         <a href="#features" className="hover:underline underline-offset-4">
           /features
         </a>
-        <Link to="/works" className="hover:underline underline-offset-4">
-          /works
-        </Link>
-        <Link to="/blog" className="hover:underline underline-offset-4">
-          /blog
+        <Link to="/child-login" className="hover:underline underline-offset-4">
+          /child-login
         </Link>
         <a href="#contact" className="hover:underline underline-offset-4">
           /connect
@@ -225,12 +222,15 @@ export default function HomePage({ auth }) {
                 <span className="text-xs shrink-0 text-inherit">[{item.year}]</span>
               </div>
               <p className="text-sm leading-relaxed text-inherit">{item.body}</p>
-              <div className="flex gap-4 text-xs font-bold">
+              <div className="flex flex-wrap gap-4 text-xs font-bold">
                 <Link to="/signup" className="text-inherit group-hover:text-white hover:underline">
                   SIGN_UP -&gt;
                 </Link>
                 <Link to="/login" className="text-inherit group-hover:text-white hover:underline">
                   PARENT_LOGIN -&gt;
+                </Link>
+                <Link to="/child-login" className="text-inherit group-hover:text-white hover:underline">
+                  CHILD_LOGIN -&gt;
                 </Link>
               </div>
             </article>
@@ -359,12 +359,12 @@ export default function HomePage({ auth }) {
               </button>
             </form>
           </div>
-          <div className="text-xs flex gap-4">
-            <Link to="/works" className="text-black visited:text-black hover:underline">
-              WORKS
+          <div className="text-xs flex flex-wrap gap-4 opacity-50">
+            <Link to="/privacy" className="text-black visited:text-black hover:underline">
+              Privacy
             </Link>
-            <Link to="/blog" className="text-black visited:text-black hover:underline">
-              BLOG
+            <Link to="/support" className="text-black visited:text-black hover:underline">
+              Support
             </Link>
           </div>
         </FadeSection>

@@ -73,7 +73,7 @@ export default function ParentLogin({ onAuth }) {
           <div className="al-logo-mark" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 2L12.5 7.5H18L13.5 11L15.5 17L10 13.5L4.5 17L6.5 11L2 7.5H7.5L10 2Z"
-                fill="white" fillOpacity="0.9" />
+                fill="currentColor" />
             </svg>
           </div>
           <span className="al-logo-name">Gametime</span>
@@ -91,8 +91,8 @@ export default function ParentLogin({ onAuth }) {
               <span className="al-feature-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                   <path d="M8 1.5A1.5 1.5 0 0 1 9.5 3v.5H13A1.5 1.5 0 0 1 14.5 5v8A1.5 1.5 0 0 1 13 14.5H3A1.5 1.5 0 0 1 1.5 13V5A1.5 1.5 0 0 1 3 3.5h3.5V3A1.5 1.5 0 0 1 8 1.5Z"
-                    stroke="white" strokeWidth="1.25" strokeLinejoin="round" />
-                  <path d="M5.5 9l1.75 1.75L10.5 7" stroke="white" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+                    stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" />
+                  <path d="M5.5 9l1.75 1.75L10.5 7" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
               <span className="al-feature-text">
@@ -103,9 +103,9 @@ export default function ParentLogin({ onAuth }) {
             <li className="al-feature-item">
               <span className="al-feature-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <rect x="1.5" y="4" width="13" height="9" rx="1.5" stroke="white" strokeWidth="1.25" />
-                  <path d="M5 4V3a3 3 0 0 1 6 0v1" stroke="white" strokeWidth="1.25" strokeLinecap="round" />
-                  <circle cx="8" cy="8.5" r="1.5" fill="white" fillOpacity="0.85" />
+                  <rect x="1.5" y="4" width="13" height="9" rx="0" stroke="currentColor" strokeWidth="1.25" />
+                  <path d="M5 4V3a3 3 0 0 1 6 0v1" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+                  <circle cx="8" cy="8.5" r="1.5" fill="currentColor" />
                 </svg>
               </span>
               <span className="al-feature-text">
@@ -116,8 +116,8 @@ export default function ParentLogin({ onAuth }) {
             <li className="al-feature-item">
               <span className="al-feature-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="6" stroke="white" strokeWidth="1.25" />
-                  <path d="M8 5v3.5l2 1.5" stroke="white" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.25" />
+                  <path d="M8 5v3.5l2 1.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
               <span className="al-feature-text">
@@ -209,7 +209,7 @@ export default function ParentLogin({ onAuth }) {
                 <>
                   <svg className="al-spinner" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
-                    <path d="M8 2a6 6 0 0 1 6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M8 2a6 6 0 0 1 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                   Signing in…
                 </>
