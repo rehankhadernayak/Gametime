@@ -1,576 +1,376 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
-import ScrollTrigger from 'gsap/ScrollTrigger';
-import HeroGlassmorphicCard from '../components/HeroAssets/HeroGlassmorphicCard';
-import { ParallaxDivider } from '../components/ParallaxDivider';
-import { initializeHeroPinning } from '../components/HeroAssets/HeroPinningAnimation';
-import LayoutLanding from '../layouts/LayoutLanding';
-import '../styles/kinetic-landing-hero.css';
-import '../styles/hero-glassmorphic.css';
-import './HomePage.css';
+import { useFadeInWhenVisible } from '../hooks/useFadeInWhenVisible.js';
 
-gsap.registerPlugin(ScrollTrigger);
-
-/* ── Inline SVG Icons ───────────────────────────────────────────────────── */
-function IconQuest() {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
-      <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path
-        d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconCamera() {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
-      <path
-        d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
-}
-
-function IconShieldCheck() {
-  return (
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
-      <path d="M12 3l7 3v5c0 5-3.2 8.5-7 10-3.8-1.5-7-5-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M9 12.5l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+const ASCII_MARK = `██████╗  █████╗ ███╗   ███╗███████╗████████╗██╗███╗   ███╗███████╗
+██╔════╝ ██╔══██╗████╗ ████║██╔════╝╚══██╔══╝██║████╗ ████║██╔════╝
+██║  ███╗███████║██╔████╔██║█████╗     ██║   ██║██╔████╔██║█████╗
+██║   ██║██╔══██║██║╚██╔╝██║██╔══╝     ██║   ██║██║╚██╔╝██║██╔══╝
+╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗   ██║   ██║██║ ╚═╝ ██║███████╗
+ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝`;
 
 const HOW_IT_WORKS = [
   {
     number: '01',
-    icon: <IconQuest />,
     title: 'Set Quests',
     description:
-      'Parents create tasks - clean your room, finish homework, read for 20 minutes - each worth a set number of RP points.',
+      'Parents create tasks — chores, homework, reading — each worth Reward Points (RP) your family agrees on.',
   },
   {
     number: '02',
-    icon: <IconCamera />,
     title: 'Kids Submit Proof',
-    description: 'Children complete the quest and upload a photo or short video as evidence directly from the app.',
+    description:
+      'Children complete the quest and upload photo or short video evidence from the web or mobile app.',
   },
   {
     number: '03',
-    icon: <IconShieldCheck />,
     title: 'AI Reviews, Parent Approves',
     description:
-      'Claude Vision analyses the evidence for completeness. Parent gets a smart summary and one-tap approve - child earns their RP.',
+      'Vision AI summarizes evidence; you approve in one tap. Kids earn RP or Giftcard Points (GP) for real rewards.',
   },
 ];
 
-function scrollToHowItWorks() {
-  document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+const FEATURE_TAGS = ['Tasks → RP', 'RP → Gaming', 'GP → Gift Cards', 'Singapore · PDPA-aware'];
+
+function FadeSection({ children, className = '', id }) {
+  const [ref, visible] = useFadeInWhenVisible(0.08);
+  return (
+    <section
+      id={id}
+      ref={ref}
+      className={`transition-all duration-[600ms] ease-out ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2.5'
+      } ${className}`}
+    >
+      {children}
+    </section>
+  );
 }
 
-/* ── NavBar ─────────────────────────────────────────────────────────────── */
-function NavBar({ auth }) {
-  if (auth.token) return null;
+function LandingNav({ auth }) {
   return (
-    <nav className="hp-nav" aria-label="Site navigation">
-      <div className="hp-nav-inner">
-        <Link to="/" className="hp-nav-logo hp-load-reveal hp-motion-hover" aria-label="Gametime home">
-          Gametime
+    <nav
+      className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-black pb-4"
+      aria-label="Site navigation"
+    >
+      <pre className="leading-none text-[0.45rem] sm:text-[0.55rem] md:text-[0.65rem] overflow-x-auto max-w-full">
+        {ASCII_MARK}
+      </pre>
+      <div className="flex flex-wrap gap-6 text-sm font-bold uppercase tracking-widest">
+        <a href="#about" className="hover:underline underline-offset-4">
+          /about
+        </a>
+        <a href="#features" className="hover:underline underline-offset-4">
+          /features
+        </a>
+        <Link to="/works" className="hover:underline underline-offset-4">
+          /works
         </Link>
-        <div className="hp-nav-actions">
-          <Link to="/login" className="hp-nav-link hp-load-reveal hp-motion-hover">
-            Parent Login
+        <Link to="/blog" className="hover:underline underline-offset-4">
+          /blog
+        </Link>
+        <a href="#contact" className="hover:underline underline-offset-4">
+          /connect
+        </a>
+        {auth.token ? (
+          <Link
+            to={auth.role === 'parent' ? '/parent/ai' : '/child/dashboard'}
+            className="hover:underline underline-offset-4"
+          >
+            /app
           </Link>
-          <Link to="/signup" className="hp-nav-cta hp-load-reveal hp-motion-hover">
-            Get Started
-          </Link>
-        </div>
+        ) : (
+          <>
+            <Link to="/login" className="hover:underline underline-offset-4">
+              /login
+            </Link>
+            <Link to="/signup" className="hover:underline underline-offset-4">
+              /signup
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
 }
 
-const HOVER_EASE = 'expo.out';
-const HOVER_IN = 0.65;
-const HOVER_OUT = 0.75;
-
-/* ── HomePage ───────────────────────────────────────────────────────────── */
 export default function HomePage({ auth }) {
   const navigate = useNavigate();
-  const pageRootRef = useRef(null);
-  const pinWrapperRef = useRef(null);
-  const glassCardWrapperRef = useRef(null);
-  const textHeadingRef = useRef(null);
-
-  useEffect(() => {
-    if (!pinWrapperRef.current || !glassCardWrapperRef.current || !textHeadingRef.current) {
-      return undefined;
-    }
-    return initializeHeroPinning(
-      pinWrapperRef.current,
-      glassCardWrapperRef.current,
-      textHeadingRef.current
-    );
-  }, []);
-
-  useGSAP(
-    () => {
-      const root = pageRootRef.current;
-      if (!root) return;
-
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        gsap.set(root.querySelectorAll('.hp-load-reveal'), { opacity: 1, y: 0, clearProps: 'all' });
-        return;
-      }
-
-      gsap.from('.hp-load-reveal', {
-        opacity: 0,
-        y: 28,
-        duration: 0.8,
-        stagger: 0.09,
-        ease: 'power3.out',
-        clearProps: 'transform',
-      });
-    },
-    { scope: pageRootRef }
-  );
-
-  useGSAP(
-    () => {
-      const root = pageRootRef.current;
-      if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return undefined;
-      }
-
-      const bentoSection = root.querySelector('.hp-features-bento');
-      const bgText = root.querySelector('.massive-bg-text');
-      const bentoCards = root.querySelectorAll('.bento-card');
-
-      if (!bentoSection) return undefined;
-
-      if (bgText) {
-        gsap.fromTo(
-          bgText,
-          { x: '10%' },
-          {
-            x: '-50%',
-            ease: 'none',
-            scrollTrigger: {
-              trigger: bentoSection,
-              start: 'top center',
-              end: 'bottom center',
-              scrub: 1,
-            },
-          }
-        );
-      }
-
-      bentoCards.forEach((card) => {
-        const speed = parseFloat(card.dataset.speed) || 1;
-        gsap.to(card, {
-          y: 100 * (speed - 1),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: bentoSection,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1,
-          },
-        });
-      });
-
-      const dividerInner = root.querySelector('.hp-parallax-divider-inner');
-      if (dividerInner) {
-        gsap.from(dividerInner.querySelectorAll('.hp-scroll-reveal'), {
-          opacity: 0,
-          y: 32,
-          duration: 0.85,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: dividerInner,
-            start: 'top 86%',
-            toggleActions: 'play none none none',
-          },
-        });
-      }
-
-      const howSection = root.querySelector('.hp-how');
-      if (howSection) {
-        const howHeader = howSection.querySelector('.hp-section-header');
-        if (howHeader) {
-          gsap.from(howHeader.querySelectorAll('.hp-scroll-reveal'), {
-            opacity: 0,
-            y: 28,
-            duration: 0.8,
-            stagger: 0.1,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: howSection,
-              start: 'top 82%',
-              toggleActions: 'play none none none',
-            },
-          });
-        }
-        const howGrid = howSection.querySelector('.hp-how-grid');
-        if (howGrid) {
-          gsap.from(howGrid.querySelectorAll('.hp-how-card'), {
-            opacity: 0,
-            y: 36,
-            duration: 0.8,
-            stagger: 0.11,
-            ease: 'power3.out',
-            scrollTrigger: {
-              trigger: howGrid,
-              start: 'top 88%',
-              toggleActions: 'play none none none',
-            },
-          });
-        }
-      }
-
-      const social = root.querySelector('.hp-social-proof');
-      if (social) {
-        gsap.from(social.querySelectorAll('.hp-social-label, .hp-social-pill'), {
-          opacity: 0,
-          y: 24,
-          duration: 0.75,
-          stagger: 0.08,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: social,
-            start: 'top 90%',
-            toggleActions: 'play none none none',
-          },
-        });
-      }
-
-      const featIntro = bentoSection.querySelector('.hp-section-header');
-      if (featIntro) {
-        gsap.from(featIntro.querySelectorAll('.hp-scroll-reveal'), {
-          opacity: 0,
-          y: 30,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: featIntro,
-            start: 'top 86%',
-            toggleActions: 'play none none none',
-          },
-        });
-      }
-
-      const cta = root.querySelector('.hp-cta-section');
-      if (cta) {
-        gsap.from(cta.querySelectorAll('.hp-scroll-reveal'), {
-          opacity: 0,
-          y: 28,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: cta,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
-        });
-      }
-    },
-    { scope: pageRootRef }
-  );
-
-  useGSAP(
-    (ctx, contextSafe) => {
-      const root = pageRootRef.current;
-      if (!root || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        return undefined;
-      }
-
-      const nodes = root.querySelectorAll('.hp-motion-hover');
-      const disposers = [];
-
-      nodes.forEach((el) => {
-        const onEnter = contextSafe(() => {
-          gsap.to(el, {
-            y: -5,
-            scale: 1.014,
-            duration: HOVER_IN,
-            ease: HOVER_EASE,
-            overwrite: 'auto',
-          });
-        });
-        const onLeave = contextSafe(() => {
-          gsap.to(el, {
-            y: 0,
-            scale: 1,
-            duration: HOVER_OUT,
-            ease: 'power3.out',
-            overwrite: 'auto',
-          });
-        });
-
-        el.addEventListener('pointerenter', onEnter);
-        el.addEventListener('pointerleave', onLeave);
-        disposers.push(() => {
-          el.removeEventListener('pointerenter', onEnter);
-          el.removeEventListener('pointerleave', onLeave);
-        });
-      });
-
-      return () => {
-        disposers.forEach((fn) => fn());
-      };
-    },
-    { scope: pageRootRef }
-  );
 
   return (
-    <LayoutLanding>
-      <div ref={pageRootRef} className="hp-root">
-        <NavBar auth={auth} />
+    <div className="relative min-h-screen bg-white text-black font-mono p-4 md:p-8">
+      <div className="ascii-bg" aria-hidden />
 
-        <main role="main">
-          <div ref={pinWrapperRef} className="hero-pin-wrapper hp-hero-pin">
-            <div className="hp-hero-bg-word hp-load-reveal" string="parallax" string-parallax="0.8" aria-hidden="true">
-              GAMETIME
-            </div>
+      <main className="max-w-3xl mx-auto space-y-24 mb-32">
+        <LandingNav auth={auth} />
 
-            <div ref={glassCardWrapperRef} className="hp-hero-glass-wrap">
-              <HeroGlassmorphicCard />
-            </div>
-
-            <div className="hp-hero-fly hp-hero-fly--left hp-load-reveal" string="parallax" string-parallax="0.85">
-              <h2 className="hp-hero-fly-title hp-hero-fly-title--cyan">Screen Time</h2>
-            </div>
-
-            <div className="hp-hero-fly hp-hero-fly--right hp-load-reveal" string="parallax" string-parallax="-0.85">
-              <h2 className="hp-hero-fly-title hp-hero-fly-title--magenta">Earned.</h2>
-            </div>
-
-            <div ref={textHeadingRef} className="hp-hero-text-pane">
-              <p className="hp-hero-lede">
-                Gametime helps Singapore families turn gaming into a reward kids actually work for. Set quests, review
-                evidence with AI, and let children redeem real gift cards.
-              </p>
-
-              <div className="hero-cta-group">
-                {auth.token ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate(auth.role === 'parent' ? '/parent/ai' : '/child/dashboard')
-                    }
-                    className="hero-cta-primary hp-motion-hover"
-                  >
-                    Go to Dashboard
-                  </button>
-                ) : (
-                  <>
-                    <button type="button" onClick={() => navigate('/signup')} className="hero-cta-primary hp-motion-hover">
-                      Get Started Free
-                    </button>
-                    <button type="button" onClick={scrollToHowItWorks} className="hero-cta-secondary hp-motion-hover">
-                      See How It Works
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
+        <section className="space-y-6 pt-8 md:pt-12">
+          <div className="inline-block border-2 border-black p-2 text-xs font-bold uppercase bg-black text-white">
+            Status: {auth.token ? 'Signed in' : 'Accepting new families'}
           </div>
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+            Turn screen time into{' '}
+            <span className="inline-block overflow-hidden whitespace-nowrap border-r-4 border-black pr-2 animate-typewriter">
+              earned time.
+            </span>
+          </h1>
+          <p className="text-lg max-w-xl leading-relaxed">
+            Gametime helps Singapore families tie gaming to chores and homework. Set quests, review evidence with AI,
+            approve rewards — kids redeem RP and GP for real gift cards.
+            <span className="cursor-blink" aria-hidden />
+          </p>
+          <div className="flex flex-wrap gap-3 pt-2">
+            {FEATURE_TAGS.map((t) => (
+              <span key={t} className="border border-black px-3 py-1 text-xs font-bold uppercase">
+                {t}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-4 pt-4">
+            {auth.token ? (
+              <button
+                type="button"
+                onClick={() => navigate(auth.role === 'parent' ? '/parent/ai' : '/child/dashboard')}
+                className="border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase hover:bg-white hover:text-black transition-colors"
+              >
+                Open dashboard
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate('/signup')}
+                  className="border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase hover:bg-white hover:text-black transition-colors"
+                >
+                  Get started
+                </button>
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="border-2 border-black px-6 py-3 text-sm font-bold uppercase hover:bg-black hover:text-white transition-colors"
+                >
+                  Read the manifesto
+                </button>
+              </>
+            )}
+          </div>
+        </section>
 
-          <ParallaxDivider
-            text="CONCENTRATE"
-            bgSpeedRatio={0.3}
-            fgSpeedRatio={0.6}
-            accentColor="var(--neon-blue)"
-          >
-            <div className="hp-parallax-divider-inner">
-              <h2 className="hp-scroll-reveal hp-divider-heading">Why Gametime Works</h2>
-            </div>
-          </ParallaxDivider>
+        <FadeSection id="about" className="space-y-8 scroll-mt-24">
+          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2 flex justify-between items-center gap-4">
+            <span>01. Genesis</span>
+            <span className="text-xs opacity-50 shrink-0">#family_os</span>
+          </h2>
+          <div className="space-y-4 text-justify text-sm md:text-base leading-relaxed">
+            <p>
+              Gametime is built for parents who want clarity, not another glowing dashboard. Tasks, evidence, approvals,
+              and rewards live in one blunt, readable flow — tuned for busy households.
+            </p>
+            <p>
+              Kids see exactly what earns their minutes and GP. Parents stay in control with PDPA-minded defaults,
+              optional AI review, and caps that actually stick.
+            </p>
+          </div>
+        </FadeSection>
 
-          <section className="hp-social-proof" aria-label="Social proof">
-            <div className="hp-social-proof-inner">
-              <span className="hp-social-label">Trusted by Singapore families</span>
-              <div className="hp-social-pills">
-                <div className="hp-social-pill hp-motion-hover">
-                  <span className="hp-pill-number">2,000+</span>
-                  <span className="hp-pill-label">tasks completed</span>
-                </div>
-                <div className="hp-social-divider" aria-hidden="true" />
-                <div className="hp-social-pill hp-motion-hover">
-                  <span className="hp-pill-number">500+</span>
-                  <span className="hp-pill-label">families</span>
-                </div>
-                <div className="hp-social-divider" aria-hidden="true" />
-                <div className="hp-social-pill hp-motion-hover">
-                  <span className="hp-pill-number">4.9★</span>
-                  <span className="hp-pill-label">rating</span>
-                </div>
+        <FadeSection className="space-y-6">
+          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">02. Toolkit</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              'Quests & RP',
+              'Evidence upload',
+              'AI summaries',
+              'Parent approve',
+              'Gaming sessions',
+              'GP vault',
+              'Gift cards',
+              'Notifications',
+            ].map((label) => (
+              <div
+                key={label}
+                className="border border-black p-4 text-center text-sm font-bold hover:bg-black hover:text-white transition-colors"
+              >
+                {label}
               </div>
-            </div>
-          </section>
+            ))}
+          </div>
+        </FadeSection>
 
-          <section id="how-it-works" className="hp-how" aria-labelledby="hp-how-heading">
-            <div className="hp-section-inner">
-              <div className="hp-section-header">
-                <div className="hp-section-kicker hp-scroll-reveal">How It Works</div>
-                <h2 id="hp-how-heading" className="hp-section-h2 hp-scroll-reveal">
-                  Simple for parents.
-                  <br />
-                  Exciting for kids.
-                </h2>
+        <FadeSection id="features" className="space-y-12 scroll-mt-24">
+          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">03. Product surface</h2>
+          {[
+            {
+              title: 'QUEST_LEDGER',
+              year: 'Live',
+              body: 'Create recurring chores, homework blocks, and one-off missions. Deadlines, categories, and proof rules are explicit — no ambiguity.',
+            },
+            {
+              title: 'PROOF_PIPELINE',
+              year: 'Live',
+              body: 'Photo and video evidence lands in a single review queue. AI drafts a concise check; you stamp approve or reject.',
+            },
+            {
+              title: 'REWARD_GRAPH',
+              year: 'Live',
+              body: 'RP converts to supervised gaming minutes; GP stacks for Roblox, Steam, Razer Gold, and more — mock Athena until keys are enabled.',
+            },
+          ].map((item) => (
+            <article
+              key={item.title}
+              className="group border-2 border-black p-6 space-y-4 hover:bg-black hover:text-white transition-all duration-300"
+            >
+              <div className="flex justify-between items-start gap-4">
+                <h3 className="text-xl font-bold underline">{item.title}</h3>
+                <span className="text-xs shrink-0">[{item.year}]</span>
               </div>
-
-              <div className="hp-how-grid">
-                {HOW_IT_WORKS.map((step) => (
-                  <article key={step.number} className="hp-how-card hp-motion-hover">
-                    <div className="hp-how-number" aria-hidden="true">
-                      {step.number}
-                    </div>
-                    <div className="hp-how-icon">{step.icon}</div>
-                    <h3 className="hp-how-title">{step.title}</h3>
-                    <p className="hp-how-desc">{step.description}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="hp-features-bento" aria-labelledby="hp-features-heading">
-            <div className="massive-bg-text" aria-hidden="true">
-              EARN YOUR TIME
-            </div>
-
-            <div className="hp-section-inner hp-features-bento-inner">
-              <div className="hp-section-header">
-                <div className="hp-section-kicker hp-scroll-reveal">Features</div>
-                <h2 id="hp-features-heading" className="hp-section-h2 hp-scroll-reveal">
-                  Everything a family needs.
-                </h2>
-              </div>
-
-              <div className="bento-grid">
-                <article className="bento-card bento-card--cyan hp-motion-hover" data-speed="0.8">
-                  <div className="bento-emoji" aria-hidden="true">
-                    📋
-                  </div>
-                  <h3 className="bento-card-title">Set Quests</h3>
-                  <p className="bento-card-desc">
-                    Parents create tasks - clean your room, finish homework, read for 20 minutes - each worth a set
-                    number of RP points.
-                  </p>
-                </article>
-
-                <article className="bento-card bento-card--purple bento-card--offset hp-motion-hover" data-speed="1.2">
-                  <div className="bento-emoji" aria-hidden="true">
-                    📸
-                  </div>
-                  <h3 className="bento-card-title">Kids Submit Proof</h3>
-                  <p className="bento-card-desc">
-                    Children complete the quest and upload a photo or short video as evidence directly from the app.
-                  </p>
-                </article>
-
-                <article className="bento-card bento-card--blue hp-motion-hover" data-speed="1.5">
-                  <div className="bento-emoji" aria-hidden="true">
-                    🤖
-                  </div>
-                  <h3 className="bento-card-title">AI Reviews, Parent Approves</h3>
-                  <p className="bento-card-desc">
-                    Claude Vision analyses the evidence for completeness. Parent gets a smart summary and one-tap
-                    approve - child earns their RP.
-                  </p>
-                </article>
-
-                <article className="bento-card bento-card--gradient bento-card--offset hp-motion-hover" data-speed="0.9">
-                  <div className="bento-emoji" aria-hidden="true">
-                    🎁
-                  </div>
-                  <h3 className="bento-card-title">Real Rewards</h3>
-                  <p className="bento-card-desc">
-                    Kids redeem GP for actual gift cards - Roblox, Steam, Razer Gold - delivered instantly.
-                  </p>
-                </article>
-              </div>
-            </div>
-          </section>
-
-          {!auth.token && (
-            <section className="hp-cta-section" aria-labelledby="hp-cta-heading">
-              <div className="hp-cta-bg" aria-hidden="true">
-                <div className="hp-cta-orb hp-cta-orb--1" />
-                <div className="hp-cta-orb hp-cta-orb--2" />
-              </div>
-              <div className="hp-cta-inner">
-                <h2 id="hp-cta-heading" className="hp-cta-h2 hp-scroll-reveal">
-                  Ready to make gaming fair?
-                </h2>
-                <p className="hp-cta-sub hp-scroll-reveal">Join Singapore families already using Gametime.</p>
-                <Link to="/signup" className="hp-btn-white hp-btn-lg hp-scroll-reveal hp-motion-hover">
-                  Create Free Account
+              <p className="text-sm leading-relaxed">{item.body}</p>
+              <div className="flex gap-4 text-xs font-bold">
+                <Link to="/signup" className="hover:underline">
+                  SIGN_UP -&gt;
+                </Link>
+                <Link to="/login" className="hover:underline">
+                  PARENT_LOGIN -&gt;
                 </Link>
               </div>
-            </section>
-          )}
+            </article>
+          ))}
+        </FadeSection>
 
-          <footer className="hp-footer" role="contentinfo">
-            <div className="hp-footer-inner">
-              <div className="hp-footer-brand">
-                <span className="hp-footer-logo">Gametime</span>
-                <p className="hp-footer-tagline">Screen time, earned. Singapore's family gaming platform.</p>
+        <FadeSection className="space-y-6">
+          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">04. Activity</h2>
+          <div className="border border-black p-4 overflow-x-auto no-scrollbar">
+            <div className="text-[8px] font-mono leading-[8px] whitespace-pre text-black">
+              <span className="text-black">██</span> <span className="opacity-10">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span>
+              {'\n'}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="opacity-10">██</span>{' '}
+              <span className="text-black">██</span> <span className="opacity-10">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span>
+              {'\n'}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="opacity-10">██</span>
+              {'\n'}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="opacity-10">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="text-black">██</span>{' '}
+              <span className="text-black">██</span> <span className="opacity-10">██</span>{' '}
+              <span className="text-black">██</span>
+            </div>
+            <div className="mt-4 flex justify-between text-[10px] uppercase font-bold gap-4">
+              <span>Tasks completed · families onboarded · rewards redeemed</span>
+              <span className="shrink-0">Signal only — not live GitHub data</span>
+            </div>
+          </div>
+        </FadeSection>
+
+        <FadeSection className="space-y-6">
+          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">05. How it ships</h2>
+          <div className="divide-y-2 divide-black border-x border-t border-black">
+            {HOW_IT_WORKS.map((step) => (
+              <div key={step.number} className="py-4 px-2 flex flex-col gap-2 hover:bg-black hover:text-white transition-colors">
+                <div className="flex justify-between items-baseline gap-4">
+                  <span className="font-bold underline">{step.title}</span>
+                  <span className="text-xs">{step.number}</span>
+                </div>
+                <p className="text-sm leading-relaxed">{step.description}</p>
               </div>
+            ))}
+          </div>
+        </FadeSection>
 
-              <nav className="hp-footer-links" aria-label="Footer navigation">
-                <div className="hp-footer-col">
-                  <div className="hp-footer-col-title">Product</div>
-                  <Link to="/signup" className="hp-footer-link hp-motion-hover">
-                    Get Started
-                  </Link>
-                  <Link to="/login" className="hp-footer-link hp-motion-hover">
-                    Parent Login
-                  </Link>
-                  <Link to="/child-login" className="hp-footer-link hp-motion-hover">
-                    Child Login
-                  </Link>
-                </div>
-                <div className="hp-footer-col">
-                  <div className="hp-footer-col-title">Company</div>
-                  <span className="hp-footer-link hp-footer-link--muted">About</span>
-                  <span className="hp-footer-link hp-footer-link--muted">Blog</span>
-                  <Link to="/support" className="hp-footer-link hp-motion-hover">
-                    Contact
-                  </Link>
-                </div>
-                <div className="hp-footer-col">
-                  <div className="hp-footer-col-title">Legal</div>
-                  <Link to="/privacy" className="hp-footer-link hp-motion-hover">
-                    Privacy (PDPA)
-                  </Link>
-                  <span className="hp-footer-link hp-footer-link--muted">Terms of Use</span>
-                  <span className="hp-footer-link hp-footer-link--muted">Cookie Policy</span>
-                </div>
-              </nav>
+        <FadeSection id="contact" className="space-y-6 scroll-mt-24">
+          <h2 className="text-2xl font-bold uppercase border-b-2 border-black pb-2">06. Transmission</h2>
+          <div className="border-2 border-black p-8 text-center space-y-4">
+            <p className="text-xl">Need help or a demo walkthrough?</p>
+            <p className="text-2xl font-bold">
+              <Link to="/support" className="hover:underline decoration-4">
+                Open support
+              </Link>
+            </p>
+            <div className="flex flex-wrap justify-center gap-8 pt-4 text-sm font-bold">
+              <Link to="/privacy" className="hover:underline underline-offset-4">
+                Privacy (PDPA)
+              </Link>
+              <Link to="/child-login" className="hover:underline underline-offset-4">
+                Child login
+              </Link>
+              <a href="mailto:hello@gametime.sg" className="hover:underline underline-offset-4">
+                hello@gametime.sg
+              </a>
             </div>
+          </div>
+        </FadeSection>
 
-            <div className="hp-footer-bottom">
-              <span>© 2026 Gametime · Singapore</span>
+        <FadeSection className="space-y-6">
+          <div className="border-t-2 border-black pt-8 flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1">
+              <h3 className="font-bold uppercase">The ledger</h3>
+              <p className="text-xs text-neutral-600">Product updates — no fluff, no spam.</p>
             </div>
-          </footer>
-        </main>
-      </div>
-    </LayoutLanding>
+            <form
+              className="flex w-full md:w-auto gap-0 border-2 border-black"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <input
+                type="email"
+                name="email"
+                placeholder="EMAIL_ADDRESS"
+                className="border-0 px-4 py-2 text-sm flex-1 md:w-64 outline-none focus:ring-2 focus:ring-black focus:ring-inset font-mono bg-white"
+                autoComplete="email"
+              />
+              <button
+                type="submit"
+                className="bg-black text-white px-6 py-2 text-sm font-bold uppercase hover:bg-white hover:text-black border-l-2 border-black transition-colors"
+              >
+                Join
+              </button>
+            </form>
+          </div>
+          <div className="text-xs flex gap-4 opacity-50">
+            <Link to="/works" className="hover:underline">
+              WORKS
+            </Link>
+            <Link to="/blog" className="hover:underline">
+              BLOG
+            </Link>
+          </div>
+        </FadeSection>
+
+        <footer className="border-t-2 border-black pt-12 text-xs flex flex-col md:flex-row justify-between gap-4 opacity-70">
+          <div>
+            © {new Date().getFullYear()} Gametime · Singapore
+            <br />
+            Built with React, Tailwind, and blunt borders.
+          </div>
+          <div className="text-right md:text-right">
+            WEB_UI: BRUTAL_MONO
+            <br />
+            VERSION: 1.0.0-STABLE
+          </div>
+        </footer>
+      </main>
+    </div>
   );
 }

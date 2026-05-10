@@ -196,7 +196,7 @@ export default function ParentGamingScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* ── Gradient Header ── */}
-      <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>Gaming Controls</Text>
         <Text style={styles.headerSub}>Caps, conversion rates, and game access rules</Text>
 
@@ -400,7 +400,7 @@ export default function ParentGamingScreen() {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingBottom: 20 },
-  headerTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
+  headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
   headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2, marginBottom: 14 },
   headerStats: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   headerStatPill: {

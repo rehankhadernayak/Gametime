@@ -17,7 +17,7 @@ export default function WelcomeScreen({ navigation }) {
     <View style={styles.root}>
       {/* Full-height gradient hero */}
       <LinearGradient
-        colors={['#3B5BDB', '#7C3AED']}
+        colors={colors.gradientHero}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.hero, { paddingTop: insets.top + 40 }]}
@@ -107,39 +107,48 @@ const styles = StyleSheet.create({
   },
   logoWrap: { marginBottom: 4 },
   logoOuter: {
-    width: 96, height: 96, borderRadius: 48,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)',
+    width: 96,
+    height: 96,
+    borderRadius: 0,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   logoInner: {
-    width: 76, height: 76, borderRadius: 38,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center', justifyContent: 'center',
+    width: 76,
+    height: 76,
+    borderRadius: 0,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  logoEmoji: { fontSize: 38 },
+  logoEmoji: { fontSize: 38, color: '#000000', fontWeight: '800' },
   appName: {
     fontSize: 46,
     fontWeight: '900',
-    color: '#fff',
+    color: '#000000',
     letterSpacing: -1.5,
   },
   tagline: {
-    color: 'rgba(255,255,255,0.82)',
+    color: '#404040',
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
   },
   pillsRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 4 },
   pill: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
-  pillText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  pillText: { color: '#000000', fontSize: 12, fontWeight: '700' },
 
   // Bottom sheet
   sheet: {
@@ -170,34 +179,36 @@ const styles = StyleSheet.create({
   actions: { gap: 10 },
   primaryBtn: {
     backgroundColor: colors.primary,
-    borderRadius: 14,
+    borderRadius: 0,
     paddingVertical: 15,
     alignItems: 'center',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 0,
     elevation: 4,
   },
   primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
   secondaryBtn: {
-    backgroundColor: colors.primarySurface,
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 0,
     paddingVertical: 15,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.primaryLight,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   secondaryBtnText: { color: colors.primaryDark, fontSize: 15, fontWeight: '700' },
   outlineBtn: {
-    borderRadius: 14,
+    borderRadius: 0,
     paddingVertical: 13,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.childAccent,
-    backgroundColor: colors.childAccentLight,
+    borderWidth: 2,
+    borderColor: '#000000',
+    backgroundColor: '#F5F5F5',
   },
-  outlineBtnText: { color: colors.childAccent, fontSize: 15, fontWeight: '700' },
+  outlineBtnText: { color: '#000000', fontSize: 15, fontWeight: '700' },
 
   settingsLink: {
     textAlign: 'center',

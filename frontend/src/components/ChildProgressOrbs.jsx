@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import '../styles/kinetic-child-orbs.css';
+import '../styles/child-progress-orbs.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,9 +25,9 @@ function ProgressOrb({ child, onSelect, index }) {
 
   // Determine tier color
   const getTierColor = () => {
-    if (child.completionPercent >= 80) return 'var(--neon-green, #00FF41)';
-    if (child.completionPercent >= 40) return 'var(--neon-orange, #FFB800)';
-    return 'var(--neon-red)';
+    if (child.completionPercent >= 80) return '#15803d';
+    if (child.completionPercent >= 40) return '#a16207';
+    return '#b91c1c';
   };
 
   // Calculate ring offset for percentage

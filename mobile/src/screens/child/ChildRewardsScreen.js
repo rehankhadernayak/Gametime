@@ -112,7 +112,7 @@ export default function ChildRewardsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* ── Gradient Header ── */}
-      <LinearGradient colors={['#7C3AED', '#6D28D9']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <LinearGradient colors={colors.gradientHero} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Text style={styles.headerTitle}>Rewards</Text>
         <Text style={styles.headerSub}>Spend your points on rewards and gift cards</Text>
 
@@ -153,7 +153,7 @@ export default function ChildRewardsScreen() {
         {/* ── Revealed Code ── */}
         {revealedCode ? (
           <View style={styles.revealCard}>
-            <LinearGradient colors={['#F59E0B', '#D97706']} style={styles.revealGradient}>
+            <LinearGradient colors={['#000000', '#000000']} style={styles.revealGradient}>
               <Text style={styles.revealTitle}>Your Gift Card</Text>
               <Text style={styles.revealName}>{revealedCode.rewardTitle || revealedCode.giftcardName || 'Gift Card'}</Text>
               {revealedCode.skuName ? <Text style={styles.revealSku}>{revealedCode.skuName}</Text> : null}
@@ -301,7 +301,7 @@ function RewardCard({ reward, currency, userBalance, onRedeem, busy }) {
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingBottom: 20 },
-  headerTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
+  headerTitle: { color: '#000000', fontSize: 22, fontWeight: '800' },
   headerSub: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2, marginBottom: 16 },
   balanceRow: { flexDirection: 'row', gap: 12 },
   balancePill: {

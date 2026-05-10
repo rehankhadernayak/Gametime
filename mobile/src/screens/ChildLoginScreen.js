@@ -118,7 +118,7 @@ export default function ChildLoginScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {/* Gradient header */}
-        <LinearGradient colors={['#7C3AED', '#6D28D9']} style={[styles.hero, { paddingTop: insets.top + 36 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 36 }]}>
           <View style={styles.logoWrap}>
             <Text style={styles.logoEmoji}>GT</Text>
           </View>
@@ -230,8 +230,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   logoEmoji: { fontSize: 30 },
-  heroTitle: { color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: 'rgba(255,255,255,0.78)', fontSize: 14 },
+  heroTitle: { color: '#000000', fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: '#525252', fontSize: 14 },
 
   tabRow: {
     flexDirection: 'row',

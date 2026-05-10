@@ -17,12 +17,8 @@ import Privacy from './pages/Privacy.jsx';
 import Support from './pages/Support.jsx';
 import { apiRequest, syncDemoModeFromUrl } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
-import ThemeToggleButton from './components/ThemeToggleButton.jsx';
 import ToastStack from './components/ToastStack.jsx';
 import { trackEvent } from './utils/analytics.js';
-import { useLenisScroll } from './hooks/useLenisScroll.js';
-import './styles/kinetic-palette.css';
-import './styles/kinetic-typography.css';
 import './styles/onebit-shell.css';
 
 function BackIcon() {
@@ -45,7 +41,6 @@ function HomeIcon() {
 export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  useLenisScroll(); // Enable kinetic smooth scroll
 
   const [auth, setAuth] = useState(() => {
     const raw = localStorage.getItem('gametime_auth');
@@ -151,12 +146,13 @@ export default function App() {
           <button type="button" className="icon-button" aria-label="Go home" onClick={() => navigate('/')}>
             <HomeIcon />
           </button>
-          <ThemeToggleButton theme={theme} onToggle={toggleTheme} />
           <span className="utility-path">{location.pathname}</span>
         </div>
       )}
 
-      {auth.token && <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} isAdmin={Boolean(auth.user?.isAdmin)} />}
+      {auth.token && (
+        <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} isAdmin={Boolean(auth.user?.isAdmin)} />
+      )}
       <Routes>
         <Route path="/" element={<HomePage auth={auth} />} />
         <Route path="/signup" element={<Auth onAuth={handleAuth} />} />

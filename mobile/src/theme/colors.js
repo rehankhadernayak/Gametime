@@ -1,116 +1,98 @@
-// Gametime mobile color palette - Design System v2.0
-// Brand: Electric Purple #7C5BFF | Child energy: Cyan #22D8E7
+/**
+ * Gametime mobile palette — brutalist 1-bit mono (IBM Plex via App.js)
+ * Replaces electric purple / cyan brand system.
+ */
 
 const colors = {
-  // ── Brand - Parent (Premium Neon Indigo) ──────────────────────────
-  primary:        '#7C5BFF',
-  primaryDark:    '#110E26',
-  primaryLight:   '#A28CFF',
-  primarySurface: '#14162D',
+  primary: '#000000',
+  primaryDark: '#000000',
+  primaryLight: '#525252',
+  primarySurface: 'rgba(0, 0, 0, 0.06)',
 
-  // ── Brand - Child (Cyan Energy) ─────────────────────────────────────
-  energy:        '#22D8E7',
-  energyDark:    '#00A6B9',
-  energyLight:   '#6BD7FF',
-  energySurface: '#0D2A37',
+  energy: '#000000',
+  energyDark: '#000000',
+  energyLight: '#525252',
+  energySurface: 'rgba(0, 0, 0, 0.06)',
 
-  // ── Child accent (Purple) ─────────────────────────────────────────
-  child:        '#7C5BFF',
-  childDark:    '#5C43E6',
-  childLight:   '#A692FF',
-  childSurface: '#1C1D33',
+  child: '#000000',
+  childDark: '#000000',
+  childLight: '#525252',
+  childSurface: 'rgba(0, 0, 0, 0.06)',
 
-  // ── Semantic ──────────────────────────────────────────────────────
-  success:        '#06D3A8',
-  successSurface: 'rgba(6, 211, 168, 0.12)',
-  warning:        '#FFA500',
-  warningSurface: 'rgba(255, 165, 0, 0.12)',
-  error:          '#FF3D5A',
-  errorSurface:   'rgba(255, 61, 90, 0.12)',
-  info:           '#22D8E7',
-  infoSurface:    'rgba(34, 216, 231, 0.12)',
+  success: '#15803d',
+  successSurface: 'rgba(21, 128, 61, 0.12)',
+  warning: '#a16207',
+  warningSurface: 'rgba(161, 98, 7, 0.12)',
+  error: '#b91c1c',
+  errorSurface: 'rgba(185, 28, 28, 0.12)',
+  info: '#000000',
+  infoSurface: 'rgba(0, 0, 0, 0.06)',
 
-  // ── Backgrounds - Light mode ──────────────────────────────────────
-  bgRoot:   '#0F1223',
-  bgCard:   '#141A31',
-  bgPanel:  '#191F39',
-  bgInput:  '#141A2B',
+  bgRoot: '#FFFFFF',
+  bgCard: '#FFFFFF',
+  bgPanel: '#FFFFFF',
+  bgInput: '#FFFFFF',
 
-  // ── Backgrounds - Dark mode ───────────────────────────────────────
-  darkBgRoot:  '#05060D',
-  darkBgCard:  '#0D1020',
-  darkBgPanel: '#12162A',
-  darkBgInput: '#171D34',
+  darkBgRoot: '#09090b',
+  darkBgCard: '#09090b',
+  darkBgPanel: '#18181b',
+  darkBgInput: '#18181b',
 
-  // ── Text ──────────────────────────────────────────────────────────
-  textPrimary:   '#F6F8FF',
-  textSecondary: '#AAB3D3',
-  textMuted:     '#6F7CAA',
-  textInverse:   '#FFFFFF',
+  textPrimary: '#000000',
+  textSecondary: '#404040',
+  textMuted: '#737373',
+  textInverse: '#FFFFFF',
 
-  // ── Gamification ──────────────────────────────────────────────────
-  gold:        '#FFB300',
-  goldSurface: '#FFF8E1',
-  silver:      '#78909C',
-  bronze:      '#8D6E63',
-  xpBar:       '#FFD700',
-  streakFire:  '#FFA500',
+  gold: '#000000',
+  goldSurface: 'rgba(0, 0, 0, 0.06)',
+  silver: '#737373',
+  bronze: '#525252',
+  xpBar: '#000000',
+  streakFire: '#000000',
 
-  // ── Borders ───────────────────────────────────────────────────────
-  border:       'rgba(124, 91, 255, 0.15)',
-  borderStrong: 'rgba(124, 91, 255, 0.25)',
+  border: '#000000',
+  borderStrong: '#000000',
 
-  // ── Gradients (use with LinearGradient) ───────────────────────────
-  gradientParent:  ['#7C5BFF', '#22D8E7'],
-  gradientChild:   ['#7C5BFF', '#22D8E7'],
-  gradientSuccess: ['#06D3A8', '#22D8E7'],
-  gradientGold:    ['#FF8F00', '#FFB300'],
-  gradientDark:    ['#0A0A0F', '#141420'],
+  gradientParent: ['#FFFFFF', '#FFFFFF'],
+  gradientChild: ['#FFFFFF', '#FFFFFF'],
+  gradientSuccess: ['#FFFFFF', '#F5F5F5'],
+  gradientGold: ['#FFFFFF', '#F5F5F5'],
+  gradientDark: ['#FFFFFF', '#F5F5F5'],
+  /** Flat headers — use with LinearGradient for layout compat */
+  gradientHero: ['#FFFFFF', '#FFFFFF'],
 
-  // ── State colors for tasks ────────────────────────────────────────
-  stateActive:          '#7C5BFF',
-  stateActiveSurface:   'rgba(124, 91, 255, 0.12)',
-  statePending:         '#FFA500',
-  statePendingSurface:  'rgba(255, 165, 0, 0.12)',
-  stateApproved:        '#06D3A8',
-  stateApprovedSurface: 'rgba(6, 211, 168, 0.12)',
-  stateRejected:        '#FF3D5A',
-  stateRejectedSurface: 'rgba(255, 61, 90, 0.12)',
-  stateExpired:         '#78909C',
-  stateExpiredSurface:  '#ECEFF1',
+  stateActive: '#000000',
+  stateActiveSurface: 'rgba(0, 0, 0, 0.06)',
+  statePending: '#a16207',
+  statePendingSurface: 'rgba(161, 98, 7, 0.12)',
+  stateApproved: '#15803d',
+  stateApprovedSurface: 'rgba(21, 128, 61, 0.12)',
+  stateRejected: '#b91c1c',
+  stateRejectedSurface: 'rgba(185, 28, 28, 0.12)',
+  stateExpired: '#737373',
+  stateExpiredSurface: 'rgba(115, 115, 115, 0.12)',
 
-  // ── Legacy aliases (kept for backward compatibility) ──────────────
-  // Old primary was #3B5BDB — remapped to new primary
-  // Old secondary (success green) → now 'success' but also kept as secondary
-  secondary:    '#00C853',
-  danger:       '#D32F2F',
+  secondary: '#15803d',
+  danger: '#b91c1c',
 
-  // Old child accent names
-  childAccent:      '#7C3AED',
-  childAccentDark:  '#5B21B6',
-  childAccentLight: '#F5F3FF',
+  childAccent: '#000000',
+  childAccentDark: '#000000',
+  childAccentLight: '#F5F5F5',
 
-  // Old gamification
-  xpGold:        '#FFB300',
-  xpGoldSurface: '#FFF8E1',
-  levelTeal:     '#14B8A6',
+  xpGold: '#000000',
+  xpGoldSurface: 'rgba(0, 0, 0, 0.06)',
+  levelTeal: '#000000',
 
-  // Old neutrals
-  text:        '#0D0D1A',
-  textSub:     '#4A4A6A',
-  background:  '#F8F9FF',
-  surface:     '#FFFFFF',
-  surface2:    '#F0F2FF',
+  text: '#000000',
+  textSub: '#525252',
+  background: '#FFFFFF',
+  surface: '#FFFFFF',
+  surface2: '#F5F5F5',
 };
 
 export { colors };
 export default colors;
 
-/**
- * Returns the foreground color for a given task/session state string.
- * @param {string} state
- * @returns {string}
- */
 export function stateColor(state) {
   const v = String(state || '').toLowerCase();
   if (v === 'approved' || v === 'completed') return colors.stateApproved;
@@ -121,11 +103,6 @@ export function stateColor(state) {
   return colors.primary;
 }
 
-/**
- * Returns the surface (background) color for a given task/session state string.
- * @param {string} state
- * @returns {string}
- */
 export function stateSurface(state) {
   const v = String(state || '').toLowerCase();
   if (v === 'approved' || v === 'completed') return colors.stateApprovedSurface;

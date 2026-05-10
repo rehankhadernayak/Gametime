@@ -57,7 +57,7 @@ export default function ApiSettingsScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={{ flex: 1, backgroundColor: colors.background }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <LinearGradient colors={['#3B5BDB', '#2F4AC0']} style={[styles.hero, { paddingTop: insets.top + 40 }]}>
+        <LinearGradient colors={colors.gradientHero} style={[styles.hero, { paddingTop: insets.top + 40 }]}>
           <Text style={styles.heroTitle}>Connection Settings</Text>
           <Text style={styles.heroSub}>Point the app at your Gametime backend server</Text>
         </LinearGradient>
@@ -119,8 +119,8 @@ export default function ApiSettingsScreen() {
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingHorizontal: 24, paddingBottom: 40, gap: 8 },
   heroIcon: { fontSize: 36, marginBottom: 4 },
-  heroTitle: { color: '#fff', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
-  heroSub: { color: 'rgba(255,255,255,0.78)', fontSize: 14, textAlign: 'center' },
+  heroTitle: { color: '#000000', fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
+  heroSub: { color: '#525252', fontSize: 14, textAlign: 'center' },
 
   card: {
     backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border,

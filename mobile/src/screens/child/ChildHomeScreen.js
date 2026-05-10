@@ -56,7 +56,7 @@ function HeroBalanceCard({ rp, gp }) {
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <LinearGradient
-        colors={['#3B5BDB', '#7C3AED']}
+        colors={colors.gradientHero}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={heroStyles.card}
@@ -119,14 +119,16 @@ function HeroBalanceCard({ rp, gp }) {
 
 const heroStyles = StyleSheet.create({
   card: {
-    borderRadius: 24,
+    borderRadius: 0,
     paddingVertical: spacing[6],
     paddingHorizontal: spacing[6],
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 12,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 0,
+    elevation: 4,
     overflow: 'hidden',
     marginVertical: spacing.md,
   },
@@ -136,7 +138,7 @@ const heroStyles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   row: {
     flexDirection: 'row',
@@ -145,34 +147,32 @@ const heroStyles = StyleSheet.create({
   },
   col: { alignItems: 'center', gap: 6 },
   divider: {
-    width: 1.5,
+    width: 2,
     height: 64,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.12)',
   },
   number: {
     fontSize: 56,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: '#000000',
     lineHeight: 60,
     letterSpacing: -1,
   },
   unit: {
     fontSize: 11,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.8)',
+    color: '#404040',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   gpPill: {
-    backgroundColor: '#FFB800',
-    borderRadius: 8,
+    backgroundColor: '#000000',
+    borderRadius: 0,
     paddingHorizontal: 10,
     paddingVertical: 4,
     alignSelf: 'center',
-    shadowColor: '#FFB800',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   gpPillText: {
     fontSize: 12,

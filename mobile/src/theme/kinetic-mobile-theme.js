@@ -322,20 +322,20 @@ export const useGlowAnimation = (color = '#00D9FF', intensity = 0.5) => {
  */
 export const MOBILE_COLORS = {
   primary: '#000000',
-  background: '#0a0a0a',
-  surface: '#1a1a2e',
-  surfaceAlt: '#16213e',
-  neonRed: '#FF2E5A',
-  neonRedBright: '#FF1A47',
-  neonBlue: '#00D9FF',
-  neonBlueBright: '#0ffffff',
-  neonGreen: '#00FF41',
-  neonOrange: '#FFB800',
+  background: '#FFFFFF',
+  surface: '#FFFFFF',
+  surfaceAlt: '#F5F5F5',
+  neonRed: '#000000',
+  neonRedBright: '#404040',
+  neonBlue: '#000000',
+  neonBlueBright: '#525252',
+  neonGreen: '#15803d',
+  neonOrange: '#a16207',
   white: '#FFFFFF',
-  whiteAlpha6: 'rgba(255, 255, 255, 0.6)',
-  whiteAlpha3: 'rgba(255, 255, 255, 0.3)',
-  redGlow: 'rgba(255, 46, 90, 0.25)',
-  blueGlow: 'rgba(0, 217, 255, 0.25)',
+  whiteAlpha6: 'rgba(0, 0, 0, 0.55)',
+  whiteAlpha3: 'rgba(0, 0, 0, 0.25)',
+  redGlow: 'rgba(0, 0, 0, 0.12)',
+  blueGlow: 'rgba(0, 0, 0, 0.12)',
 };
 
 /**
