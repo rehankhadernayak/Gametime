@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { ChildScreenTimeProvider } from '../context/ChildScreenTimeContext';
 import { colors } from '../theme/colors';
 import HeaderNotifications from '../components/HeaderNotifications';
 
@@ -268,86 +269,88 @@ function ChildTabs() {
  */
 function ChildStack() {
   return (
-    <ChildStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <ChildStackNav.Screen name="ChildTabs" component={ChildTabs} />
+    <ChildScreenTimeProvider>
+      <ChildStackNav.Navigator screenOptions={{ headerShown: false }}>
+        <ChildStackNav.Screen name="ChildTabs" component={ChildTabs} />
 
-      <ChildStackNav.Screen
-        name="ChildAi"
-        component={ChildAiScreen}
-        options={{
-          headerShown: true,
-          title: 'Study Buddy',
-          headerStyle: { backgroundColor: colors.surface },
-          headerTitleStyle: { color: colors.text, fontWeight: '700' },
-          headerTintColor: colors.childAccentDark,
-          presentation: 'card',
-        }}
-      />
-      <ChildStackNav.Screen
-        name="ChildNotifications"
-        component={ChildNotificationsScreen}
-        options={{
-          headerShown: true,
-          title: 'Notifications',
-          headerStyle: { backgroundColor: colors.surface },
-          headerTitleStyle: { color: colors.text, fontWeight: '700' },
-          headerTintColor: colors.childAccentDark,
-        }}
-      />
-      <ChildStackNav.Screen
-        name="Account"
-        component={AccountScreen}
-        options={{
-          headerShown: true,
-          title: '/// SETTINGS ///',
-          headerStyle: {
-            backgroundColor: ONE_BIT.background,
-            borderBottomWidth: ONE_BIT.borderWidth,
-            borderBottomColor: ONE_BIT.ink,
-          },
-          headerTitleStyle: {
-            color: ONE_BIT.ink,
-            fontFamily: ONE_BIT.fontBold,
-            fontSize: 11,
-            letterSpacing: 0.5,
-            textTransform: 'uppercase',
-          },
-          headerTintColor: ONE_BIT.ink,
-          headerShadowVisible: false,
-        }}
-      />
-      <ChildStackNav.Screen
-        name="EvidenceSubmit"
-        component={EvidenceSubmitScreen}
-        options={{ headerShown: false }}
-      />
-      <ChildStackNav.Screen
-        name="TaskProof"
-        component={TaskProofScreen}
-        options={{ headerShown: false }}
-      />
-      <ChildStackNav.Screen
-        name="ChildRewardsStore"
-        component={ChildRewardsStore}
-        options={{
-          headerShown: true,
-          title: 'Reward store',
-          headerStyle: { backgroundColor: TIME_BANK_CREAM },
-          headerTitleStyle: { color: TEXT_DARK_CHILD_NAV, fontWeight: '800' },
-          headerTintColor: colors.primaryDark,
-          headerShadowVisible: false,
-        }}
-      />
-      <ChildStackNav.Screen
-        name="ChildSession"
-        component={ChildSession}
-        options={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#000000' },
-          presentation: 'fullScreenModal',
-        }}
-      />
-    </ChildStackNav.Navigator>
+        <ChildStackNav.Screen
+          name="ChildAi"
+          component={ChildAiScreen}
+          options={{
+            headerShown: true,
+            title: 'Study Buddy',
+            headerStyle: { backgroundColor: colors.surface },
+            headerTitleStyle: { color: colors.text, fontWeight: '700' },
+            headerTintColor: colors.childAccentDark,
+            presentation: 'card',
+          }}
+        />
+        <ChildStackNav.Screen
+          name="ChildNotifications"
+          component={ChildNotificationsScreen}
+          options={{
+            headerShown: true,
+            title: 'Notifications',
+            headerStyle: { backgroundColor: colors.surface },
+            headerTitleStyle: { color: colors.text, fontWeight: '700' },
+            headerTintColor: colors.childAccentDark,
+          }}
+        />
+        <ChildStackNav.Screen
+          name="Account"
+          component={AccountScreen}
+          options={{
+            headerShown: true,
+            title: '/// SETTINGS ///',
+            headerStyle: {
+              backgroundColor: ONE_BIT.background,
+              borderBottomWidth: ONE_BIT.borderWidth,
+              borderBottomColor: ONE_BIT.ink,
+            },
+            headerTitleStyle: {
+              color: ONE_BIT.ink,
+              fontFamily: ONE_BIT.fontBold,
+              fontSize: 11,
+              letterSpacing: 0.5,
+              textTransform: 'uppercase',
+            },
+            headerTintColor: ONE_BIT.ink,
+            headerShadowVisible: false,
+          }}
+        />
+        <ChildStackNav.Screen
+          name="EvidenceSubmit"
+          component={EvidenceSubmitScreen}
+          options={{ headerShown: false }}
+        />
+        <ChildStackNav.Screen
+          name="TaskProof"
+          component={TaskProofScreen}
+          options={{ headerShown: false }}
+        />
+        <ChildStackNav.Screen
+          name="ChildRewardsStore"
+          component={ChildRewardsStore}
+          options={{
+            headerShown: true,
+            title: 'Reward store',
+            headerStyle: { backgroundColor: TIME_BANK_CREAM },
+            headerTitleStyle: { color: TEXT_DARK_CHILD_NAV, fontWeight: '800' },
+            headerTintColor: colors.primaryDark,
+            headerShadowVisible: false,
+          }}
+        />
+        <ChildStackNav.Screen
+          name="ChildSession"
+          component={ChildSession}
+          options={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#000000' },
+            presentation: 'fullScreenModal',
+          }}
+        />
+      </ChildStackNav.Navigator>
+    </ChildScreenTimeProvider>
   );
 }
 
