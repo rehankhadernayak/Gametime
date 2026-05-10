@@ -1,6 +1,20 @@
-const { withEntitlementsPlist, withInfoPlist } = require('@expo/config-plugins');
+/**
+ * Expo config plugin: Apple Family Controls (Screen Time API) for iOS.
+ * Merges the Family Controls entitlement and NSFamilyControlsUsageDescription into the native project.
+ */
+const {
+  createRunOncePlugin,
+  withEntitlementsPlist,
+  withInfoPlist,
+} = require('@expo/config-plugins');
 
-const NS_FAMILY_CONTROLS_USAGE_DESCRIPTION =
+const PLUGIN_NAME = 'with-screen-time-family-controls';
+const PLUGIN_VERSION = '1.0.0';
+
+const FAMILY_CONTROLS_ENTITLEMENT = 'com.apple.developer.family-controls';
+
+const NS_FAMILY_CONTROLS_USAGE_DESCRIPTION = 'NSFamilyControlsUsageDescription';
+const NS_FAMILY_CONTROLS_USAGE_DESCRIPTION_VALUE =
   'Gametime requires Family Controls to strictly enforce gaming limits and block apps when the operational timer expires.';
 
 /**
@@ -10,24 +24,29 @@ const NS_FAMILY_CONTROLS_USAGE_DESCRIPTION =
  * @param {import('@expo/config-plugins').ExportedConfig} config
  * @returns {import('@expo/config-plugins').ExportedConfig}
  */
-function withScreenTime(config) {
-  config = withEntitlementsPlist(config, (config) => {
-    const entitlements = config.modResults;
-    if (entitlements && entitlements['com.apple.developer.family-controls'] !== true) {
-      entitlements['com.apple.developer.family-controls'] = true;
+function withScreenTimeInternal(config) {
+  config = withEntitlementsPlist(config, (mod) => {
+    const entitlements = mod.modResults;
+    if (entitlements && entitlements[FAMILY_CONTROLS_ENTITLEMENT] !== true) {
+      entitlements[FAMILY_CONTROLS_ENTITLEMENT] = true;
     }
-    return config;
+    return mod;
   });
 
-  config = withInfoPlist(config, (config) => {
-    const info = config.modResults;
+  config = withInfoPlist(config, (mod) => {
+    const info = mod.modResults;
     if (info) {
-      info.NSFamilyControlsUsageDescription = NS_FAMILY_CONTROLS_USAGE_DESCRIPTION;
+      info[NS_FAMILY_CONTROLS_USAGE_DESCRIPTION] =
+        NS_FAMILY_CONTROLS_USAGE_DESCRIPTION_VALUE;
     }
-    return config;
+    return mod;
   });
 
   return config;
 }
 
-module.exports = withScreenTime;
+module.exports = createRunOncePlugin(
+  withScreenTimeInternal,
+  PLUGIN_NAME,
+  PLUGIN_VERSION,
+);
