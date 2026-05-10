@@ -1,8 +1,13 @@
+import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useFonts, IBMPlexMono_400Regular, IBMPlexMono_700Bold } from '@expo-google-fonts/ibm-plex-mono';
+import {
+  useFonts,
+  IBMPlexMono_400Regular,
+  IBMPlexMono_600SemiBold,
+  IBMPlexMono_700Bold,
+} from '@expo-google-fonts/ibm-plex-mono';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
@@ -26,7 +31,7 @@ const appTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: colors.background,
+    background: '#FFFFFF',
     card: colors.surface,
     text: colors.text,
     primary: colors.primary,
@@ -37,11 +42,25 @@ const appTheme = {
 export default function App() {
   const [fontsLoaded] = useFonts({
     IBMPlexMono_400Regular,
+    IBMPlexMono_600SemiBold,
     IBMPlexMono_700Bold
   });
 
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />;
+    return (
+      <SafeAreaProvider>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: '#FFFFFF',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <ActivityIndicator size="large" color="#000000" />
+        </View>
+      </SafeAreaProvider>
+    );
   }
 
   return (

@@ -230,3 +230,9 @@
 **Rule:** In migrations, run `ALTER TABLE` to add columns **before** any `CREATE OR REPLACE FUNCTION` whose body references those columns.
 
 ---
+
+### 2026-05-10 — Duplicate import blocks Metro bundle
+**What happened:** `ChildRewardsStore.tsx` imported `createChildSupabaseClient` twice; Metro failed with "Identifier has already been declared".
+**Rule:** When adding imports to a file, scan for an existing import from the same module and extend that block instead of appending a second duplicate line.
+
+---
