@@ -9,6 +9,7 @@ import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
 import FundGiftCardVaultButton from '../components/FundGiftCardVaultButton.jsx';
 import ChildAvatar from '../components/ChildAvatar.jsx';
 import AssignQuestModal from '../components/AssignQuestModal.jsx';
+import BrutalistCard from '../components/BrutalistCard.jsx';
 
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
@@ -66,7 +67,6 @@ function EvidenceMedia({ completionId, evidenceType, evidenceMime, token, title 
 }
 import DashboardShell from '../components/DashboardShell.jsx';
 import StatusChip from '../components/StatusChip.jsx';
-import MetricIcon from '../components/MetricIcon.jsx';
 import TaskTable from '../components/TaskTable.jsx';
 import WeeklyPlanTable from '../components/WeeklyPlanTable.jsx';
 import HoldToConfirmButton from '../components/HoldToConfirmButton.jsx';
@@ -127,6 +127,45 @@ function parseManualGiftcardCodes(input) {
     const expiryDate = parts[2] ? sanitizeText(parts[2]) : undefined;
     return { code, pin, expiryDate };
   });
+}
+
+function DeepScanProgress() {
+  const [wave, setWave] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    const apply = () => setReducedMotion(Boolean(mq?.matches));
+    apply();
+    mq?.addEventListener?.('change', apply);
+    return () => mq?.removeEventListener?.('change', apply);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) return undefined;
+    const id = window.setInterval(() => setWave((w) => (w + 1) % 256), 95);
+    return () => window.clearInterval(id);
+  }, [reducedMotion]);
+
+  const cells = 40;
+  const filled = reducedMotion
+    ? Math.floor(cells * 0.42)
+    : Math.round((Math.sin(wave / 7) * 0.5 + 0.5) * cells);
+
+  return (
+    <div className="parent-dash-deep-scan" aria-busy="true" aria-live="polite">
+      <div className="parent-dash-deep-scan-head">
+        <span className="parent-dash-deep-scan-title">Deep Scan</span>
+        <span className="parent-dash-deep-scan-sub">UPLINK BUFFERING…</span>
+      </div>
+      <div className="parent-dash-deep-scan-track">
+        <pre className="parent-dash-deep-scan-pre" aria-hidden="true">
+          {`${'\u2588'.repeat(filled)}${' '.repeat(Math.max(0, cells - filled))}`}
+        </pre>
+      </div>
+    </div>
+  );
 }
 
 function pickGiftcardImage(card) {
@@ -485,29 +524,6 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     return groups;
   }, [tasks]);
 
-  const quickStats = useMemo(
-    () => ({
-      totalChildren: children.length,
-      pendingApprovals: tasks.filter((task) => task.state === 'PendingApproval').length,
-      pendingTaskRequests: taskRequests.filter((request) => request.status === 'Pending').length,
-      totalRewards: rewards.length,
-      unreadNotifs: notifications.filter((n) => !n.read).length,
-      blockedGames: gamingGames.filter((game) => game.status === 'Blocked').length,
-      parentGpBalance: Number(gpSummary.parentGpBalance || 0)
-    }),
-    [children, tasks, taskRequests, rewards, notifications, gamingGames, gpSummary]
-  );
-
-  const quickStatCards = [
-    { key: 'totalChildren', label: 'Children', icon: 'children' },
-    { key: 'pendingApprovals', label: 'Approvals', icon: 'approvals' },
-    { key: 'pendingTaskRequests', label: 'Requests', icon: 'requests' },
-    { key: 'totalRewards', label: 'Rewards', icon: 'rewards' },
-    { key: 'parentGpBalance', label: 'Parent GP', icon: 'gp' },
-    { key: 'unreadNotifs', label: 'Unread', icon: 'unread' },
-    { key: 'blockedGames', label: 'Blocked', icon: 'blocked' }
-  ];
-
   const recentActivity = useMemo(() => {
     const notes = notifications.map((note) => ({
       id: `note-${note.id}`,
@@ -528,6 +544,84 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 10);
   }, [notifications, transactions]);
+
+  const systemLogLines = useMemo(() => {
+    const rows = [];
+    const push = (id, ts, tag, msg) => {
+      const t = ts ? new Date(ts).getTime() : Date.now();
+      const text = `> ${tag}: ${msg}`;
+      rows.push({ id, ts: t, text });
+    };
+
+    for (const t of tasks) {
+      if (t.state === 'PendingApproval') {
+        const sector = String(t.childName || '?')
+          .replace(/\s+/g, '')
+          .slice(0, 4)
+          .toUpperCase();
+        push(
+          `pend-${t.id}`,
+          t.updatedAt || t.createdAt,
+          'ALERT',
+          `Sector ${sector || 'NODE'} access detected — "${t.title}" awaiting clearance`,
+        );
+      }
+    }
+    for (const r of taskRequests) {
+      if (r.status === 'Pending') {
+        push(
+          `req-${r.id}`,
+          r.createdAt,
+          'WARN',
+          `Child channel ${r.childName}: task request "${r.title}"`,
+        );
+      }
+    }
+    for (const entry of gamingAudit.slice(0, 14)) {
+      push(
+        `game-${entry.id}`,
+        entry.startedAt,
+        'TRACE',
+        `${entry.childName} • ${entry.gameName} • ${entry.status} • ${entry.durationMinutes ?? entry.grantedMinutes ?? 0}m`,
+      );
+    }
+    for (const n of notifications.slice(0, 20)) {
+      const tag = n.read ? 'INFO' : 'ALERT';
+      const msg = String(n.message || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 168);
+      push(`note-${n.id}`, n.createdAt, tag, msg || '(empty signal)');
+    }
+    for (const txn of transactions.slice(0, 14)) {
+      const tag = txn.type === 'Debit' ? 'DEBIT' : 'CREDIT';
+      push(
+        `txn-${txn.id}`,
+        txn.createdAt,
+        tag,
+        `${txn.pointsKind || 'RP'} ${txn.points} pts • ${txn.referenceType}`,
+      );
+    }
+
+    rows.sort((a, b) => b.ts - a.ts);
+    const seen = new Set();
+    const deduped = [];
+    for (const row of rows) {
+      if (seen.has(row.text)) continue;
+      seen.add(row.text);
+      deduped.push(row);
+    }
+    if (deduped.length === 0) {
+      return [
+        {
+          id: 'boot',
+          ts: Date.now(),
+          text: '> SYS: LIVE_SYSTEM_LOGS buffer initialized — awaiting telemetry',
+        },
+      ];
+    }
+    return deduped.slice(0, 44);
+  }, [tasks, taskRequests, gamingAudit, notifications, transactions]);
 
   const demoReadiness = useMemo(() => ({
     hasChild: children.length > 0,
@@ -689,7 +783,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       if (loading) return;
       const root = homeStatsGridRef.current;
       if (!root) return;
-      const cards = root.querySelectorAll('.stat-card');
+      const cards = root.querySelectorAll('.parent-dash-os-metric');
       if (!cards.length) return;
       if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         return;
@@ -753,11 +847,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
             </div>
           )}
 
-          <section className="panel welcome-panel" aria-busy={loading}>
+          <section className="panel welcome-panel parent-dash-os" aria-busy={loading}>
             <div className="panel-top">
               <div>
                 <h2>Family Overview</h2>
-                <p className="section-subtitle">Manage RP, GP, tasks, and approvals from one place.</p>
+                <p className="section-subtitle">Live activity feed and system metrics (1-bit console).</p>
               </div>
               <div className="quick-actions">
                 <button type="button" className="secondary-button" onClick={() => openAssignQuest('')}>Assign quest</button>
@@ -789,32 +883,70 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 {message}
               </p>
             )}
-            {loading && (
-              <div className="stats-skeleton" aria-busy="true" aria-label="Loading stats">
-                {Array.from({ length: 7 }, (_, i) => (
-                  <div key={i} className="skeleton-card">
-                    <div className="skeleton-line short" />
-                    <div className="skeleton-line medium" />
-                    <div className="skeleton-line tall short" />
-                  </div>
-                ))}
-              </div>
-            )}
-            {!loading && (
-              <div ref={homeStatsGridRef} className="stats-grid">
-                {quickStatCards.map((card, index) => (
-                  <div key={card.key} className={`stat-card tone-${(index % 6) + 1}`}>
-                    <div className="stat-card__head">
-                      <span className="stat-label">{card.label}</span>
-                      <div className="stat-icon" aria-hidden="true">
-                        <MetricIcon name={card.icon} />
+            <div ref={homeStatsGridRef} className={`parent-dash-os-grid${loading ? ' parent-dash-os-grid--loading' : ''}`}>
+              <div className="parent-dash-os-feed">
+                <header className="parent-dash-os-feed-header">
+                  <span className="parent-dash-os-tag">LIVE</span>
+                  <h3 className="parent-dash-os-feed-title">Live Activity Feed</h3>
+                </header>
+                {loading ? <DeepScanProgress /> : null}
+                <div className="parent-dash-os-log-wrap">
+                  <div className="parent-dash-os-log-title">LIVE_SYSTEM_LOGS // Recent Events</div>
+                  <div className="parent-dash-os-log" role="log" aria-label="Recent system events">
+                    {systemLogLines.map((row) => (
+                      <div key={row.id} className="parent-dash-os-log-line">
+                        {row.text}
                       </div>
-                    </div>
-                    <strong className="stat-value">{quickStats[card.key]}</strong>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            )}
+              <aside className="parent-dash-os-metrics" aria-label="System metrics">
+                <header className="parent-dash-os-metrics-header">
+                  <h3 className="parent-dash-os-metrics-title">System Metrics</h3>
+                </header>
+                {children.length === 0 ? (
+                  <BrutalistCard className="parent-dash-os-metric">
+                    <div className="parent-dash-os-metric-head">No child nodes</div>
+                    <p className="parent-dash-os-metric-empty">Link a child profile to stream screen time and alerts.</p>
+                  </BrutalistCard>
+                ) : (
+                  children.map((child) => {
+                    const overview = gamingOverviewByChild[child.id];
+                    const report = gamingReportByChild[child.id];
+                    const pendingForChild = tasks.filter(
+                      (t) => t.childId === child.id && t.state === 'PendingApproval',
+                    ).length;
+                    const unreadForChild = notifications.filter(
+                      (n) => !n.read && String(n.message || '').includes(child.name),
+                    ).length;
+                    const screenLine = report
+                      ? `${report.totals.totalMinutes} min / wk (${report.totals.weeklyCapUsedPercent}% cap)`
+                      : overview
+                        ? `Today ${overview.usage.todayUsedMinutes} min · Playable ${overview.usage.playableNow} min`
+                        : loading
+                          ? '…'
+                          : 'No telemetry';
+                    const alertTotal = pendingForChild + unreadForChild;
+                    return (
+                      <BrutalistCard key={child.id} className="parent-dash-os-metric">
+                        <div className="parent-dash-os-metric-head">{child.name}</div>
+                        <dl className="parent-dash-os-metric-dl">
+                          <div className="parent-dash-os-metric-row">
+                            <dt>Screen Time</dt>
+                            <dd>{screenLine}</dd>
+                          </div>
+                          <div className="parent-dash-os-metric-row">
+                            <dt>Recent Alerts</dt>
+                            <dd>{alertTotal === 0 ? 'CLEAR' : `${alertTotal} ACTIVE`}</dd>
+                          </div>
+                        </dl>
+                      </BrutalistCard>
+                    );
+                  })
+                )}
+              </aside>
+            </div>
             <h3>Demo Readiness</h3>
             <div className="checklist-grid">
               <article className={`check-card ${demoReadiness.hasChild ? 'check-ok' : 'check-pending'}`}>
