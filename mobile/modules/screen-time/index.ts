@@ -1,21 +1,23 @@
-import { Platform } from 'react-native';
-import { requireOptionalNativeModule } from 'expo-modules-core';
+import { requireNativeModule } from 'expo-modules-core';
 
-interface GametimeScreenTimeNative {
-  requestAuthorization(): Promise<void>;
+type GametimeScreenTimeNative = {
+  requestAuthorization(): Promise<boolean>;
+  applyShield(selectionData: string): Promise<void>;
+  removeShield(): Promise<void>;
+};
+
+const native = requireNativeModule<GametimeScreenTimeNative>('GametimeScreenTime');
+
+export async function requestAuthorization(): Promise<boolean> {
+  return native.requestAuthorization();
 }
 
-export async function requestAuthorization(): Promise<void> {
-  if (Platform.OS !== 'ios') {
-    throw new Error('requestAuthorization is only available on iOS');
-  }
-
-  const native = requireOptionalNativeModule<GametimeScreenTimeNative>('GametimeScreenTime');
-  if (!native) {
-    throw new Error(
-      'GametimeScreenTime native module is not linked. Run a native iOS build (e.g. npx expo run:ios) after installing this package.'
-    );
-  }
-
-  await native.requestAuthorization();
+export async function applyShield(selectionData: string): Promise<void> {
+  return native.applyShield(selectionData);
 }
+
+export async function removeShield(): Promise<void> {
+  return native.removeShield();
+}
+
+export { FamilyPicker } from './src/FamilyPicker';

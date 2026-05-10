@@ -36,6 +36,7 @@
       ]
     },
     "plugins": [
+      "./plugins/withScreenTime.js",
       "expo-secure-store",
       [
         "expo-notifications",

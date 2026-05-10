@@ -1,7 +1,6 @@
 {
-  "platforms": ["apple"],
+  "platforms": ["ios"],
   "apple": {
-    "modules": ["ScreenTimeModule"],
-    "podspecPath": "./gametime-screen-time.podspec"
+    "modules": ["ScreenTimeModule"]
   }
 }
