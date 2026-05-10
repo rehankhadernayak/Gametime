@@ -9,6 +9,7 @@ import { ArcadeMobileButton, CHILD_OS, MissionBox } from '../../components/child
 import { useAuth } from '../../context/AuthContext';
 import { createChildSupabaseClient, getSupabaseChildTableName } from '../../lib/supabase';
 import { monoFont } from '../../theme/oneBit';
+import { syncSystemRestrictions } from '../../utils/syncSystemRestrictions';
 
 const BG = '#000000';
 
@@ -313,6 +314,11 @@ export default function ChildHome() {
       if (channel) void supabase.removeChannel(channel);
     };
   }, [role, childId, token]);
+
+  useEffect(() => {
+    if (role !== 'child' || !token) return;
+    void syncSystemRestrictions(token);
+  }, [role, token]);
 
   const onStartSystem = useCallback(() => {
     navigation.navigate('ChildGaming' as never);
