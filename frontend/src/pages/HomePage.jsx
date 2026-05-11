@@ -112,9 +112,9 @@ export default function HomePage({ auth }) {
           <div className="inline-block border-2 border-black p-2 text-xs font-bold uppercase bg-black text-white">
             Status: {auth.token ? 'Signed in' : 'Accepting new families'}
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight text-black">
             Turn screen time into{' '}
-            <span className="inline-block overflow-hidden whitespace-nowrap border-r-4 border-black pr-2 animate-typewriter">
+            <span className="inline-block overflow-hidden whitespace-nowrap border-r-4 border-black pr-2 animate-typewriter text-black">
               earned time.
             </span>
           </h1>
