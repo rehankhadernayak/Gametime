@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-12 — Google access tokens require audience checks
+**What happened:** The `/auth/google` access-token fallback called `userinfo` with any bearer token that had email scope, without verifying the token was issued to our OAuth client IDs — a token from another app could authenticate as that Google user.
+**Rule:** For Google access tokens, always validate `aud` (and when present `azp`) against `GOOGLE_OAUTH_CLIENT_IDS` via `OAuth2Client.getTokenInfo` (or equivalent) before trusting identity; rely on `verifyIdToken` audience checks for ID tokens.
+
+---

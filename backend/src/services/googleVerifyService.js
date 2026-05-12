@@ -39,14 +39,41 @@ export async function verifyGoogleIdentity(input) {
     return { sub: p.sub, email: p.email.toLowerCase(), name };
   }
 
-  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-  if (!res.ok) throw new ApiError(401, 'Invalid Google credential.');
-  const p = await res.json();
-  if (!p?.sub || !p.email) throw new ApiError(401, 'Invalid Google credential.');
-  const verified = p.email_verified === true || p.verified_email === true || p.email_verified === 'true';
-  if (!verified) throw new ApiError(403, 'Verify your Google email before continuing.');
-  const name = String(p.name || p.given_name || p.email.split('@')[0] || 'User').trim();
-  return { sub: p.sub, email: p.email.toLowerCase(), name };
+  /** Access tokens must be issued to one of our OAuth clients — userinfo alone does not prove that. */
+  let tokenInfo;
+  try {
+    tokenInfo = await oauth2Client.getTokenInfo(accessToken);
+  } catch {
+    throw new ApiError(401, 'Invalid Google credential.');
+  }
+  const aud = tokenInfo.aud;
+  const azp = tokenInfo.azp;
+  const audOk = Boolean(aud && audiences.includes(aud));
+  const azpOk = Boolean(azp && audiences.includes(azp));
+  if (!audOk && !azpOk) {
+    throw new ApiError(401, 'Invalid Google credential.');
+  }
+  const scopes = Array.isArray(tokenInfo.scopes) ? tokenInfo.scopes : [];
+  const hasEmailScope = scopes.some(
+    (s) => s === 'email' || s === 'https://www.googleapis.com/auth/userinfo.email' || s.endsWith('/auth/userinfo.email')
+  );
+  if (!hasEmailScope) {
+    throw new ApiError(401, 'Invalid Google credential.');
+  }
+  const sub = tokenInfo.sub || tokenInfo.user_id;
+  const email = typeof tokenInfo.email === 'string' ? tokenInfo.email.toLowerCase() : '';
+  if (!sub || !email) throw new ApiError(401, 'Invalid Google credential.');
+  const ev = tokenInfo.email_verified;
+  const emailVerified = ev === true || ev === 'true' || ev === '1';
+  if (!emailVerified) {
+    throw new ApiError(403, 'Verify your Google email before continuing.');
+  }
+  const rawName =
+    typeof tokenInfo.name === 'string' && tokenInfo.name.trim()
+      ? tokenInfo.name.trim()
+      : typeof tokenInfo.given_name === 'string' && tokenInfo.given_name.trim()
+        ? tokenInfo.given_name.trim()
+        : email.split('@')[0] || 'User';
+  const name = String(rawName).trim();
+  return { sub, email, name };
 }
