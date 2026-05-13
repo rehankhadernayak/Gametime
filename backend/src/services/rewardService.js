@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
+import { runInDbTransaction } from '../db/runInTransaction.js';
 import { ApiError } from '../utils/errors.js';
 import { sanitizeText } from '../utils/sanitize.js';
 import { adjustPoints } from './pointsService.js';
@@ -114,8 +115,7 @@ export async function redeemReward(childId, rewardId) {
   }
 
   const now = new Date().toISOString();
-  await db.exec('BEGIN');
-  try {
+  return runInDbTransaction(db, async (tx) => {
     if (isGpReward) {
       await debitChildGp({
         parentId: reward.parentId,
@@ -124,7 +124,7 @@ export async function redeemReward(childId, rewardId) {
         referenceType: 'GiftcardRedemption',
         referenceId: rewardId,
         note: `GP redeemed for reward: ${reward.title}`,
-        dbClient: db
+        dbClient: tx
       });
     } else {
       await adjustPoints({
@@ -133,12 +133,12 @@ export async function redeemReward(childId, rewardId) {
         type: 'Debit',
         referenceType: 'Reward',
         referenceId: rewardId,
-        dbClient: db
+        dbClient: tx
       });
     }
 
     const linkedGiftcard = await redeemLinkedGiftcardReward({
-      dbClient: db,
+      dbClient: tx,
       childId,
       reward
     });
@@ -146,7 +146,6 @@ export async function redeemReward(childId, rewardId) {
     if (linkedGiftcard) {
       await createNotification('Parent', reward.parentId, `Giftcard reward auto-fulfilled: ${reward.title}`);
       await createNotification('Child', childId, `Giftcard delivered: ${reward.title}`);
-      await db.exec('COMMIT');
       return {
         redemptionId: linkedGiftcard.redemptionId,
         fulfilled: true,
@@ -155,11 +154,11 @@ export async function redeemReward(childId, rewardId) {
     }
 
     if (reward.quantity_limit !== null) {
-      await db.run('UPDATE rewards SET quantity_limit = quantity_limit - 1, updated_at = ? WHERE id = ?', [now, rewardId]);
+      await tx.run('UPDATE rewards SET quantity_limit = quantity_limit - 1, updated_at = ? WHERE id = ?', [now, rewardId]);
     }
 
     const redemptionId = uuidv4();
-    await db.run(
+    await tx.run(
       `INSERT INTO redemptions (id, child_id, reward_id, redeemed_at, points_spent, points_type, status, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, 'Pending', ?, ?)`,
       [redemptionId, childId, rewardId, now, reward.points_cost, reward.points_type || 'RP', now, now]
@@ -168,12 +167,8 @@ export async function redeemReward(childId, rewardId) {
     await createNotification('Parent', reward.parentId, `Reward redeemed and pending delivery: ${reward.title}`, 'reward_redeemed');
     await createNotification('Child', childId, `Reward redeemed: ${reward.title} (${reward.points_cost} ${isGpReward ? 'GP' : 'RP'})`, 'reward_redeemed');
 
-    await db.exec('COMMIT');
     return { redemptionId, fulfilled: false };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function fulfillRedemption(parentId, redemptionId) {
@@ -223,8 +218,7 @@ export async function deleteReward(parentId, rewardId) {
   const pending = await db.all('SELECT * FROM redemptions WHERE reward_id = ? AND status = ?', [rewardId, 'Pending']);
   const giftcardLink = await db.get('SELECT batch_id as batchId FROM reward_giftcard_links WHERE reward_id = ?', [rewardId]);
 
-  await db.exec('BEGIN');
-  try {
+  return runInDbTransaction(db, async (tx) => {
     for (const redemption of pending) {
       if (redemption.points_type === 'GP') {
         await awardChildGp({
@@ -234,7 +228,7 @@ export async function deleteReward(parentId, rewardId) {
           referenceType: 'ManualAdjustment',
           referenceId: redemption.id,
           note: `Refunded GP for cancelled reward: ${reward.title}`,
-          dbClient: db
+          dbClient: tx
         });
       } else {
         await adjustPoints({
@@ -243,25 +237,25 @@ export async function deleteReward(parentId, rewardId) {
           type: 'Credit',
           referenceType: 'Refund',
           referenceId: redemption.id,
-          dbClient: db
+          dbClient: tx
         });
       }
 
       if (reward.quantity_limit !== null) {
-        await db.run('UPDATE rewards SET quantity_limit = quantity_limit + 1, updated_at = ? WHERE id = ?', [
+        await tx.run('UPDATE rewards SET quantity_limit = quantity_limit + 1, updated_at = ? WHERE id = ?', [
           new Date().toISOString(),
           rewardId
         ]);
       }
 
-      await db.run('UPDATE redemptions SET status = ?, updated_at = ? WHERE id = ?', [
+      await tx.run('UPDATE redemptions SET status = ?, updated_at = ? WHERE id = ?', [
         'Cancelled',
         new Date().toISOString(),
         redemption.id
       ]);
 
       if (giftcardLink?.batchId) {
-        const releaseResult = await db.run(
+        const releaseResult = await tx.run(
           `UPDATE giftcard_codes
            SET status = 'Available',
                assigned_redemption_id = NULL,
@@ -273,7 +267,7 @@ export async function deleteReward(parentId, rewardId) {
         );
 
         if (releaseResult?.changes) {
-          await db.run(
+          await tx.run(
             `UPDATE giftcard_inventory_batches
              SET quantity_available = quantity_available + ?,
                  updated_at = ?
@@ -286,12 +280,8 @@ export async function deleteReward(parentId, rewardId) {
       await createNotification('Child', redemption.child_id, `Reward removed and points restored: ${reward.title}`);
     }
 
-    await db.run('DELETE FROM rewards WHERE id = ?', [rewardId]);
+    await tx.run('DELETE FROM rewards WHERE id = ?', [rewardId]);
 
-    await db.exec('COMMIT');
     return { refundedCount: pending.length };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }

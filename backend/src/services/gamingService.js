@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
+import { runInDbTransaction } from '../db/runInTransaction.js';
 import { ApiError } from '../utils/errors.js';
 
 const DEFAULT_SETTINGS = {
@@ -206,29 +207,28 @@ export async function syncDetectedGames(parentId, payload) {
   await ensureSettings(db, parentId);
 
   const now = new Date().toISOString();
-  let created = 0;
-  let updated = 0;
 
-  await db.exec('BEGIN');
-  try {
+  return runInDbTransaction(db, async (tx) => {
+    let created = 0;
+    let updated = 0;
     for (const game of payload.games) {
       const name = sanitizeText(game.name, 80);
       const platform = sanitizeText(game.platform || payload.platform || 'Unknown', 40);
       if (!name || !platform) continue;
 
-      const existing = await db.get(
+      const existing = await tx.get(
         'SELECT id, status FROM gaming_games WHERE parent_id = ? AND LOWER(name) = LOWER(?) AND platform = ?',
         [parentId, name, platform]
       );
 
       if (existing) {
-        await db.run(
+        await tx.run(
           'UPDATE gaming_games SET external_id = COALESCE(?, external_id), source = ?, updated_at = ? WHERE id = ?',
           [game.externalId ? sanitizeText(game.externalId, 120) : null, 'detected', now, existing.id]
         );
         updated += 1;
       } else {
-        await db.run(
+        await tx.run(
           `INSERT INTO gaming_games (id, parent_id, name, platform, status, source, external_id, created_at, updated_at)
            VALUES (?, ?, ?, ?, 'Blocked', 'detected', ?, ?, ?)`,
           [uuidv4(), parentId, name, platform, game.externalId ? sanitizeText(game.externalId, 120) : null, now, now]
@@ -236,14 +236,8 @@ export async function syncDetectedGames(parentId, payload) {
         created += 1;
       }
     }
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
-
-  return { created, updated };
+    return { created, updated };
+  });
 }
 
 export async function updateParentGame(parentId, gameId, payload) {
@@ -624,10 +618,9 @@ export async function importGamingUsage(parentId, payload) {
   const db = await getDb();
   await ensureParentChild(db, parentId, payload.childId);
   const now = new Date().toISOString();
-  let imported = 0;
 
-  await db.exec('BEGIN');
-  try {
+  const imported = await runInDbTransaction(db, async (tx) => {
+    let imported = 0;
     for (const entry of payload.entries) {
       const gameName = sanitizeText(entry.gameName, 80);
       const platform = sanitizeText(entry.platform, 40);
@@ -641,7 +634,7 @@ export async function importGamingUsage(parentId, payload) {
       const startedAt = entry.startedAt;
       const endedAt = new Date(Date.parse(startedAt) + entry.durationMinutes * 60_000).toISOString();
 
-      await db.run(
+      await tx.run(
         `INSERT INTO gaming_sessions
           (id, parent_id, child_id, game_id, game_name, platform, status, granted_minutes, duration_minutes, started_at, ended_at, source, created_at, updated_at)
          VALUES (?, ?, ?, NULL, ?, ?, 'Completed', ?, ?, ?, ?, 'Import', ?, ?)`,
@@ -661,12 +654,8 @@ export async function importGamingUsage(parentId, payload) {
       );
       imported += 1;
     }
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+    return imported;
+  });
 
   return {
     imported,

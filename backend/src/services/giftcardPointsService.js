@@ -1,7 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
+import { runInDbTransaction } from '../db/runInTransaction.js';
 import { ApiError } from '../utils/errors.js';
 import { sanitizeText } from '../utils/sanitize.js';
+
+async function withOptionalTransaction(db, dbClient, fn) {
+  if (dbClient) return fn(dbClient);
+  return runInDbTransaction(db, fn);
+}
 
 async function insertGpTransaction({
   db,
@@ -46,16 +52,14 @@ export async function purchaseParentGp({
   dbClient = null
 }) {
   const db = dbClient || (await getDb());
-  const ownTx = !dbClient;
 
   const amount = Number(points);
   if (!Number.isInteger(amount) || amount <= 0) {
     throw new ApiError(400, 'GP purchase points must be a positive whole number');
   }
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
-    const parent = await db.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
+  return withOptionalTransaction(db, dbClient, async (client) => {
+    const parent = await client.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
     if (!parent) throw new ApiError(404, 'Parent account not found');
 
     const nextBalance = Number(parent.gpBalance || 0) + amount;
@@ -63,14 +67,14 @@ export async function purchaseParentGp({
       throw new ApiError(400, 'Parent GP balance cannot exceed 1000000');
     }
 
-    await db.run('UPDATE parent_accounts SET gp_balance = ?, updated_at = ? WHERE id = ?', [
+    await client.run('UPDATE parent_accounts SET gp_balance = ?, updated_at = ? WHERE id = ?', [
       nextBalance,
       new Date().toISOString(),
       parentId
     ]);
 
     await insertGpTransaction({
-      db,
+      db: client,
       parentId,
       points: amount,
       type: 'Credit',
@@ -81,12 +85,8 @@ export async function purchaseParentGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { parentGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function reserveTaskGp({
@@ -97,30 +97,28 @@ export async function reserveTaskGp({
   dbClient = null
 }) {
   const db = dbClient || (await getDb());
-  const ownTx = !dbClient;
   const amount = Number(gpPoints || 0);
   if (!Number.isInteger(amount) || amount < 0) {
     throw new ApiError(400, 'Task GP allocation must be a whole number 0 or higher');
   }
   if (amount === 0) return { parentGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
-    const parent = await db.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
+  return withOptionalTransaction(db, dbClient, async (client) => {
+    const parent = await client.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
     if (!parent) throw new ApiError(404, 'Parent account not found');
     if (Number(parent.gpBalance || 0) < amount) {
       throw new ApiError(400, 'Insufficient GP in parent wallet. Buy GP before allocating to tasks.');
     }
 
     const nextBalance = Number(parent.gpBalance || 0) - amount;
-    await db.run('UPDATE parent_accounts SET gp_balance = ?, updated_at = ? WHERE id = ?', [
+    await client.run('UPDATE parent_accounts SET gp_balance = ?, updated_at = ? WHERE id = ?', [
       nextBalance,
       new Date().toISOString(),
       parentId
     ]);
 
     await insertGpTransaction({
-      db,
+      db: client,
       parentId,
       points: amount,
       type: 'Debit',
@@ -130,12 +128,8 @@ export async function reserveTaskGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { parentGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function refundTaskGpToParent({
@@ -146,16 +140,14 @@ export async function refundTaskGpToParent({
   dbClient = null
 }) {
   const db = dbClient || (await getDb());
-  const ownTx = !dbClient;
   const amount = Number(gpPoints || 0);
   if (!Number.isInteger(amount) || amount < 0) {
     throw new ApiError(400, 'Task GP refund must be a whole number 0 or higher');
   }
   if (amount === 0) return { parentGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
-    const parent = await db.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
+  return withOptionalTransaction(db, dbClient, async (client) => {
+    const parent = await client.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
     if (!parent) throw new ApiError(404, 'Parent account not found');
 
     const nextBalance = Number(parent.gpBalance || 0) + amount;
@@ -163,14 +155,14 @@ export async function refundTaskGpToParent({
       throw new ApiError(400, 'Parent GP balance cannot exceed 1000000');
     }
 
-    await db.run('UPDATE parent_accounts SET gp_balance = ?, updated_at = ? WHERE id = ?', [
+    await client.run('UPDATE parent_accounts SET gp_balance = ?, updated_at = ? WHERE id = ?', [
       nextBalance,
       new Date().toISOString(),
       parentId
     ]);
 
     await insertGpTransaction({
-      db,
+      db: client,
       parentId,
       points: amount,
       type: 'Credit',
@@ -180,12 +172,8 @@ export async function refundTaskGpToParent({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { parentGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function awardChildGp({
@@ -198,16 +186,14 @@ export async function awardChildGp({
   dbClient = null
 }) {
   const db = dbClient || (await getDb());
-  const ownTx = !dbClient;
   const amount = Number(gpPoints || 0);
   if (!Number.isInteger(amount) || amount < 0) {
     throw new ApiError(400, 'Child GP award must be a whole number 0 or higher');
   }
   if (amount === 0) return { childGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
-    const child = await db.get(
+  return withOptionalTransaction(db, dbClient, async (client) => {
+    const child = await client.get(
       'SELECT id, parent_id as parentId, giftcard_points_balance as giftcardPointsBalance FROM child_profiles WHERE id = ?',
       [childId]
     );
@@ -218,14 +204,14 @@ export async function awardChildGp({
       throw new ApiError(400, 'Child GP balance cannot exceed 100000');
     }
 
-    await db.run('UPDATE child_profiles SET giftcard_points_balance = ?, updated_at = ? WHERE id = ?', [
+    await client.run('UPDATE child_profiles SET giftcard_points_balance = ?, updated_at = ? WHERE id = ?', [
       nextBalance,
       new Date().toISOString(),
       childId
     ]);
 
     await insertGpTransaction({
-      db,
+      db: client,
       parentId,
       childId,
       points: amount,
@@ -236,12 +222,8 @@ export async function awardChildGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { childGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function debitChildGp({
@@ -254,16 +236,14 @@ export async function debitChildGp({
   dbClient = null
 }) {
   const db = dbClient || (await getDb());
-  const ownTx = !dbClient;
   const amount = Number(gpPoints || 0);
   if (!Number.isInteger(amount) || amount < 0) {
     throw new ApiError(400, 'Child GP debit must be a whole number 0 or higher');
   }
   if (amount === 0) return { childGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
-    const child = await db.get(
+  return withOptionalTransaction(db, dbClient, async (client) => {
+    const child = await client.get(
       'SELECT id, parent_id as parentId, giftcard_points_balance as giftcardPointsBalance FROM child_profiles WHERE id = ?',
       [childId]
     );
@@ -273,14 +253,14 @@ export async function debitChildGp({
     }
 
     const nextBalance = Number(child.giftcardPointsBalance || 0) - amount;
-    await db.run('UPDATE child_profiles SET giftcard_points_balance = ?, updated_at = ? WHERE id = ?', [
+    await client.run('UPDATE child_profiles SET giftcard_points_balance = ?, updated_at = ? WHERE id = ?', [
       nextBalance,
       new Date().toISOString(),
       childId
     ]);
 
     await insertGpTransaction({
-      db,
+      db: client,
       parentId,
       childId,
       points: amount,
@@ -291,12 +271,8 @@ export async function debitChildGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { childGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function listGpTransactions({ parentId, childId = null, limit = 100 }) {

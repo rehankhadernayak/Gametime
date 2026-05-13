@@ -1,27 +1,27 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
+import { runInDbTransaction } from '../db/runInTransaction.js';
 import { ApiError } from '../utils/errors.js';
 
 export async function adjustPoints({ childId, points, type, referenceType, referenceId = null, dbClient = null }) {
   const db = dbClient || (await getDb());
   const ownTransaction = !dbClient;
 
-  if (ownTransaction) await db.exec('BEGIN');
-  try {
-    const child = await db.get('SELECT points_balance FROM child_profiles WHERE id = ?', childId);
-    if (!child) throw new ApiError(404, 'Child not found');
+  const work = async (client) => {
+    const row = await client.get('SELECT points_balance FROM child_profiles WHERE id = ?', childId);
+    if (!row) throw new ApiError(404, 'Child not found');
 
-    const nextBalance = child.points_balance + points;
+    const nextBalance = row.points_balance + points;
     if (nextBalance < 0 || nextBalance > 10000) {
       throw new ApiError(400, 'Points balance must stay between 0 and 10000');
     }
 
-    await db.run(
+    await client.run(
       'UPDATE child_profiles SET points_balance = ?, updated_at = ? WHERE id = ?',
       [nextBalance, new Date().toISOString(), childId]
     );
 
-    await db.run(
+    await client.run(
       `INSERT INTO points_transactions (id, child_id, points, points_kind, type, reference_type, reference_id, created_at)
        VALUES (?, ?, ?, 'RP', ?, ?, ?, ?)`,
       [
@@ -35,12 +35,13 @@ export async function adjustPoints({ childId, points, type, referenceType, refer
       ]
     );
 
-    if (ownTransaction) await db.exec('COMMIT');
     return nextBalance;
-  } catch (error) {
-    if (ownTransaction) await db.exec('ROLLBACK');
-    throw error;
+  };
+
+  if (ownTransaction) {
+    return runInDbTransaction(db, work);
   }
+  return work(db);
 }
 
 export async function listTransactions(childId) {
