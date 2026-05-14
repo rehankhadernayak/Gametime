@@ -1,10 +1,34 @@
 import fs from 'fs';
 import path from 'path';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '../config/env.js';
 import { createPgDbAdapter, createPgPool } from './pgAdapter.js';
+
+/** Nested `withTransaction` on SQLite reuses the outer BEGIN without starting a new transaction. */
+const sqliteTxNest = new AsyncLocalStorage();
+
+function attachSqliteWithTransaction(db) {
+  if (typeof db.withTransaction === 'function') return;
+  db.withTransaction = async function withTransaction(work) {
+    if (sqliteTxNest.getStore()) {
+      return await work(this);
+    }
+    return await sqliteTxNest.run(true, async () => {
+      await this.exec('BEGIN');
+      try {
+        const result = await work(this);
+        await this.exec('COMMIT');
+        return result;
+      } catch (e) {
+        await this.exec('ROLLBACK');
+        throw e;
+      }
+    });
+  };
+}
 
 let sqliteDb;
 let pgPool;
@@ -34,6 +58,7 @@ export async function getDb() {
       });
       await sqliteDb.exec('PRAGMA foreign_keys = ON;');
       await sqliteDb.exec('PRAGMA busy_timeout = 8000;');
+      attachSqliteWithTransaction(sqliteDb);
     }
     return sqliteDb;
   }

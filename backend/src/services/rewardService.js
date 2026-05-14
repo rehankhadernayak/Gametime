@@ -114,8 +114,7 @@ export async function redeemReward(childId, rewardId) {
   }
 
   const now = new Date().toISOString();
-  await db.exec('BEGIN');
-  try {
+  return db.withTransaction(async () => {
     if (isGpReward) {
       await debitChildGp({
         parentId: reward.parentId,
@@ -146,7 +145,6 @@ export async function redeemReward(childId, rewardId) {
     if (linkedGiftcard) {
       await createNotification('Parent', reward.parentId, `Giftcard reward auto-fulfilled: ${reward.title}`);
       await createNotification('Child', childId, `Giftcard delivered: ${reward.title}`);
-      await db.exec('COMMIT');
       return {
         redemptionId: linkedGiftcard.redemptionId,
         fulfilled: true,
@@ -168,12 +166,8 @@ export async function redeemReward(childId, rewardId) {
     await createNotification('Parent', reward.parentId, `Reward redeemed and pending delivery: ${reward.title}`, 'reward_redeemed');
     await createNotification('Child', childId, `Reward redeemed: ${reward.title} (${reward.points_cost} ${isGpReward ? 'GP' : 'RP'})`, 'reward_redeemed');
 
-    await db.exec('COMMIT');
     return { redemptionId, fulfilled: false };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function fulfillRedemption(parentId, redemptionId) {
@@ -223,8 +217,7 @@ export async function deleteReward(parentId, rewardId) {
   const pending = await db.all('SELECT * FROM redemptions WHERE reward_id = ? AND status = ?', [rewardId, 'Pending']);
   const giftcardLink = await db.get('SELECT batch_id as batchId FROM reward_giftcard_links WHERE reward_id = ?', [rewardId]);
 
-  await db.exec('BEGIN');
-  try {
+  return db.withTransaction(async () => {
     for (const redemption of pending) {
       if (redemption.points_type === 'GP') {
         await awardChildGp({
@@ -288,10 +281,6 @@ export async function deleteReward(parentId, rewardId) {
 
     await db.run('DELETE FROM rewards WHERE id = ?', [rewardId]);
 
-    await db.exec('COMMIT');
     return { refundedCount: pending.length };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }

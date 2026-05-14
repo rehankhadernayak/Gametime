@@ -44,8 +44,7 @@ export async function pgGetFamilyIdForParent(db, parentTable, parentId) {
  * then the `families` row. Uses a transaction. Caller must verify password first.
  */
 export async function pgDeleteFamilyCascade(db, familyId, parentTable) {
-  await db.exec('BEGIN');
-  try {
+  await db.withTransaction(async () => {
     const parents = await db.all(`SELECT id, email FROM ${parentTable} WHERE family_id = ?`, [familyId]);
     const parentIds = parents.map((p) => p.id);
     const childRows = await db.all('SELECT id FROM child_profiles WHERE family_id = ?', [familyId]);
@@ -93,12 +92,8 @@ export async function pgDeleteFamilyCascade(db, familyId, parentTable) {
     await db.run(`DELETE FROM ${parentTable} WHERE family_id = ?`, [familyId]);
     await db.run('DELETE FROM families WHERE id = ?', [familyId]);
 
-    await db.exec('COMMIT');
     logger.info({ familyId, parentCount: parentIds.length, childCount: childIds.length }, 'Family account deleted (cascade)');
-  } catch (err) {
-    await db.exec('ROLLBACK');
-    throw err;
-  }
+  });
 }
 
 /**
