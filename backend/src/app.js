@@ -21,64 +21,14 @@ import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
-import { env } from './config/env.js';
-import { httpsVercelAppWildcardConfigured, isHttpsVercelAppOrigin } from './utils/corsOrigins.js';
-
-/** Strip whitespace and trailing slash so `https://app.com/` matches `https://app.com`. */
-function normalizeOrigin(origin) {
-  return String(origin || '')
-    .trim()
-    .replace(/\/$/, '');
-}
-
-function isDevTunnelOrigin(origin) {
-  if (process.env.NODE_ENV === 'production') return false;
-  try {
-    const u = new URL(origin);
-    if (u.protocol !== 'https:') return false;
-    const h = u.hostname;
-    return (
-      h.endsWith('.trycloudflare.com') ||
-      h.endsWith('.cfargotunnel.com') ||
-      h.endsWith('.cvm.dev')
-    );
-  } catch {
-    return false;
-  }
-}
-
-/** GitHub Codespaces / dev preview frontends (HTTPS, arbitrary subdomain). */
-function isCodespacesLikeOrigin(origin) {
-  try {
-    const u = new URL(origin);
-    if (u.protocol !== 'https:') return false;
-    const h = u.hostname;
-    return h.endsWith('.github.dev') || h.endsWith('.app.github.dev');
-  } catch {
-    return false;
-  }
-}
-
 export function createApp() {
   const app = express();
-  const allowAllHttpsVercelApp =
-    httpsVercelAppWildcardConfigured(env.frontendOrigins);
-  const allowedOrigins = new Set(
-    [
-      ...env.frontendOrigins.filter((o) => !/^https:\/\/\*\.vercel\.app\/?$/i.test(String(o).trim())),
-      // Local web + tooling (Vite default, CRA, preview, Expo web)
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://localhost:4173',
-      'http://localhost:8081',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:4173',
-      'http://127.0.0.1:8081'
-    ].map(normalizeOrigin)
-  );
 
-  const corsShared = {
+  const corsOptions = {
+    origin(origin, callback) {
+      // Allow all origins in development
+      callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     optionsSuccessStatus: 204,
@@ -86,37 +36,10 @@ export function createApp() {
   };
 
   app.use(helmet());
-  // Reflect request Origin when safe for local dev (including Codespaces) or when
-  // CORS_REFLECT_ORIGIN=true for ad-hoc testing. Production otherwise uses an allowlist
-  // plus GitHub preview hosts and optional Vercel *.vercel.app wildcard.
-  const useReflectCorsOrigin =
-    process.env.NODE_ENV !== 'production' || env.corsReflectOrigin === true;
-
-  if (useReflectCorsOrigin) {
-    app.use(
-      cors({
-        ...corsShared,
-        origin: true
-      })
-    );
-  } else {
-    app.use(
-      cors({
-        ...corsShared,
-        origin(origin, callback) {
-          if (!origin) return callback(null, true);
-          const normalized = normalizeOrigin(origin);
-          if (allowedOrigins.has(normalized)) return callback(null, true);
-          if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
-          if (isDevTunnelOrigin(origin)) return callback(null, true);
-          if (isCodespacesLikeOrigin(origin)) return callback(null, true);
-          // Deny without throwing — avoids a 500 while still omitting Access-Control-Allow-Origin.
-          logger.warn({ origin }, 'CORS request blocked for origin');
-          return callback(null, false);
-        }
-      })
-    );
-  }
+  // Dynamic origin reflection: required when credentials: true (no wildcard) and
+  // frontend URLs change (e.g. GitHub Codespaces ports / preview hosts).
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
