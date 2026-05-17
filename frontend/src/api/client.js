@@ -1,18 +1,47 @@
 import { trackEvent } from '../utils/analytics.js';
 
 /**
- * Backend origin for browser `fetch()` calls (no trailing slash). Set `VITE_API_URL` in
- * Codespaces / `.env` to your reachable API (e.g. forwarded port URL). When empty, the
- * client uses same-origin `/api`, which Vite proxies to `localhost:4000` in dev — see
- * `frontend/vite.config.js`.
+ * Backend origin for browser `fetch()` calls (no trailing slash).
+ * - Vite: set `VITE_API_URL` (or legacy `VITE_API_BASE_URL`) in `.env` / Codespaces secrets.
+ * - Next.js (web-next): same client may read `NEXT_PUBLIC_API_URL` at build time.
+ * When all are empty, the client uses same-origin `/api` (Vite dev proxy → `localhost:4000`;
+ * Next rewrites → `API_PROXY_TARGET`).
  */
 const viteApiUrl = String(import.meta.env?.VITE_API_URL ?? '').trim();
+const nextPublicApiUrl =
+  typeof process !== 'undefined' && process.env && typeof process.env.NEXT_PUBLIC_API_URL === 'string'
+    ? String(process.env.NEXT_PUBLIC_API_URL).trim()
+    : '';
 /** Legacy alias only; prefer `VITE_API_URL`. */
 const viteApiBaseUrl = String(import.meta.env?.VITE_API_BASE_URL ?? '').trim();
 
-const resolvedApiBase = viteApiUrl || viteApiBaseUrl || '/api';
+function stripTrailingSlash(s) {
+  return String(s || '').replace(/\/$/, '');
+}
 
-if (import.meta.env.PROD && !viteApiUrl) {
+let resolvedApiBase = stripTrailingSlash(viteApiUrl || nextPublicApiUrl || viteApiBaseUrl || '/api');
+
+/** GitHub Codespaces / preview — avoid accidental calls to production when Vite dev proxy is available. */
+function shouldUseDevApiProxyInstead(apiBase) {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+  const h = window.location.hostname;
+  const onGithubPreview =
+    h.endsWith('.github.dev') || h.endsWith('.app.github.dev') || h.endsWith('.githubpreview.dev');
+  if (!onGithubPreview) return false;
+  const b = String(apiBase || '').trim();
+  if (!b || b === '/api') return false;
+  try {
+    return new URL(b, window.location.origin).hostname === 'api.gametime.app';
+  } catch {
+    return false;
+  }
+}
+
+if (shouldUseDevApiProxyInstead(resolvedApiBase)) {
+  resolvedApiBase = '/api';
+}
+
+if (import.meta.env.PROD && !viteApiUrl && !nextPublicApiUrl) {
   const usingLegacy = Boolean(viteApiBaseUrl);
   console.error(
     '[Gametime] Missing VITE_API_URL in this production build. ' +
@@ -23,7 +52,7 @@ if (import.meta.env.PROD && !viteApiUrl) {
   );
 }
 
-export const API_BASE = String(resolvedApiBase).replace(/\/$/, '');
+export const API_BASE = stripTrailingSlash(resolvedApiBase);
 
 const DEMO_MODE_STORAGE_KEY = 'gametime_demo_mode';
 const REVIEWER_DEMO_PARENT_EMAILS = String(import.meta.env?.VITE_REVIEWER_DEMO_PARENT_EMAILS ?? '')

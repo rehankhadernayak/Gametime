@@ -47,6 +47,18 @@ function isDevTunnelOrigin(origin) {
   }
 }
 
+/** GitHub Codespaces / dev preview frontends (HTTPS, arbitrary subdomain). */
+function isCodespacesLikeOrigin(origin) {
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== 'https:') return false;
+    const h = u.hostname;
+    return h.endsWith('.github.dev') || h.endsWith('.app.github.dev');
+  } catch {
+    return false;
+  }
+}
+
 export function createApp() {
   const app = express();
   const allowAllHttpsVercelApp =
@@ -74,9 +86,20 @@ export function createApp() {
   };
 
   app.use(helmet());
-  // Non-production: reflect request Origin so GitHub Codespaces / ad-hoc dev hosts work
-  // without listing every hostname. Production keeps an explicit allowlist.
-  if (process.env.NODE_ENV === 'production') {
+  // Reflect request Origin when safe for local dev (including Codespaces) or when
+  // CORS_REFLECT_ORIGIN=true for ad-hoc testing. Production otherwise uses an allowlist
+  // plus GitHub preview hosts and optional Vercel *.vercel.app wildcard.
+  const useReflectCorsOrigin =
+    process.env.NODE_ENV !== 'production' || env.corsReflectOrigin === true;
+
+  if (useReflectCorsOrigin) {
+    app.use(
+      cors({
+        ...corsShared,
+        origin: true
+      })
+    );
+  } else {
     app.use(
       cors({
         ...corsShared,
@@ -86,17 +109,11 @@ export function createApp() {
           if (allowedOrigins.has(normalized)) return callback(null, true);
           if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
           if (isDevTunnelOrigin(origin)) return callback(null, true);
+          if (isCodespacesLikeOrigin(origin)) return callback(null, true);
           // Deny without throwing — avoids a 500 while still omitting Access-Control-Allow-Origin.
           logger.warn({ origin }, 'CORS request blocked for origin');
           return callback(null, false);
         }
-      })
-    );
-  } else {
-    app.use(
-      cors({
-        ...corsShared,
-        origin: true
       })
     );
   }

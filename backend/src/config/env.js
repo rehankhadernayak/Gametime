@@ -60,6 +60,8 @@ if (process.env.NODE_ENV === 'production') {
 const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL || '';
 
 export const env = {
+  /** When true, CORS reflects the request `Origin` even in production (local/staging only). */
+  corsReflectOrigin: process.env.CORS_REFLECT_ORIGIN === 'true',
   port: Number(process.env.PORT || 4000),
   jwtSecret: rawJwtSecret,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
