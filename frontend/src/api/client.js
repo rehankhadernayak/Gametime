@@ -1,9 +1,15 @@
 import { trackEvent } from '../utils/analytics.js';
 
+/**
+ * Backend origin for browser `fetch()` calls (no trailing slash). Set `VITE_API_URL` in
+ * Codespaces / `.env` to your reachable API (e.g. forwarded port URL). When empty, the
+ * client uses same-origin `/api`, which Vite proxies to `localhost:4000` in dev — see
+ * `frontend/vite.config.js`.
+ */
 const viteApiUrl = String(import.meta.env?.VITE_API_URL ?? '').trim();
+/** Legacy alias only; prefer `VITE_API_URL`. */
 const viteApiBaseUrl = String(import.meta.env?.VITE_API_BASE_URL ?? '').trim();
 
-/** Prefer VITE_API_URL (Vercel/dashboard naming); VITE_API_BASE_URL is legacy/alternate only. */
 const resolvedApiBase = viteApiUrl || viteApiBaseUrl || '/api';
 
 if (import.meta.env.PROD && !viteApiUrl) {
