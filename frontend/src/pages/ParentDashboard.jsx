@@ -30,6 +30,14 @@ import fortniteCardImage from '../assets/giftcards/fortnite.svg';
 import minecraftCardImage from '../assets/giftcards/minecraft.svg';
 import './ParentDashboard.css';
 
+/** Landing-page CTA pattern (mono, 2px black frame, invert on hover). */
+const HOME_BTN_PRIMARY =
+  'border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase font-mono transition-all duration-150 hover:invert';
+const HOME_BTN_SECONDARY =
+  'border-2 border-black bg-transparent text-black px-6 py-3 text-sm font-bold uppercase font-mono transition-all duration-150 hover:invert';
+const HOME_BTN_SECONDARY_COMPACT =
+  'border-2 border-black bg-transparent text-black px-3 py-1.5 text-xs font-bold uppercase font-mono transition-all duration-150 hover:invert';
+
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
    it as an <img> or <video> using a blob URL.  Using fetch + blob avoids
@@ -831,38 +839,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
-                  onClick={() => openAssignQuest('')}
-                >
-                  Assign quest
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
-                  onClick={() => goToSection('giftcards')}
-                >
-                  Add Gift Cards
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
-                  onClick={() => goToSection('family')}
-                >
-                  Add Child
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
-                  onClick={() => goToSection('gaming')}
-                >
-                  Set Game Rules
-                </button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => openAssignQuest('')}>Assign quest</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('family')}>Add Child</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('gaming')}>Set Game Rules</button>
                 {showReviewerDemoTools ? (
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
+                    className={`${HOME_BTN_SECONDARY} disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed`}
                     onClick={() => void handleSeedReviewDemo()}
                     disabled={seedDemoBusy || loading}
                   >
@@ -1673,7 +1657,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                           {!child.hasPasswordLogin && !child.hasPinLogin ? 'No child login yet' : ''}
                         </td>
                         <td className="table-actions">
-                          <button type="button" className="secondary-button small" onClick={() => openAssignQuest(child.id)}>
+                          <button type="button" className={HOME_BTN_SECONDARY_COMPACT} onClick={() => openAssignQuest(child.id)}>
                             Assign quest
                           </button>
                         </td>
@@ -1739,14 +1723,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                         onChange={(e) => setTxnDateTo(e.target.value)} />
                     </label>
                     {(txnDateFrom || txnDateTo) && (
-                      <button type="button" className="secondary-button"
+                      <button type="button" className={HOME_BTN_SECONDARY_COMPACT}
                         onClick={() => { setTxnDateFrom(''); setTxnDateTo(''); }}>
                         Clear
                       </button>
                     )}
                     <button
                       type="button"
-                      className="secondary-button"
+                      className={HOME_BTN_SECONDARY_COMPACT}
                       onClick={() => {
                         const header = ['Date', 'Child', 'Kind', 'Points', 'Type', 'Reference', 'Note'];
                         const rows = filtered.map((txn) => {
@@ -1992,7 +1976,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               <h2 className="task-quest-launch-title">Assign a New Quest</h2>
               <p className="section-subtitle">Launch a guided quest with RP, due date, and required proof type.</p>
             </div>
-            <button type="button" className="primary-button" onClick={() => openAssignQuest('')}>
+            <button type="button" className={HOME_BTN_PRIMARY} onClick={() => openAssignQuest('')}>
               Open quest creator
             </button>
           </div>
@@ -2209,7 +2193,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 </div>
               </details>
 
-              <button type="submit" className="primary-button">
+              <button type="submit" className={HOME_BTN_PRIMARY}>
                 Save &amp; Publish Reward
               </button>
             </form>

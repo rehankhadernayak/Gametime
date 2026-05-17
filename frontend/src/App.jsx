@@ -150,7 +150,13 @@ export default function App() {
       )}
 
       {auth.token && (
-        <NavBar role={auth.role} token={auth.token} onLogout={handleLogout} isAdmin={Boolean(auth.user?.isAdmin)} />
+        <NavBar
+          role={auth.role}
+          token={auth.token}
+          onLogout={handleLogout}
+          isAdmin={Boolean(auth.user?.isAdmin)}
+          parentLandingChrome={auth.role === 'parent' && theme === 'light'}
+        />
       )}
       <Routes>
         <Route path="/" element={<HomePage auth={auth} />} />
