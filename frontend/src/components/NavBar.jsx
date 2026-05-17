@@ -23,13 +23,24 @@ function LogoutIcon() {
 }
 
 /* ── NavBar ─────────────────────────────────────────────────────────── */
-export default function NavBar({ role, token, onLogout, isAdmin, showParentChrome = true }) {
+export default function NavBar({
+  role,
+  token,
+  onLogout,
+  isAdmin,
+  showParentChrome = true,
+  /** Light-mode parent chrome aligned with HomePage (mono, black borders). */
+  parentLandingChrome = false,
+}) {
   const router = useAppRouter();
   const { cookieRole } = useAuth();
   const effectiveRole = cookieRole || role;
 
   return (
-    <nav className="nav" aria-label="Primary navigation">
+    <nav
+      className={`nav${parentLandingChrome ? ' nav--parent-landing' : ''}`}
+      aria-label="Primary navigation"
+    >
       {/* Left: wordmark only */}
       <div className="nav-brand">
         <span className="nav-brand-name">GAMETIME</span>

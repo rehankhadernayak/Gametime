@@ -30,6 +30,14 @@ import fortniteCardImage from '../assets/giftcards/fortnite.svg';
 import minecraftCardImage from '../assets/giftcards/minecraft.svg';
 import './ParentDashboard.css';
 
+/** Matches HomePage.jsx hero CTAs (Tailwind). */
+const HOME_BTN_PRIMARY =
+  'border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase hover:bg-white hover:text-black transition-colors font-mono';
+const HOME_BTN_SECONDARY =
+  'border-2 border-black bg-white text-black px-6 py-3 text-sm font-bold uppercase hover:bg-black hover:text-white transition-colors font-mono';
+const HOME_BTN_SECONDARY_COMPACT =
+  'border-2 border-black bg-white text-black px-3 py-1.5 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors font-mono';
+
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
    it as an <img> or <video> using a blob URL.  Using fetch + blob avoids
@@ -825,14 +833,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 <p className="section-subtitle">Recent activity and each child&apos;s screen time at a glance.</p>
               </div>
               <div className="quick-actions">
-                <button type="button" className="secondary-button" onClick={() => openAssignQuest('')}>Assign quest</button>
-                <button type="button" className="secondary-button" onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
-                <button type="button" className="secondary-button" onClick={() => goToSection('family')}>Add Child</button>
-                <button type="button" className="secondary-button" onClick={() => goToSection('gaming')}>Set Game Rules</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => openAssignQuest('')}>Assign quest</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('family')}>Add Child</button>
+                <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('gaming')}>Set Game Rules</button>
                 {showReviewerDemoTools ? (
                   <button
                     type="button"
-                    className="secondary-button"
+                    className={`${HOME_BTN_SECONDARY} disabled:opacity-50 disabled:cursor-not-allowed`}
                     onClick={() => void handleSeedReviewDemo()}
                     disabled={seedDemoBusy || loading}
                   >
@@ -1569,7 +1577,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                           {!child.hasPasswordLogin && !child.hasPinLogin ? 'No child login yet' : ''}
                         </td>
                         <td className="table-actions">
-                          <button type="button" className="secondary-button small" onClick={() => openAssignQuest(child.id)}>
+                          <button type="button" className={HOME_BTN_SECONDARY_COMPACT} onClick={() => openAssignQuest(child.id)}>
                             Assign quest
                           </button>
                         </td>
@@ -1635,14 +1643,14 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                         onChange={(e) => setTxnDateTo(e.target.value)} />
                     </label>
                     {(txnDateFrom || txnDateTo) && (
-                      <button type="button" className="secondary-button"
+                      <button type="button" className={HOME_BTN_SECONDARY_COMPACT}
                         onClick={() => { setTxnDateFrom(''); setTxnDateTo(''); }}>
                         Clear
                       </button>
                     )}
                     <button
                       type="button"
-                      className="secondary-button"
+                      className={HOME_BTN_SECONDARY_COMPACT}
                       onClick={() => {
                         const header = ['Date', 'Child', 'Kind', 'Points', 'Type', 'Reference', 'Note'];
                         const rows = filtered.map((txn) => {
@@ -1888,7 +1896,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               <h2 className="task-quest-launch-title">Assign a New Quest</h2>
               <p className="section-subtitle">Launch a guided quest with RP, due date, and required proof type.</p>
             </div>
-            <button type="button" className="primary-button" onClick={() => openAssignQuest('')}>
+            <button type="button" className={HOME_BTN_PRIMARY} onClick={() => openAssignQuest('')}>
               Open quest creator
             </button>
           </div>
@@ -2105,7 +2113,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 </div>
               </details>
 
-              <button type="submit" className="primary-button">
+              <button type="submit" className={HOME_BTN_PRIMARY}>
                 Save &amp; Publish Reward
               </button>
             </form>
