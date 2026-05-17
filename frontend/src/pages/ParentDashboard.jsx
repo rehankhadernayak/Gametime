@@ -9,7 +9,26 @@ import GpTopUpFlow from '../components/GpTopUpFlow.jsx';
 import FundGiftCardVaultButton from '../components/FundGiftCardVaultButton.jsx';
 import ChildAvatar from '../components/ChildAvatar.jsx';
 import AssignQuestModal from '../components/AssignQuestModal.jsx';
-import BrutalistCard from '../components/BrutalistCard.jsx';
+import DashboardShell from '../components/DashboardShell.jsx';
+import StatusChip from '../components/StatusChip.jsx';
+import TaskTable from '../components/TaskTable.jsx';
+import WeeklyPlanTable from '../components/WeeklyPlanTable.jsx';
+import HoldToConfirmButton from '../components/HoldToConfirmButton.jsx';
+import { trackEvent } from '../utils/analytics.js';
+import { normalizeTasksListResponse } from '../utils/tasksList.js';
+import amazonCardImage from '../assets/giftcards/amazon.svg';
+import steamCardImage from '../assets/giftcards/steam.svg';
+import valorantCardImage from '../assets/giftcards/valorant.svg';
+import genericCardImage from '../assets/giftcards/generic.svg';
+import robloxCardImage from '../assets/giftcards/roblox.svg';
+import xboxCardImage from '../assets/giftcards/xbox.svg';
+import playstationCardImage from '../assets/giftcards/playstation.svg';
+import nintendoCardImage from '../assets/giftcards/nintendo.svg';
+import googleplayCardImage from '../assets/giftcards/googleplay.svg';
+import appleCardImage from '../assets/giftcards/apple.svg';
+import fortniteCardImage from '../assets/giftcards/fortnite.svg';
+import minecraftCardImage from '../assets/giftcards/minecraft.svg';
+import './ParentDashboard.css';
 
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
@@ -65,26 +84,6 @@ function EvidenceMedia({ completionId, evidenceType, evidenceMime, token, title 
   }
   return <img src={src} alt={`Evidence for ${title}`} className="evidence-preview" />;
 }
-import DashboardShell from '../components/DashboardShell.jsx';
-import StatusChip from '../components/StatusChip.jsx';
-import TaskTable from '../components/TaskTable.jsx';
-import WeeklyPlanTable from '../components/WeeklyPlanTable.jsx';
-import HoldToConfirmButton from '../components/HoldToConfirmButton.jsx';
-import { trackEvent } from '../utils/analytics.js';
-import { normalizeTasksListResponse } from '../utils/tasksList.js';
-import amazonCardImage from '../assets/giftcards/amazon.svg';
-import steamCardImage from '../assets/giftcards/steam.svg';
-import valorantCardImage from '../assets/giftcards/valorant.svg';
-import genericCardImage from '../assets/giftcards/generic.svg';
-import robloxCardImage from '../assets/giftcards/roblox.svg';
-import xboxCardImage from '../assets/giftcards/xbox.svg';
-import playstationCardImage from '../assets/giftcards/playstation.svg';
-import nintendoCardImage from '../assets/giftcards/nintendo.svg';
-import googleplayCardImage from '../assets/giftcards/googleplay.svg';
-import appleCardImage from '../assets/giftcards/apple.svg';
-import fortniteCardImage from '../assets/giftcards/fortnite.svg';
-import minecraftCardImage from '../assets/giftcards/minecraft.svg';
-import './ParentDashboard.css';
 
 gsap.registerPlugin(useGSAP);
 
@@ -129,40 +128,12 @@ function parseManualGiftcardCodes(input) {
   });
 }
 
-function DeepScanProgress() {
-  const [wave, setWave] = useState(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    const apply = () => setReducedMotion(Boolean(mq?.matches));
-    apply();
-    mq?.addEventListener?.('change', apply);
-    return () => mq?.removeEventListener?.('change', apply);
-  }, []);
-
-  useEffect(() => {
-    if (reducedMotion) return undefined;
-    const id = window.setInterval(() => setWave((w) => (w + 1) % 256), 95);
-    return () => window.clearInterval(id);
-  }, [reducedMotion]);
-
-  const cells = 40;
-  const filled = reducedMotion
-    ? Math.floor(cells * 0.42)
-    : Math.round((Math.sin(wave / 7) * 0.5 + 0.5) * cells);
-
+function FamilyOverviewLoading() {
   return (
-    <div className="parent-dash-deep-scan" aria-busy="true" aria-live="polite">
-      <div className="parent-dash-deep-scan-head">
-        <span className="parent-dash-deep-scan-title">Deep Scan</span>
-        <span className="parent-dash-deep-scan-sub">UPLINK BUFFERING…</span>
-      </div>
-      <div className="parent-dash-deep-scan-track">
-        <pre className="parent-dash-deep-scan-pre" aria-hidden="true">
-          {`${'\u2588'.repeat(filled)}${' '.repeat(Math.max(0, cells - filled))}`}
-        </pre>
+    <div className="family-overview-loading" aria-busy="true" aria-live="polite">
+      <div className="family-overview-loading-label">Updating activity…</div>
+      <div className="family-overview-loading-track" aria-hidden="true">
+        <div className="family-overview-loading-bar" />
       </div>
     </div>
   );
@@ -783,7 +754,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       if (loading) return;
       const root = homeStatsGridRef.current;
       if (!root) return;
-      const cards = root.querySelectorAll('.parent-dash-os-metric');
+      const cards = root.querySelectorAll('.family-metric-card');
       if (!cards.length) return;
       if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         return;
@@ -847,11 +818,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
             </div>
           )}
 
-          <section className="panel welcome-panel parent-dash-os" aria-busy={loading}>
+          <section className="panel welcome-panel family-overview" aria-busy={loading}>
             <div className="panel-top">
               <div>
                 <h2>Family Overview</h2>
-                <p className="section-subtitle">Live activity feed and system metrics (1-bit console).</p>
+                <p className="section-subtitle">Recent activity and each child&apos;s screen time at a glance.</p>
               </div>
               <div className="quick-actions">
                 <button type="button" className="secondary-button" onClick={() => openAssignQuest('')}>Assign quest</button>
@@ -883,33 +854,33 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 {message}
               </p>
             )}
-            <div ref={homeStatsGridRef} className={`parent-dash-os-grid${loading ? ' parent-dash-os-grid--loading' : ''}`}>
-              <div className="parent-dash-os-feed">
-                <header className="parent-dash-os-feed-header">
-                  <span className="parent-dash-os-tag">LIVE</span>
-                  <h3 className="parent-dash-os-feed-title">Live Activity Feed</h3>
+            <div ref={homeStatsGridRef} className={`family-overview-grid${loading ? ' family-overview-grid--loading' : ''}`}>
+              <div className="family-overview-feed">
+                <header className="family-overview-feed-header">
+                  <span className="family-overview-pill">Live</span>
+                  <h3 className="family-overview-feed-title">Activity feed</h3>
                 </header>
-                {loading ? <DeepScanProgress /> : null}
-                <div className="parent-dash-os-log-wrap">
-                  <div className="parent-dash-os-log-title">LIVE_SYSTEM_LOGS // Recent Events</div>
-                  <div className="parent-dash-os-log" role="log" aria-label="Recent system events">
+                {loading ? <FamilyOverviewLoading /> : null}
+                <div className="family-overview-log-card">
+                  <div className="family-overview-log-title">Recent events</div>
+                  <div className="family-overview-log" role="log" aria-label="Recent activity">
                     {systemLogLines.map((row) => (
-                      <div key={row.id} className="parent-dash-os-log-line">
+                      <div key={row.id} className="family-overview-log-line">
                         {row.text}
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-              <aside className="parent-dash-os-metrics" aria-label="System metrics">
-                <header className="parent-dash-os-metrics-header">
-                  <h3 className="parent-dash-os-metrics-title">System Metrics</h3>
+              <aside className="family-overview-metrics" aria-label="Per-child overview">
+                <header className="family-overview-metrics-header">
+                  <h3 className="family-overview-metrics-title">Children</h3>
                 </header>
                 {children.length === 0 ? (
-                  <BrutalistCard className="parent-dash-os-metric">
-                    <div className="parent-dash-os-metric-head">No child nodes</div>
-                    <p className="parent-dash-os-metric-empty">Link a child profile to stream screen time and alerts.</p>
-                  </BrutalistCard>
+                  <article className="family-metric-card">
+                    <div className="family-metric-card__head">No children yet</div>
+                    <p className="family-metric-card__empty">Add a child to see screen time and alerts here.</p>
+                  </article>
                 ) : (
                   children.map((child) => {
                     const overview = gamingOverviewByChild[child.id];
@@ -926,22 +897,26 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                         ? `Today ${overview.usage.todayUsedMinutes} min · Playable ${overview.usage.playableNow} min`
                         : loading
                           ? '…'
-                          : 'No telemetry';
+                          : 'No data yet';
                     const alertTotal = pendingForChild + unreadForChild;
                     return (
-                      <BrutalistCard key={child.id} className="parent-dash-os-metric">
-                        <div className="parent-dash-os-metric-head">{child.name}</div>
-                        <dl className="parent-dash-os-metric-dl">
-                          <div className="parent-dash-os-metric-row">
-                            <dt>Screen Time</dt>
+                      <article key={child.id} className="family-metric-card">
+                        <div className="family-metric-card__head">{child.name}</div>
+                        <dl className="family-metric-card__dl">
+                          <div className="family-metric-card__row">
+                            <dt>Screen time</dt>
                             <dd>{screenLine}</dd>
                           </div>
-                          <div className="parent-dash-os-metric-row">
-                            <dt>Recent Alerts</dt>
-                            <dd>{alertTotal === 0 ? 'CLEAR' : `${alertTotal} ACTIVE`}</dd>
+                          <div className="family-metric-card__row">
+                            <dt>Attention needed</dt>
+                            <dd>
+                              {alertTotal === 0
+                                ? 'All clear'
+                                : `${alertTotal} open item${alertTotal === 1 ? '' : 's'}`}
+                            </dd>
                           </div>
                         </dl>
-                      </BrutalistCard>
+                      </article>
                     );
                   })
                 )}

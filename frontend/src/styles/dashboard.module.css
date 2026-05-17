@@ -5,8 +5,8 @@
 .dashboardWrapper {
   width: 100%;
   min-height: 100vh;
-  background: #ffffff;
-  color: #000000;
+  background: var(--bg-root, #fafafa);
+  color: var(--text-main, #111827);
   position: relative;
   z-index: 0;
 }

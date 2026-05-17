@@ -227,7 +227,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-main);
@@ -239,7 +239,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
   color: var(--text-main);
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
   font-weight: 700;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -461,7 +461,7 @@ a:focus-visible {
   font-size: 1rem;
   font-weight: 800;
   color: var(--text-main);
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
 }
 
 .brand-subtitle {
@@ -469,7 +469,7 @@ a:focus-visible {
   margin-top: 0.14rem;
   color: var(--text-sub);
   font-size: 0.68rem;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
 }
 
 .nav-brand {
@@ -478,9 +478,9 @@ a:focus-visible {
 }
 
 .nav-brand-name {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 0.95rem;
   color: var(--text-main);
@@ -1013,7 +1013,7 @@ a:focus-visible {
   font-size: 0.98rem;
   font-weight: 700;
   color: var(--text-main);
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -1023,7 +1023,7 @@ a:focus-visible {
   font-size: 0.67rem;
   color: var(--text-sub);
   margin-top: 0.15rem;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
   letter-spacing: -0.02em;
 }
 
@@ -1038,7 +1038,7 @@ a:focus-visible {
 /* Sidebar section group label */
 .section-label {
   display: block;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
   font-size: 0.63rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1060,7 +1060,7 @@ a:focus-visible {
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-sub);
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -1422,7 +1422,7 @@ a:focus-visible {
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-dim);
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: inherit;
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: -0.02em;
