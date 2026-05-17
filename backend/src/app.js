@@ -66,25 +66,40 @@ export function createApp() {
     ].map(normalizeOrigin)
   );
 
+  const corsShared = {
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    optionsSuccessStatus: 204,
+    maxAge: 86400
+  };
+
   app.use(helmet());
-  app.use(
-    cors({
-      origin(origin, callback) {
-        if (!origin) return callback(null, true);
-        const normalized = normalizeOrigin(origin);
-        if (allowedOrigins.has(normalized)) return callback(null, true);
-        if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
-        if (isDevTunnelOrigin(origin)) return callback(null, true);
-        // Deny without throwing — avoids a 500 while still omitting Access-Control-Allow-Origin.
-        logger.warn({ origin }, 'CORS request blocked for origin');
-        return callback(null, false);
-      },
-      credentials: true,
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-      optionsSuccessStatus: 204,
-      maxAge: 86400
-    })
-  );
+  // Non-production: reflect request Origin so GitHub Codespaces / ad-hoc dev hosts work
+  // without listing every hostname. Production keeps an explicit allowlist.
+  if (process.env.NODE_ENV === 'production') {
+    app.use(
+      cors({
+        ...corsShared,
+        origin(origin, callback) {
+          if (!origin) return callback(null, true);
+          const normalized = normalizeOrigin(origin);
+          if (allowedOrigins.has(normalized)) return callback(null, true);
+          if (allowAllHttpsVercelApp && isHttpsVercelAppOrigin(origin)) return callback(null, true);
+          if (isDevTunnelOrigin(origin)) return callback(null, true);
+          // Deny without throwing — avoids a 500 while still omitting Access-Control-Allow-Origin.
+          logger.warn({ origin }, 'CORS request blocked for origin');
+          return callback(null, false);
+        }
+      })
+    );
+  } else {
+    app.use(
+      cors({
+        ...corsShared,
+        origin: true
+      })
+    );
+  }
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
