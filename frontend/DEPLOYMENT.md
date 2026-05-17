@@ -25,12 +25,12 @@ In Vercel Dashboard → Project Settings → Environment Variables, add:
 
 **Production:**
 ```
-VITE_API_URL=https://api.gametime.app
+VITE_API_URL=https://<your-production-api-host>
 ```
 
 **Preview (staging):**
 ```
-VITE_API_URL=https://api-staging.gametime.app
+VITE_API_URL=https://<your-staging-api-host>
 ```
 
 **Development:**
@@ -100,7 +100,7 @@ Once connected to Vercel, automatic deployments happen:
 1. Check Vercel Dashboard for deployment status
 2. Visit `https://gametime.vercel.app` (or your custom domain)
 3. Open browser DevTools → Network tab
-4. Verify API calls go to correct backend: `https://api.gametime.app/healthz`
+4. Verify API calls go to the backend host you set in `VITE_API_URL` (e.g. `GET …/healthz` in the Network tab)
 
 ---
 
