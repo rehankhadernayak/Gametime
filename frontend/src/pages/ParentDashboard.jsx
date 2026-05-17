@@ -30,13 +30,13 @@ import fortniteCardImage from '../assets/giftcards/fortnite.svg';
 import minecraftCardImage from '../assets/giftcards/minecraft.svg';
 import './ParentDashboard.css';
 
-/** Matches HomePage.jsx hero CTAs (Tailwind). */
+/** Landing-page CTA pattern (mono, 2px black frame, invert on hover). */
 const HOME_BTN_PRIMARY =
-  'border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase hover:bg-white hover:text-black transition-colors font-mono';
+  'border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase font-mono transition-all duration-150 hover:invert';
 const HOME_BTN_SECONDARY =
-  'border-2 border-black bg-white text-black px-6 py-3 text-sm font-bold uppercase hover:bg-black hover:text-white transition-colors font-mono';
+  'border-2 border-black bg-transparent text-black px-6 py-3 text-sm font-bold uppercase font-mono transition-all duration-150 hover:invert';
 const HOME_BTN_SECONDARY_COMPACT =
-  'border-2 border-black bg-white text-black px-3 py-1.5 text-xs font-bold uppercase hover:bg-black hover:text-white transition-colors font-mono';
+  'border-2 border-black bg-transparent text-black px-3 py-1.5 text-xs font-bold uppercase font-mono transition-all duration-150 hover:invert';
 
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
