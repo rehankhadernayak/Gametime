@@ -21,25 +21,45 @@ import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
+import { env } from './config/env.js';
+import { createStrictCorsOriginValidator } from './utils/productionCorsOrigin.js';
+
 export function createApp() {
   const app = express();
 
-  const corsOptions = {
-    origin(origin, callback) {
-      // Allow all origins in development
-      callback(null, true);
-    },
+  const corsShared = {
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     optionsSuccessStatus: 204,
     maxAge: 86400
   };
 
+  // Reflect request Origin when safe for local dev (including Codespaces) or when
+  // CORS_REFLECT_ORIGIN=true for ad-hoc testing. Production otherwise uses an allowlist
+  // plus GitHub preview hosts and optional Vercel *.vercel.app wildcard.
+  const useReflectCorsOrigin =
+    process.env.NODE_ENV !== 'production' || env.corsReflectOrigin === true;
+
+  const strictOriginAllows = createStrictCorsOriginValidator(env.frontendOrigins);
+
+  const corsMiddleware = useReflectCorsOrigin
+    ? cors({
+        ...corsShared,
+        origin: true
+      })
+    : cors({
+        ...corsShared,
+        origin(origin, callback) {
+          if (strictOriginAllows(origin)) return callback(null, true);
+          // Deny without throwing — avoids a 500 while still omitting Access-Control-Allow-Origin.
+          logger.warn({ origin }, 'CORS request blocked for origin');
+          return callback(null, false);
+        }
+      });
+
   app.use(helmet());
-  // Dynamic origin reflection: required when credentials: true (no wildcard) and
-  // frontend URLs change (e.g. GitHub Codespaces ports / preview hosts).
-  app.use(cors(corsOptions));
-  app.options('*', cors(corsOptions));
+  app.use(corsMiddleware);
+  app.options('*', corsMiddleware);
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
