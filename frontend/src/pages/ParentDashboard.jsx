@@ -130,11 +130,12 @@ function parseManualGiftcardCodes(input) {
 
 function FamilyOverviewLoading() {
   return (
-    <div className="family-overview-loading" aria-busy="true" aria-live="polite">
-      <div className="family-overview-loading-label">Updating activity…</div>
-      <div className="family-overview-loading-track" aria-hidden="true">
-        <div className="family-overview-loading-bar" />
-      </div>
+    <div className="mb-4 flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400" aria-busy="true" aria-live="polite">
+      <span
+        className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600 motion-reduce:animate-none motion-reduce:border-t-violet-600/40 dark:border-slate-600 dark:border-t-violet-400"
+        aria-hidden="true"
+      />
+      <span>Updating activity…</span>
     </div>
   );
 }
@@ -754,7 +755,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
       if (loading) return;
       const root = homeStatsGridRef.current;
       if (!root) return;
-      const cards = root.querySelectorAll('.family-metric-card');
+      const cards = root.querySelectorAll('.parent-dash-metric-card');
       if (!cards.length) return;
       if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         return;
@@ -818,21 +819,50 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
             </div>
           )}
 
-          <section className="panel welcome-panel family-overview" aria-busy={loading}>
-            <div className="panel-top">
+          <section
+            className="font-sans rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm md:p-6 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+            aria-busy={loading}
+          >
+            <div className="mb-5 flex flex-col gap-4 border-b border-slate-100 pb-5 dark:border-slate-800 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div>
-                <h2>Family Overview</h2>
-                <p className="section-subtitle">Recent activity and each child&apos;s screen time at a glance.</p>
+                <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Family Overview</h2>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  Recent activity and each child&apos;s screen time at a glance.
+                </p>
               </div>
-              <div className="quick-actions">
-                <button type="button" className="secondary-button" onClick={() => openAssignQuest('')}>Assign quest</button>
-                <button type="button" className="secondary-button" onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
-                <button type="button" className="secondary-button" onClick={() => goToSection('family')}>Add Child</button>
-                <button type="button" className="secondary-button" onClick={() => goToSection('gaming')}>Set Game Rules</button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
+                  onClick={() => openAssignQuest('')}
+                >
+                  Assign quest
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
+                  onClick={() => goToSection('giftcards')}
+                >
+                  Add Gift Cards
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
+                  onClick={() => goToSection('family')}
+                >
+                  Add Child
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
+                  onClick={() => goToSection('gaming')}
+                >
+                  Set Game Rules
+                </button>
                 {showReviewerDemoTools ? (
                   <button
                     type="button"
-                    className="secondary-button"
+                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-violet-500/40 dark:hover:bg-slate-700"
                     onClick={() => void handleSeedReviewDemo()}
                     disabled={seedDemoBusy || loading}
                   >
@@ -842,7 +872,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               </div>
             </div>
             {showReviewerDemoTools ? (
-              <p className="helper-text reviewer-demo-hint">
+              <p className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400">
                 Reviewer tools: use “Seed demo data” once after login to fill task requests and approvals.
                 {isDemoMode()
                   ? ' Demo mode is on (Stripe and optional photo proof are bypassed where supported).'
@@ -854,32 +884,47 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 {message}
               </p>
             )}
-            <div ref={homeStatsGridRef} className={`family-overview-grid${loading ? ' family-overview-grid--loading' : ''}`}>
-              <div className="family-overview-feed">
-                <header className="family-overview-feed-header">
-                  <span className="family-overview-pill">Live</span>
-                  <h3 className="family-overview-feed-title">Activity feed</h3>
+            <div
+              ref={homeStatsGridRef}
+              className={`mt-1 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]${loading ? ' opacity-60' : ''}`}
+            >
+              <div>
+                <header className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800 dark:bg-violet-500/20 dark:text-violet-200">
+                    Live
+                  </span>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Activity feed</h3>
                 </header>
                 {loading ? <FamilyOverviewLoading /> : null}
-                <div className="family-overview-log-card">
-                  <div className="family-overview-log-title">Recent events</div>
-                  <div className="family-overview-log" role="log" aria-label="Recent activity">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950/50">
+                  <div className="border-b border-slate-100 bg-slate-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                    Recent events
+                  </div>
+                  <div
+                    className="max-h-[280px] overflow-y-auto px-4 py-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
+                    role="log"
+                    aria-label="Recent activity"
+                  >
                     {systemLogLines.map((row) => (
-                      <div key={row.id} className="family-overview-log-line">
+                      <div key={row.id} className="break-words [&+&]:mt-1.5">
                         {row.text}
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-              <aside className="family-overview-metrics" aria-label="Per-child overview">
-                <header className="family-overview-metrics-header">
-                  <h3 className="family-overview-metrics-title">Children</h3>
+              <aside className="flex flex-col gap-3" aria-label="Per-child overview">
+                <header className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Children</h3>
                 </header>
                 {children.length === 0 ? (
-                  <article className="family-metric-card">
-                    <div className="family-metric-card__head">No children yet</div>
-                    <p className="family-metric-card__empty">Add a child to see screen time and alerts here.</p>
+                  <article className="parent-dash-metric-card rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950/50">
+                    <div className="mb-2 border-b border-slate-100 pb-2 text-base font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
+                      No children yet
+                    </div>
+                    <p className="m-0 text-sm text-slate-600 dark:text-slate-400">
+                      Add a child to see screen time and alerts here.
+                    </p>
                   </article>
                 ) : (
                   children.map((child) => {
@@ -900,16 +945,25 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                           : 'No data yet';
                     const alertTotal = pendingForChild + unreadForChild;
                     return (
-                      <article key={child.id} className="family-metric-card">
-                        <div className="family-metric-card__head">{child.name}</div>
-                        <dl className="family-metric-card__dl">
-                          <div className="family-metric-card__row">
-                            <dt>Screen time</dt>
-                            <dd>{screenLine}</dd>
+                      <article
+                        key={child.id}
+                        className="parent-dash-metric-card rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950/50"
+                      >
+                        <div className="mb-3 border-b border-slate-100 pb-3 text-base font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
+                          {child.name}
+                        </div>
+                        <dl className="m-0 space-y-3">
+                          <div>
+                            <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                              Screen time
+                            </dt>
+                            <dd className="m-0 mt-1 text-sm text-slate-800 dark:text-slate-200">{screenLine}</dd>
                           </div>
-                          <div className="family-metric-card__row">
-                            <dt>Attention needed</dt>
-                            <dd>
+                          <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
+                            <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                              Attention needed
+                            </dt>
+                            <dd className="m-0 mt-1 text-sm text-slate-800 dark:text-slate-200">
                               {alertTotal === 0
                                 ? 'All clear'
                                 : `${alertTotal} open item${alertTotal === 1 ? '' : 's'}`}
@@ -922,24 +976,74 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                 )}
               </aside>
             </div>
-            <h3>Demo Readiness</h3>
-            <div className="checklist-grid">
-              <article className={`check-card ${demoReadiness.hasChild ? 'check-ok' : 'check-pending'}`}>
-                <strong>{demoReadiness.hasChild ? 'Child account ready' : 'Create first child account'}</strong>
-                <p>{demoReadiness.hasChild ? 'Great start: your child account is ready.' : 'Start your journey by creating your first child account.'}</p>
-              </article>
-              <article className={`check-card ${demoReadiness.hasBlockedGames ? 'check-ok' : 'check-pending'}`}>
-                <strong>{demoReadiness.hasBlockedGames ? 'Game controls active' : 'Add blocked game rule'}</strong>
-                <p>{demoReadiness.hasBlockedGames ? 'At least one game rule is protecting playtime.' : 'Add your first blocked game rule to set healthy boundaries.'}</p>
-              </article>
-              <article className={`check-card ${demoReadiness.hasActiveTasks ? 'check-ok' : 'check-pending'}`}>
-                <strong>{demoReadiness.hasActiveTasks ? 'Tasks ready to earn' : 'Create first active task'}</strong>
-                <p>{demoReadiness.hasActiveTasks ? 'There is an active task ready to earn points.' : 'Create one active task so your child can start earning points.'}</p>
-              </article>
-              <article className={`check-card ${demoReadiness.hasPendingApproval ? 'check-ok' : 'check-pending'}`}>
-                <strong>{demoReadiness.hasPendingApproval ? 'Approval flow active' : 'Submit first completion'}</strong>
-                <p>{demoReadiness.hasPendingApproval ? 'You have a task waiting for parent approval.' : 'Submit one completed task so you can review and award points.'}</p>
-              </article>
+            <div className="mt-8">
+              <h3 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Demo Readiness</h3>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <article
+                  className={`rounded-xl border p-4 shadow-sm ${
+                    demoReadiness.hasChild
+                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
+                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  }`}
+                >
+                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                    {demoReadiness.hasChild ? 'Child account ready' : 'Create first child account'}
+                  </strong>
+                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                    {demoReadiness.hasChild
+                      ? 'Great start: your child account is ready.'
+                      : 'Start your journey by creating your first child account.'}
+                  </p>
+                </article>
+                <article
+                  className={`rounded-xl border p-4 shadow-sm ${
+                    demoReadiness.hasBlockedGames
+                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
+                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  }`}
+                >
+                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                    {demoReadiness.hasBlockedGames ? 'Game controls active' : 'Add blocked game rule'}
+                  </strong>
+                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                    {demoReadiness.hasBlockedGames
+                      ? 'At least one game rule is protecting playtime.'
+                      : 'Add your first blocked game rule to set healthy boundaries.'}
+                  </p>
+                </article>
+                <article
+                  className={`rounded-xl border p-4 shadow-sm ${
+                    demoReadiness.hasActiveTasks
+                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
+                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  }`}
+                >
+                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                    {demoReadiness.hasActiveTasks ? 'Tasks ready to earn' : 'Create first active task'}
+                  </strong>
+                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                    {demoReadiness.hasActiveTasks
+                      ? 'There is an active task ready to earn points.'
+                      : 'Create one active task so your child can start earning points.'}
+                  </p>
+                </article>
+                <article
+                  className={`rounded-xl border p-4 shadow-sm ${
+                    demoReadiness.hasPendingApproval
+                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
+                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  }`}
+                >
+                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                    {demoReadiness.hasPendingApproval ? 'Approval flow active' : 'Submit first completion'}
+                  </strong>
+                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                    {demoReadiness.hasPendingApproval
+                      ? 'You have a task waiting for parent approval.'
+                      : 'Submit one completed task so you can review and award points.'}
+                  </p>
+                </article>
+              </div>
             </div>
           </section>
 
