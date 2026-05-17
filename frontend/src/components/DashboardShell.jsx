@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAppRouter } from 'gametime-web-nav';
 
+/** Same ASCII mark as `HomePage.jsx` / `LandingNav` — product logo. */
+const ASCII_MARK = `██████╗  █████╗ ███╗   ███╗███████╗████████╗██╗███╗   ███╗███████╗
+██╔════╝ ██╔══██╗████╗ ████║██╔════╝╚══██╔══╝██║████╗ ████║██╔════╝
+██║  ███╗███████║██╔████╔██║█████╗     ██║   ██║██╔████╔██║█████╗
+██║   ██║██╔══██║██║╚██╔╝██║██╔══╝     ██║   ██║██║╚██╔╝██║██╔══╝
+╚██████╔╝██║  ██║██║ ╚═╝ ██║███████╗   ██║   ██║██║ ╚═╝ ██║███████╗
+ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝╚═╝     ╚═╝╚══════╝`;
+
 /* ── Icons ─────────────────────────────────────────────────── */
 function BackIcon() {
   return (
@@ -225,7 +233,8 @@ export default function DashboardShell({
   const mobileTasksActive = tasksSection && activeSection?.id === tasksSection.id;
 
   return (
-    <div className="dashboard-shell" data-variant={variant}>
+    <div className="dashboard-shell dashboard-shell--landing-light relative font-sans text-black" data-variant={variant}>
+      <div className="ascii-bg" aria-hidden />
 
       {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside
@@ -233,14 +242,14 @@ export default function DashboardShell({
         className={`dashboard-sidebar ${sidebarOpen ? 'open' : ''}`}
         aria-label="Dashboard sections"
       >
-        {/* Brand */}
-        <div className="sidebar-brand">
-          <span className="brand-mark" aria-hidden="true" />
-          <div>
-            <span className="sidebar-app-name">Gametime</span>
-            <small className="sidebar-app-tagline">
-              {variant === 'child' ? 'Player HQ' : 'Control Center'}
-            </small>
+        {/* Brand — matches `LandingNav` logo block in HomePage.jsx (ASCII + pre classes). */}
+        <div className="sidebar-brand sidebar-brand--landing-logo">
+          <div className="sidebar-brand-ascii-scale">
+            <div className="shrink-0">
+              <pre className="leading-none font-mono text-[8px] md:text-[10px] overflow-visible whitespace-pre text-black">
+                {ASCII_MARK}
+              </pre>
+            </div>
           </div>
         </div>
 
