@@ -29,18 +29,18 @@ export default function NavBar({
   onLogout,
   isAdmin,
   showParentChrome = true,
-  /** Light-mode parent chrome aligned with HomePage (mono, black borders). */
-  parentLandingChrome = false,
 }) {
   const router = useAppRouter();
   const { cookieRole } = useAuth();
   const effectiveRole = cookieRole || role;
+  /** Parent sessions always use HomePage-style chrome (pure white bar, black rule). */
+  const parentBrutalistNav =
+    showParentChrome && effectiveRole === 'parent'
+      ? ' nav--parent-landing bg-white border-b-2 border-black text-black'
+      : '';
 
   return (
-    <nav
-      className={`nav${parentLandingChrome ? ' nav--parent-landing' : ''}`}
-      aria-label="Primary navigation"
-    >
+    <nav className={`nav font-sans${parentBrutalistNav}`} aria-label="Primary navigation">
       {/* Left: wordmark only */}
       <div className="nav-brand">
         <span className="nav-brand-name">GAMETIME</span>

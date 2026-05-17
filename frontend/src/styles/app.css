@@ -486,8 +486,8 @@ a:focus-visible {
   color: var(--text-main);
 }
 
-/* ── Parent + light: HomePage-aligned top chrome (NavBar + parent breadcrumb only) ── */
-html[data-theme='light'] .nav.nav--parent-landing {
+/* ── Parent: HomePage-aligned top chrome (NavBar + parent breadcrumb) ── */
+.nav.nav--parent-landing {
   background: #ffffff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -495,19 +495,19 @@ html[data-theme='light'] .nav.nav--parent-landing {
   box-shadow: none;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-brand-name {
+.nav.nav--parent-landing .nav-brand-name {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: #000000;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-actions {
+.nav.nav--parent-landing .nav-actions {
   gap: 0.5rem;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-actions .icon-button,
-html[data-theme='light'] .nav.nav--parent-landing .nav-icon-btn {
+.nav.nav--parent-landing .nav-actions .icon-button,
+.nav.nav--parent-landing .nav-icon-btn {
   width: 40px;
   height: 40px;
   border-radius: 0;
@@ -520,28 +520,28 @@ html[data-theme='light'] .nav.nav--parent-landing .nav-icon-btn {
     border-color 120ms ease;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-actions .icon-button:hover,
-html[data-theme='light'] .nav.nav--parent-landing .nav-actions .icon-button:focus-visible,
-html[data-theme='light'] .nav.nav--parent-landing .nav-icon-btn:hover,
-html[data-theme='light'] .nav.nav--parent-landing .nav-icon-btn:focus-visible {
+.nav.nav--parent-landing .nav-actions .icon-button:hover,
+.nav.nav--parent-landing .nav-actions .icon-button:focus-visible,
+.nav.nav--parent-landing .nav-icon-btn:hover,
+.nav.nav--parent-landing .nav-icon-btn:focus-visible {
   background: #000000;
   color: #ffffff;
   border-color: #000000;
   outline: none;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .notification-badge {
+.nav.nav--parent-landing .notification-badge {
   border-color: #ffffff;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-sep {
+.nav.nav--parent-landing .nav-sep {
   width: 1px;
   height: 26px;
   background: rgba(0, 0, 0, 0.18);
   flex-shrink: 0;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-admin-badge {
+.nav.nav--parent-landing .nav-admin-badge {
   height: 36px;
   padding: 0 0.65rem;
   border: 2px solid #000000;
@@ -558,14 +558,14 @@ html[data-theme='light'] .nav.nav--parent-landing .nav-admin-badge {
     color 120ms ease;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-admin-badge:hover,
-html[data-theme='light'] .nav.nav--parent-landing .nav-admin-badge:focus-visible {
+.nav.nav--parent-landing .nav-admin-badge:hover,
+.nav.nav--parent-landing .nav-admin-badge:focus-visible {
   background: #000000;
   color: #ffffff;
   outline: none;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-role-pill {
+.nav.nav--parent-landing .nav-role-pill {
   border: 2px solid #000000;
   border-radius: 0;
   background: #ffffff;
@@ -578,7 +578,7 @@ html[data-theme='light'] .nav.nav--parent-landing .nav-role-pill {
   padding: 0.28rem 0.65rem;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-logout-btn {
+.nav.nav--parent-landing .nav-logout-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -600,32 +600,32 @@ html[data-theme='light'] .nav.nav--parent-landing .nav-logout-btn {
     color 120ms ease;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-logout-btn:hover,
-html[data-theme='light'] .nav.nav--parent-landing .nav-logout-btn:focus-visible {
+.nav.nav--parent-landing .nav-logout-btn:hover,
+.nav.nav--parent-landing .nav-logout-btn:focus-visible {
   background: #ffffff;
   color: #000000;
   outline: none;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-settings-btn:hover,
-html[data-theme='light'] .nav.nav--parent-landing .nav-settings-btn:focus-visible {
+.nav.nav--parent-landing .nav-settings-btn:hover,
+.nav.nav--parent-landing .nav-settings-btn:focus-visible {
   color: #ffffff;
   background: #000000;
 }
 
-html[data-theme='light'] .nav.nav--parent-landing .nav-icon-btn.nav-settings-btn {
+.nav.nav--parent-landing .nav-icon-btn.nav-settings-btn {
   padding: 0;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-breadcrumb {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .dashboard-breadcrumb {
   background: #ffffff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 2px solid #000000;
   box-shadow: none;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .breadcrumb-path {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .breadcrumb-path {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 0.875rem;
   font-weight: 700;
@@ -633,39 +633,39 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .breadcrumb-pat
   letter-spacing: 0.1em;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .breadcrumb-root {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .breadcrumb-root {
   color: #000000;
   font-weight: 700;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .breadcrumb-sep {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .breadcrumb-sep {
   color: rgba(0, 0, 0, 0.45);
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .breadcrumb-current {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .breadcrumb-current {
   color: #000000;
   font-weight: 700;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-breadcrumb .hamburger {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .dashboard-breadcrumb .hamburger {
   border-radius: 0;
   border: 2px solid #000000;
   background: #ffffff;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-breadcrumb .hamburger span {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .dashboard-breadcrumb .hamburger span {
   background: #000000;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-breadcrumb > .icon-button {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .dashboard-breadcrumb > .icon-button {
   border-radius: 0;
   border: 2px solid #000000;
   background: #ffffff;
   color: #000000;
 }
 
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-breadcrumb > .icon-button:hover,
-html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-breadcrumb > .icon-button:focus-visible {
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .dashboard-breadcrumb > .icon-button:hover,
+.dashboard-shell.dashboard-shell--landing-light[data-variant='parent'] .dashboard-breadcrumb > .icon-button:focus-visible {
   background: #000000;
   color: #ffffff;
   outline: none;
@@ -1182,7 +1182,7 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
   background: #ffffff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-right: 2px solid #000000;
   box-shadow: none;
 }
 
@@ -1190,29 +1190,21 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
   align-items: flex-start;
   padding: 0 0 0.75rem;
   margin-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.dashboard-shell.dashboard-shell--landing-light .sidebar-brand-ascii-scale {
-  display: block;
-  max-width: 100%;
-  overflow: hidden;
-  transform: scale(0.44);
-  transform-origin: top left;
-  margin-bottom: -3.25rem;
+  border-bottom: 2px solid #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .section-label {
-  color: #52525b;
+  color: #4b5563;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .menu-item {
   border-radius: 0;
-  color: #52525b;
+  color: #000000;
   font-weight: 500;
-  border-color: transparent;
+  border: 1px solid transparent;
+  border-left: 4px solid transparent;
   background: transparent;
 }
 
@@ -1221,60 +1213,49 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
 }
 
 .dashboard-shell.dashboard-shell--landing-light .menu-item:hover {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
+  background: #f4f4f5;
+  color: #000000;
+  border-color: transparent;
+  border-left-color: transparent;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .menu-item:hover .menu-item-icon {
-  color: #ffffff;
+  color: #000000;
   transform: none;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .menu-item.active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
+  background: #f9fafb;
+  color: #000000;
+  border-color: transparent;
+  border-left: 4px solid #000000;
   font-weight: 700;
   box-shadow: none;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .menu-item.active .menu-item-icon {
-  color: #ffffff;
+  color: #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .menu-item-icon {
   background: transparent;
-  color: #71717a;
+  color: #4b5563;
   border-radius: 0;
 }
 
-.dashboard-shell.dashboard-shell--landing-light[data-variant='child'] .menu-item:hover,
-.dashboard-shell.dashboard-shell--landing-light[data-variant='child'] .menu-item.active {
-  background: #000000;
-  color: #ffffff;
-  border-color: #000000;
-  box-shadow: none;
-}
-
-.dashboard-shell.dashboard-shell--landing-light[data-variant='child'] .menu-item:hover .menu-item-icon,
-.dashboard-shell.dashboard-shell--landing-light[data-variant='child'] .menu-item.active .menu-item-icon {
-  color: #ffffff;
-  transform: none;
-}
-
-.dashboard-shell.dashboard-shell--landing-light[data-variant='child'] .menu-item.active::before {
-  display: none;
+/* Neutral AI nav icon on brutalist shell (overrides global accent). */
+.dashboard-shell.dashboard-shell--landing-light .menu-item[data-id='ai'] .menu-item-icon {
+  color: #4b5563;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .sidebar-role-badge {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: 2px solid #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .sidebar-role-pill {
   background: #ffffff;
-  color: #52525b;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #4b5563;
+  border: 2px solid #000000;
   border-radius: 0;
 }
 
@@ -1283,7 +1264,7 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
 }
 
 .dashboard-shell.dashboard-shell--landing-light .ai-mode-row {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: 2px solid #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .ai-workspace-btn {
@@ -1329,13 +1310,13 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
   background: #ffffff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 2px solid #000000;
   box-shadow: none;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .breadcrumb-root,
 .dashboard-shell.dashboard-shell--landing-light .breadcrumb-sep {
-  color: #71717a;
+  color: #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .breadcrumb-current {
@@ -1344,7 +1325,7 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
 
 .dashboard-shell.dashboard-shell--landing-light .hamburger {
   border-radius: 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 2px solid #000000;
   background: #ffffff;
 }
 
@@ -1354,40 +1335,41 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
 
 .dashboard-shell.dashboard-shell--landing-light .icon-button {
   border-radius: 0;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 2px solid #000000;
   background: #ffffff;
   color: #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .icon-button:hover {
-  background: #f4f4f5;
+  background: #000000;
+  color: #ffffff;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav {
   background: #ffffff;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.06);
+  border-top: 2px solid #000000;
+  box-shadow: none;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn {
   border-radius: 0;
-  color: #71717a;
+  color: #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn:hover,
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn:focus-visible {
   color: #000000;
   background: #f4f4f5;
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: transparent;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn.is-active {
-  color: #ffffff;
-  background: #000000;
-  border-color: #000000;
-  box-shadow: none;
+  color: #000000;
+  background: #f9fafb;
+  border-color: transparent;
+  box-shadow: inset 0 3px 0 0 #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn:hover .dashboard-mobile-nav__icon svg,
@@ -1397,7 +1379,7 @@ html[data-theme='light'] .dashboard-shell[data-variant='parent'] .dashboard-brea
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn.is-active .dashboard-mobile-nav__icon {
-  color: #ffffff;
+  color: #000000;
 }
 
 .dashboard-shell.dashboard-shell--landing-light .dashboard-mobile-nav__btn.is-active .dashboard-mobile-nav__icon svg {

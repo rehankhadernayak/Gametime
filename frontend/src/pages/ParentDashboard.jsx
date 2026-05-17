@@ -32,11 +32,11 @@ import './ParentDashboard.css';
 
 /** Landing-page CTA pattern (mono, 2px black frame, invert on hover). */
 const HOME_BTN_PRIMARY =
-  'border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase font-mono transition-all duration-150 hover:invert';
+  'inline-flex items-center justify-center min-h-[44px] border-2 border-black bg-black text-white px-6 py-3 text-sm font-bold uppercase font-mono transition-colors duration-150 hover:bg-white hover:text-black';
 const HOME_BTN_SECONDARY =
-  'border-2 border-black bg-transparent text-black px-6 py-3 text-sm font-bold uppercase font-mono transition-all duration-150 hover:invert';
+  'inline-flex items-center justify-center min-h-[44px] border-2 border-black bg-transparent text-black px-6 py-3 text-sm font-bold uppercase font-mono transition-colors duration-150 hover:bg-black hover:text-white';
 const HOME_BTN_SECONDARY_COMPACT =
-  'border-2 border-black bg-transparent text-black px-3 py-1.5 text-xs font-bold uppercase font-mono transition-all duration-150 hover:invert';
+  'inline-flex items-center justify-center min-h-[40px] border-2 border-black bg-transparent text-black px-3 py-2 text-xs font-bold uppercase font-mono transition-colors duration-150 hover:bg-black hover:text-white';
 
 /* ── EvidenceMedia ───────────────────────────────────────────────────────
    Fetches task evidence from the authenticated serve endpoint and renders
@@ -138,9 +138,9 @@ function parseManualGiftcardCodes(input) {
 
 function FamilyOverviewLoading() {
   return (
-    <div className="mb-4 flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400" aria-busy="true" aria-live="polite">
+    <div className="mb-4 flex items-center gap-3 text-sm text-gray-600" aria-busy="true" aria-live="polite">
       <span
-        className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-violet-200 border-t-violet-600 motion-reduce:animate-none motion-reduce:border-t-violet-600/40 dark:border-slate-600 dark:border-t-violet-400"
+        className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-gray-300 border-t-black motion-reduce:animate-none motion-reduce:border-t-black/40"
         aria-hidden="true"
       />
       <span>Updating activity…</span>
@@ -828,17 +828,17 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
           )}
 
           <section
-            className="font-sans rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm md:p-6 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100"
+            className="font-sans border-2 border-black bg-white p-6 text-black"
             aria-busy={loading}
           >
-            <div className="mb-5 flex flex-col gap-4 border-b border-slate-100 pb-5 dark:border-slate-800 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+            <div className="mb-6 flex flex-col gap-6 border-b-2 border-black pb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Family Overview</h2>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                <h2 className="font-mono text-lg font-bold uppercase tracking-tight text-black">Family Overview</h2>
+                <p className="mt-1 text-sm text-gray-600">
                   Recent activity and each child&apos;s screen time at a glance.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <button type="button" className={HOME_BTN_SECONDARY} onClick={() => openAssignQuest('')}>Assign quest</button>
                 <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('giftcards')}>Add Gift Cards</button>
                 <button type="button" className={HOME_BTN_SECONDARY} onClick={() => goToSection('family')}>Add Child</button>
@@ -856,7 +856,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               </div>
             </div>
             {showReviewerDemoTools ? (
-              <p className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400">
+              <p className="mb-4 border-2 border-black bg-gray-50 px-3 py-2 text-sm text-gray-600">
                 Reviewer tools: use “Seed demo data” once after login to fill task requests and approvals.
                 {isDemoMode()
                   ? ' Demo mode is on (Stripe and optional photo proof are bypassed where supported).'
@@ -870,22 +870,22 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
             )}
             <div
               ref={homeStatsGridRef}
-              className={`mt-1 grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]${loading ? ' opacity-60' : ''}`}
+              className={`mt-1 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]${loading ? ' opacity-60' : ''}`}
             >
               <div>
                 <header className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-violet-800 dark:bg-violet-500/20 dark:text-violet-200">
+                  <span className="inline-flex items-center border-2 border-black bg-black px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white font-mono">
                     Live
                   </span>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Activity feed</h3>
+                  <h3 className="font-mono text-sm font-bold uppercase text-black">Activity feed</h3>
                 </header>
                 {loading ? <FamilyOverviewLoading /> : null}
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950/50">
-                  <div className="border-b border-slate-100 bg-slate-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                <div className="overflow-hidden border-2 border-black bg-white">
+                  <div className="border-b-2 border-black bg-gray-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-black font-mono">
                     Recent events
                   </div>
                   <div
-                    className="max-h-[280px] overflow-y-auto px-4 py-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300"
+                    className="max-h-[280px] overflow-y-auto px-4 py-3 text-sm leading-relaxed text-black"
                     role="log"
                     aria-label="Recent activity"
                   >
@@ -897,16 +897,16 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                   </div>
                 </div>
               </div>
-              <aside className="flex flex-col gap-3" aria-label="Per-child overview">
+              <aside className="flex flex-col gap-4" aria-label="Per-child overview">
                 <header className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Children</h3>
+                  <h3 className="font-mono text-sm font-bold uppercase text-black">Children</h3>
                 </header>
                 {children.length === 0 ? (
-                  <article className="parent-dash-metric-card rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950/50">
-                    <div className="mb-2 border-b border-slate-100 pb-2 text-base font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
+                  <article className="parent-dash-metric-card border-2 border-black bg-white p-4">
+                    <div className="mb-2 border-b-2 border-black pb-2 font-mono text-base font-bold uppercase text-black">
                       No children yet
                     </div>
-                    <p className="m-0 text-sm text-slate-600 dark:text-slate-400">
+                    <p className="m-0 text-sm text-gray-600">
                       Add a child to see screen time and alerts here.
                     </p>
                   </article>
@@ -931,23 +931,23 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
                     return (
                       <article
                         key={child.id}
-                        className="parent-dash-metric-card rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950/50"
+                        className="parent-dash-metric-card border-2 border-black bg-white p-4"
                       >
-                        <div className="mb-3 border-b border-slate-100 pb-3 text-base font-semibold text-slate-900 dark:border-slate-800 dark:text-white">
+                        <div className="mb-3 border-b-2 border-black pb-3 font-mono text-base font-bold uppercase text-black">
                           {child.name}
                         </div>
                         <dl className="m-0 space-y-3">
                           <div>
-                            <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                            <dt className="text-[11px] font-bold uppercase tracking-wide text-gray-600 font-mono">
                               Screen time
                             </dt>
-                            <dd className="m-0 mt-1 text-sm text-slate-800 dark:text-slate-200">{screenLine}</dd>
+                            <dd className="m-0 mt-1 text-sm text-black">{screenLine}</dd>
                           </div>
-                          <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
-                            <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          <div className="border-t-2 border-black pt-3">
+                            <dt className="text-[11px] font-bold uppercase tracking-wide text-gray-600 font-mono">
                               Attention needed
                             </dt>
-                            <dd className="m-0 mt-1 text-sm text-slate-800 dark:text-slate-200">
+                            <dd className="m-0 mt-1 text-sm text-black">
                               {alertTotal === 0
                                 ? 'All clear'
                                 : `${alertTotal} open item${alertTotal === 1 ? '' : 's'}`}
@@ -961,67 +961,59 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
               </aside>
             </div>
             <div className="mt-8">
-              <h3 className="mb-3 text-base font-semibold text-slate-900 dark:text-white">Demo Readiness</h3>
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <h3 className="mb-4 font-mono text-base font-bold uppercase text-black">Demo Readiness</h3>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <article
-                  className={`rounded-xl border p-4 shadow-sm ${
-                    demoReadiness.hasChild
-                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
-                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  className={`border-2 border-black p-4 ${
+                    demoReadiness.hasChild ? 'bg-gray-100' : 'bg-white'
                   }`}
                 >
-                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                  <strong className="block font-mono text-sm font-bold uppercase text-black">
                     {demoReadiness.hasChild ? 'Child account ready' : 'Create first child account'}
                   </strong>
-                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                  <p className="mt-2 mb-0 text-sm leading-snug text-gray-600">
                     {demoReadiness.hasChild
                       ? 'Great start: your child account is ready.'
                       : 'Start your journey by creating your first child account.'}
                   </p>
                 </article>
                 <article
-                  className={`rounded-xl border p-4 shadow-sm ${
-                    demoReadiness.hasBlockedGames
-                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
-                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  className={`border-2 border-black p-4 ${
+                    demoReadiness.hasBlockedGames ? 'bg-gray-100' : 'bg-white'
                   }`}
                 >
-                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                  <strong className="block font-mono text-sm font-bold uppercase text-black">
                     {demoReadiness.hasBlockedGames ? 'Game controls active' : 'Add blocked game rule'}
                   </strong>
-                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                  <p className="mt-2 mb-0 text-sm leading-snug text-gray-600">
                     {demoReadiness.hasBlockedGames
                       ? 'At least one game rule is protecting playtime.'
                       : 'Add your first blocked game rule to set healthy boundaries.'}
                   </p>
                 </article>
                 <article
-                  className={`rounded-xl border p-4 shadow-sm ${
-                    demoReadiness.hasActiveTasks
-                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
-                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  className={`border-2 border-black p-4 ${
+                    demoReadiness.hasActiveTasks ? 'bg-gray-100' : 'bg-white'
                   }`}
                 >
-                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                  <strong className="block font-mono text-sm font-bold uppercase text-black">
                     {demoReadiness.hasActiveTasks ? 'Tasks ready to earn' : 'Create first active task'}
                   </strong>
-                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                  <p className="mt-2 mb-0 text-sm leading-snug text-gray-600">
                     {demoReadiness.hasActiveTasks
                       ? 'There is an active task ready to earn points.'
                       : 'Create one active task so your child can start earning points.'}
                   </p>
                 </article>
                 <article
-                  className={`rounded-xl border p-4 shadow-sm ${
-                    demoReadiness.hasPendingApproval
-                      ? 'border-emerald-200/90 bg-emerald-50/60 dark:border-emerald-800/70 dark:bg-emerald-950/30'
-                      : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/40'
+                  className={`border-2 border-black p-4 ${
+                    demoReadiness.hasPendingApproval ? 'bg-gray-100' : 'bg-white'
                   }`}
                 >
-                  <strong className="block text-sm font-semibold text-slate-900 dark:text-white">
+                  <strong className="block font-mono text-sm font-bold uppercase text-black">
                     {demoReadiness.hasPendingApproval ? 'Approval flow active' : 'Submit first completion'}
                   </strong>
-                  <p className="mt-2 mb-0 text-sm leading-snug text-slate-600 dark:text-slate-400">
+                  <p className="mt-2 mb-0 text-sm leading-snug text-gray-600">
                     {demoReadiness.hasPendingApproval
                       ? 'You have a task waiting for parent approval.'
                       : 'Submit one completed task so you can review and award points.'}
