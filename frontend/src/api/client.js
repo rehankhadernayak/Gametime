@@ -21,20 +21,41 @@ function stripTrailingSlash(s) {
 
 let resolvedApiBase = stripTrailingSlash(viteApiUrl || nextPublicApiUrl || viteApiBaseUrl || '/api');
 
-/** GitHub Codespaces / preview — avoid accidental calls to production when Vite dev proxy is available. */
-function shouldUseDevApiProxyInstead(apiBase) {
-  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  const onGithubPreview =
-    h.endsWith('.github.dev') || h.endsWith('.app.github.dev') || h.endsWith('.githubpreview.dev');
-  if (!onGithubPreview) return false;
+function isLocalDevBrowserHost(hostname) {
+  const h = String(hostname || '').toLowerCase();
+  return (
+    h === 'localhost' ||
+    h === '127.0.0.1' ||
+    h.endsWith('.github.dev') ||
+    h.endsWith('.app.github.dev') ||
+    h.endsWith('.githubpreview.dev')
+  );
+}
+
+/** True when `VITE_API_URL` points at a remote http(s) host (not this machine). */
+function apiBasePointsAtRemoteHost(apiBase) {
   const b = String(apiBase || '').trim();
   if (!b || b === '/api') return false;
   try {
-    return new URL(b, window.location.origin).hostname === 'api.gametime.app';
+    const u = new URL(b, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
+    const host = u.hostname.toLowerCase();
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    return host !== 'localhost' && host !== '127.0.0.1';
   } catch {
     return false;
   }
+}
+
+/**
+ * Local Vite / Codespaces: when the UI is served from a dev host but `VITE_API_URL` targets a remote API,
+ * use same-origin `/api` so the Vite proxy reaches the local backend (avoids CORS and wrong-env URLs).
+ * Set `VITE_DEV_USE_REMOTE_API=1` to call the configured remote API from the dev server instead.
+ */
+function shouldUseDevApiProxyInstead(apiBase) {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
+  if (String(import.meta.env?.VITE_DEV_USE_REMOTE_API ?? '').trim() === '1') return false;
+  if (!isLocalDevBrowserHost(window.location.hostname)) return false;
+  return apiBasePointsAtRemoteHost(apiBase);
 }
 
 if (shouldUseDevApiProxyInstead(resolvedApiBase)) {
