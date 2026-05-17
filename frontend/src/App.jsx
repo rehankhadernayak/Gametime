@@ -19,7 +19,6 @@ import { apiRequest, syncDemoModeFromUrl } from './api/client.js';
 import NavBar from './components/NavBar.jsx';
 import ToastStack from './components/ToastStack.jsx';
 import { trackEvent } from './utils/analytics.js';
-import './styles/onebit-shell.css';
 
 function BackIcon() {
   return (

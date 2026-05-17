@@ -4,8 +4,19 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"IBM Plex Mono"', 'monospace'],
-        mono: ['"IBM Plex Mono"', 'monospace'],
+        sans: [
+          'ui-sans-serif',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          '"Helvetica Neue"',
+          'Arial',
+          '"Noto Sans"',
+          'sans-serif',
+        ],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
       },
       spacing: {
         'grid-20': '20px',

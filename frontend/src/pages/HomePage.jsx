@@ -58,7 +58,7 @@ function LandingNav({ auth }) {
       aria-label="Site navigation"
     >
       <div className="shrink-0">
-        <pre className="leading-none text-[8px] md:text-[10px] overflow-visible whitespace-pre">
+        <pre className="leading-none font-mono text-[8px] md:text-[10px] overflow-visible whitespace-pre">
           {ASCII_MARK}
         </pre>
       </div>
