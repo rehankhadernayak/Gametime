@@ -254,3 +254,8 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-19 — Production CORS must not reflect arbitrary Origins with credentials
+**What happened:** A “simplify CORS” change used `callback(null, true)` for every request Origin while `credentials: true` remained enabled. Production auth cookies use `SameSite=None`, so a malicious site could trigger credentialed cross-origin API calls and read responses if the browser echoed the attacker’s Origin in `Access-Control-Allow-Origin`.
+**Rule:** Never replace an allowlisted production CORS policy with unconditional reflection. Keep `FRONTEND_ORIGIN` + Vercel wildcard + Codespaces helpers, use `origin: true` only when `NODE_ENV !== 'production'` or `CORS_REFLECT_ORIGIN=true`, and re-read the `cors` package behavior when `callback(null, false)` (preflight falls through — still omit `Access-Control-Allow-Origin`).
+
