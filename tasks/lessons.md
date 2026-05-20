@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-20 — CORS “simplify” broke production credential isolation
+**What happened:** A change replaced production FRONTEND_ORIGIN allowlisting with `callback(null, true)` for every `Origin`, while auth cookies use `SameSite=None` in production — any attacker-controlled HTTPS origin could receive credentialed API responses in the browser.
+**Rule:** Never echo arbitrary `Origin` with `Access-Control-Allow-Credentials: true` in production. Keep allowlist + optional `https://*.vercel.app` + explicit `CORS_REFLECT_ORIGIN` for staging; add tests that assert unknown origins are denied when `NODE_ENV=production`.
+
+---
