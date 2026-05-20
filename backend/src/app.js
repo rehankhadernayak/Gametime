@@ -21,25 +21,23 @@ import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
+import { env } from './config/env.js';
+import { createCorsOptions } from './utils/corsOriginPolicy.js';
+
 export function createApp() {
   const app = express();
 
-  const corsOptions = {
-    origin(origin, callback) {
-      // Allow all origins in development
-      callback(null, true);
-    },
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    optionsSuccessStatus: 204,
-    maxAge: 86400
-  };
+  const corsOptions = createCorsOptions({
+    nodeEnv: process.env.NODE_ENV,
+    corsReflectOrigin: env.corsReflectOrigin,
+    frontendOrigins: env.frontendOrigins,
+    logger
+  });
+  const corsMiddleware = cors(corsOptions);
 
   app.use(helmet());
-  // Dynamic origin reflection: required when credentials: true (no wildcard) and
-  // frontend URLs change (e.g. GitHub Codespaces ports / preview hosts).
-  app.use(cors(corsOptions));
-  app.options('*', cors(corsOptions));
+  app.use(corsMiddleware);
+  app.options('*', corsMiddleware);
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
