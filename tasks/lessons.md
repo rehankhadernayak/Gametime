@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-05-21 — CORS origin callback allowed every site in production
+**What happened:** `backend/src/app.js` used a custom `cors` `origin` handler that always called `callback(null, true)` while the comment claimed it was development-only, so production echoed any browser `Origin` with `credentials: true` (credentialed cross-origin data theft from a malicious page if a victim had session cookies).
+**Rule:** In production, never approve unknown `Origin` values for credentialed CORS. Keep `NODE_ENV !== 'production' || CORS_REFLECT_ORIGIN` gating for reflect-all behaviour, and use an explicit allowlist (plus known safe patterns like `*.vercel.app` when configured) otherwise.
+
+---
+
 ### 2026-03-11 — Read file before editing
 **What happened:** Edit tool threw "File has not been read yet" when trying to edit `pushService.js` and `notificationsRoutes.js` without reading them first.
 **Rule:** Always call `Read` on a file before calling `Edit` on it, even if you think you know the contents. No exceptions.
