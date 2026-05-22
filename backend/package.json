@@ -10,7 +10,7 @@
     "db:reset": "node src/db/reset.js",
     "db:backup": "node scripts/backup.js",
     "seed:mock-gift": "node scripts/seed-mock-reward-request.mjs",
-    "test": "vitest run",
+    "test": "vitest run && node scripts/verify-cors-production.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
