@@ -155,7 +155,6 @@ export default function App() {
           token={auth.token}
           onLogout={handleLogout}
           isAdmin={Boolean(auth.user?.isAdmin)}
-          parentLandingChrome={auth.role === 'parent' && theme === 'light'}
         />
       )}
       <Routes>

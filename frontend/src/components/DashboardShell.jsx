@@ -244,12 +244,10 @@ export default function DashboardShell({
       >
         {/* Brand — matches `LandingNav` logo block in HomePage.jsx (ASCII + pre classes). */}
         <div className="sidebar-brand sidebar-brand--landing-logo">
-          <div className="sidebar-brand-ascii-scale">
-            <div className="shrink-0">
-              <pre className="leading-none font-mono text-[8px] md:text-[10px] overflow-visible whitespace-pre text-black">
-                {ASCII_MARK}
-              </pre>
-            </div>
+          <div className="shrink-0 min-w-0">
+            <pre className="font-mono text-[8px] md:text-[10px] leading-none whitespace-pre overflow-visible text-black">
+              {ASCII_MARK}
+            </pre>
           </div>
         </div>
 

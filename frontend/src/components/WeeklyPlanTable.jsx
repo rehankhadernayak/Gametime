@@ -3,13 +3,13 @@ import { apiRequest } from '../api/client.js';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-/** Muted category accents (SaaS palette, not neon) */
+/** Neutral category stripes (brutalist grayscale, no SaaS accent colors). */
 const CAT_COLORS = {
-  school: '#6366f1',
-  chores: '#059669',
-  activities: '#7c3aed',
-  health: '#e11d48',
-  other: '#64748b',
+  school: '#111827',
+  chores: '#374151',
+  activities: '#6b7280',
+  health: '#9ca3af',
+  other: '#4b5563',
 };
 
 function dayInRecurrence(recurrenceDays, day) {
@@ -90,32 +90,30 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
   const unscheduled = getUnscheduled();
 
   return (
-    <section className="font-sans mt-6 rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm md:p-6 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100">
-      <div className="mb-5 flex flex-col gap-2 border-b border-slate-100 pb-5 dark:border-slate-800 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+    <section className="font-sans mt-6 border-2 border-black bg-white p-6 text-black">
+      <div className="mb-6 flex flex-col gap-2 border-b-2 border-black pb-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Weekly Plan</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <h2 className="font-mono text-lg font-bold uppercase tracking-tight text-black">Weekly Plan</h2>
+          <p className="mt-1 text-sm text-gray-600">
             Recurring tasks by day — drag a chip to add or remove days.
           </p>
         </div>
         {busy ? (
-          <span className="text-sm font-medium text-violet-600 dark:text-violet-400" aria-live="polite">
+          <span className="text-sm font-medium text-gray-600" aria-live="polite">
             Saving…
           </span>
         ) : null}
       </div>
 
-      <div className="grid min-h-[160px] grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid min-h-[160px] grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
         {DAYS.map((day) => {
           const dayTasks = getTasksForDay(day);
           const isOver = dragOverDay === day;
           return (
             <div
               key={day}
-              className={`flex min-h-[140px] flex-col overflow-hidden rounded-xl border bg-slate-50/90 shadow-sm transition dark:bg-slate-950/40 ${
-                isOver
-                  ? 'border-violet-400 ring-2 ring-violet-400/80 ring-offset-2 ring-offset-white dark:border-violet-500 dark:ring-violet-500/60 dark:ring-offset-slate-900'
-                  : 'border-slate-200 dark:border-slate-700'
+              className={`flex min-h-[140px] flex-col overflow-hidden border-2 bg-gray-50 transition ${
+                isOver ? 'border-black bg-gray-100 ring-2 ring-black ring-offset-2 ring-offset-white' : 'border-black'
               }`}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -127,12 +125,12 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
                 setDragOverDay(null);
               }}
             >
-              <div className="border-b border-slate-200 bg-white px-2 py-1.5 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400">
+              <div className="border-b-2 border-black bg-white px-2 py-1.5 text-center text-[11px] font-bold uppercase tracking-wider text-black font-mono">
                 {day}
               </div>
               <div className="flex flex-1 flex-col gap-1 p-2">
                 {dayTasks.length === 0 && (
-                  <div className="flex min-h-[48px] flex-1 items-center justify-center rounded-lg border border-dashed border-slate-300 text-[11px] text-slate-400 dark:border-slate-600 dark:text-slate-500">
+                  <div className="flex min-h-[48px] flex-1 items-center justify-center border-2 border-dashed border-gray-400 text-[11px] text-gray-600">
                     Drop here
                   </div>
                 )}
@@ -141,7 +139,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
                   return (
                     <div
                       key={task.id}
-                      className={`group flex min-w-0 cursor-grab items-center gap-1 rounded-lg border border-slate-200 bg-white py-1 pl-1.5 pr-1 text-xs shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-600 dark:bg-slate-900 ${
+                      className={`group flex min-w-0 cursor-grab items-center gap-1 border-2 border-black bg-white py-1 pl-1.5 pr-1 text-xs transition hover:bg-gray-50 ${
                         draggedId === task.id ? 'opacity-50' : ''
                       }`}
                       style={{ borderLeftWidth: 3, borderLeftColor: cat }}
@@ -158,15 +156,15 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
                         style={{ backgroundColor: cat }}
                         aria-hidden="true"
                       />
-                      <span className="min-w-0 flex-1 truncate font-medium text-slate-800 dark:text-slate-200">
+                      <span className="min-w-0 flex-1 truncate font-medium text-black">
                         {task.title}
                       </span>
-                      <span className="shrink-0 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                      <span className="shrink-0 text-[10px] font-medium text-gray-600">
                         {task.childName?.split(' ')[0]}
                       </span>
                       <button
                         type="button"
-                        className="ml-0.5 hidden h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-medium text-rose-600 hover:bg-rose-100 group-hover:flex dark:text-rose-400 dark:hover:bg-rose-950/60"
+                        className="ml-0.5 hidden h-6 w-6 shrink-0 items-center justify-center border border-black bg-white text-sm font-bold text-black hover:bg-black hover:text-white group-hover:flex"
                         aria-label={`Remove ${task.title} from ${day}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -185,8 +183,8 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
       </div>
 
       {unscheduled.length > 0 && (
-        <div className="mt-5 border-t border-slate-100 pt-5 dark:border-slate-800">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <div className="mt-6 border-t-2 border-black pt-6">
+          <span className="mb-2 block font-mono text-xs font-bold uppercase tracking-wide text-gray-600">
             Unscheduled — drag onto a day to schedule
           </span>
           <div className="flex flex-wrap gap-2">
@@ -195,7 +193,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
               return (
                 <div
                   key={task.id}
-                  className={`group flex max-w-[180px] min-w-0 cursor-grab items-center gap-1 rounded-lg border border-slate-200 bg-white py-1 pl-1.5 pr-1 text-xs shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-600 dark:bg-slate-900 ${
+                  className={`group flex max-w-[180px] min-w-0 cursor-grab items-center gap-1 border-2 border-black bg-white py-1 pl-1.5 pr-1 text-xs transition hover:bg-gray-50 ${
                     draggedId === task.id ? 'opacity-50' : ''
                   }`}
                   style={{ borderLeftWidth: 3, borderLeftColor: cat }}
@@ -212,10 +210,10 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
                     style={{ backgroundColor: cat }}
                     aria-hidden="true"
                   />
-                  <span className="min-w-0 flex-1 truncate font-medium text-slate-800 dark:text-slate-200">
+                  <span className="min-w-0 flex-1 truncate font-medium text-black">
                     {task.title}
                   </span>
-                  <span className="shrink-0 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                  <span className="shrink-0 text-[10px] font-medium text-gray-600">
                     {task.childName?.split(' ')[0]}
                   </span>
                 </div>
@@ -226,7 +224,7 @@ export default function WeeklyPlanTable({ token, tasks, onRefresh }) {
       )}
 
       {activeTasks.length === 0 && (
-        <p className="mt-4 text-center text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-4 text-center text-sm text-gray-600">
           No active tasks yet. Create tasks in the Tasks section and they will appear here.
         </p>
       )}
