@@ -479,3 +479,8 @@ Audited the entire codebase to surface bugs that would block App Store / Vercel 
 **Verification:** 79/79 backend tests still passing, frontend builds clean (~170 KB gz), no new linter warnings.
 
 **What to do about the backend:** Deploy `backend/` once to a host with a persistent disk (Railway, Fly, Render, or Lightsail). Web and mobile already share that single API — there's no data-sync layer to build. Full step-by-step in `LAUNCH_READINESS.md`.
+
+## Session Notes — 2026-05-23
+
+- Audited recent `main` history; found critical regression in `ba919a3` (CORS): production allowlist removed in favor of unconditional `callback(null, true)`.
+- Restored prior `createApp()` CORS branching (`origin: true` only in non-production or when `CORS_REFLECT_ORIGIN=true`; strict allowlist otherwise) and added `backend/tests/corsApp.test.js` for production preflight behavior.

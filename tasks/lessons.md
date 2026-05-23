@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-23 — Production CORS replaced with unconditional allow-all
+**What happened:** `backend/src/app.js` used a `cors` callback that always called `callback(null, true)` in every environment, so any browser `Origin` received `Access-Control-Allow-Origin` with `credentials: true` — allowing malicious sites to read credentialed API responses from a logged-in victim’s session.
+**Rule:** Never echo arbitrary origins in production. Keep `FRONTEND_ORIGIN` allowlist + optional `*.vercel.app` / Codespaces rules, use `origin: true` only when `NODE_ENV !== 'production'` or `CORS_REFLECT_ORIGIN=true`, and add a regression test for blocked origins when `NODE_ENV=production`.
+
+---
