@@ -341,7 +341,7 @@ export default function ParentSettingsPage({ token, parentName, theme, onToggleT
       />
 
       <div className="relative z-[1]">
-        <header className="flex flex-wrap items-center gap-4 border-b-2 border-black px-4 py-3 bg-white">
+        <header className="parent-brutal-page-header flex flex-wrap items-center gap-4 border-b-2 border-black bg-white">
           <button
             type="button"
             className="parent-brutal-secondary-btn inline-flex items-center gap-2"
@@ -351,7 +351,7 @@ export default function ParentSettingsPage({ token, parentName, theme, onToggleT
             <IconBack />
             BACK
           </button>
-          <TypewriterHeading className="font-mono text-lg sm:text-xl text-black flex-1 min-w-[200px]">
+          <TypewriterHeading className="font-mono text-lg sm:text-xl text-black flex-1 min-w-0 shrink">
             CONTROL_LEDGER
           </TypewriterHeading>
           <span className="font-mono text-[10px] uppercase tracking-widest text-black/60 hidden sm:inline">
@@ -359,7 +359,7 @@ export default function ParentSettingsPage({ token, parentName, theme, onToggleT
           </span>
         </header>
 
-        <main className="max-w-4xl mx-auto px-4 py-8 space-y-12 pb-24">
+        <main className="parent-brutal-main space-y-12">
           {/* Ledger */}
           <section aria-labelledby="ledger-heading">
             <h2 id="ledger-heading" className="parent-led-section-code">

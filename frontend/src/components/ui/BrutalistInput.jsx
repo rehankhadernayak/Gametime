@@ -1,5 +1,5 @@
 const fieldBase =
-  'w-full rounded-none border-2 border-black bg-white p-3 text-black outline-none transition-colors focus:bg-black/5';
+  'box-border max-w-full min-w-0 w-full rounded-none border-2 border-black bg-white p-3 text-black outline-none transition-colors focus:bg-black/5';
 
 export function BrutalistInput({ className = '', ...rest }) {
   return <input className={`${fieldBase} ${className}`.trim()} {...rest} />;
