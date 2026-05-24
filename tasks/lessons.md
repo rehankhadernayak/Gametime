@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-24 — CORS must not reflect arbitrary origins in production
+**What happened:** A “simplify CORS” change used `callback(null, true)` for every `Origin` while `credentials: true` remained enabled, effectively allowing any website to read credentialed API responses in production (cross-origin data theft).
+**Rule:** With `credentials: true`, never approve CORS for arbitrary origins in production. Use an explicit allowlist (plus known-safe patterns like `*.vercel.app` when configured, Codespaces hosts, and local dev) or set `CORS_REFLECT_ORIGIN=true` only for deliberate staging. Keep dev reflection gated on `NODE_ENV !== 'production'`.
+
+---

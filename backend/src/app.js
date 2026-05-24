@@ -21,14 +21,13 @@ import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
+import { env } from './config/env.js';
+import { createStrictCorsOriginCallback } from './utils/corsAllowlist.js';
+
 export function createApp() {
   const app = express();
 
-  const corsOptions = {
-    origin(origin, callback) {
-      // Allow all origins in development
-      callback(null, true);
-    },
+  const corsShared = {
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     optionsSuccessStatus: 204,
@@ -36,10 +35,19 @@ export function createApp() {
   };
 
   app.use(helmet());
-  // Dynamic origin reflection: required when credentials: true (no wildcard) and
-  // frontend URLs change (e.g. GitHub Codespaces ports / preview hosts).
+  // Reflect request Origin when safe for local dev (including Codespaces) or when
+  // CORS_REFLECT_ORIGIN=true for ad-hoc testing. Production otherwise uses an allowlist
+  // plus GitHub preview hosts and optional Vercel *.vercel.app wildcard.
+  const useReflectCorsOrigin =
+    process.env.NODE_ENV !== 'production' || env.corsReflectOrigin === true;
+
+  const corsOptions = useReflectCorsOrigin
+    ? { ...corsShared, origin: true }
+    : { ...corsShared, origin: createStrictCorsOriginCallback(env.frontendOrigins) };
+
   app.use(cors(corsOptions));
   app.options('*', cors(corsOptions));
+
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
