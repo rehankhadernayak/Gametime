@@ -9,11 +9,29 @@
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    box-sizing: border-box;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
   }
 
   body {
     @apply bg-[#FFFFFF] text-[#000000] font-sans;
     line-height: 1.6;
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+  }
+
+  #root {
+    max-width: 100vw;
+    overflow-x: hidden;
+    min-height: 100%;
   }
 }
 

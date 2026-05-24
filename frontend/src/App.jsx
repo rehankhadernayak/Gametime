@@ -130,7 +130,7 @@ export default function App() {
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   return (
-    <div>
+    <div className="gt-app-root">
       <ToastStack toasts={toasts} onDismiss={(id) => setToasts((prev) => prev.filter((t) => t.id !== id))} />
       {showUtility && (
         <div className="utility-bar" aria-label="Global navigation controls">

@@ -479,3 +479,7 @@ Audited the entire codebase to surface bugs that would block App Store / Vercel 
 **Verification:** 79/79 backend tests still passing, frontend builds clean (~170 KB gz), no new linter warnings.
 
 **What to do about the backend:** Deploy `backend/` once to a host with a persistent disk (Railway, Fly, Render, or Lightsail). Web and mobile already share that single API — there's no data-sync layer to build. Full step-by-step in `LAUNCH_READINESS.md`.
+
+## Session Notes — 2026-05-24
+
+- [x] iOS WebView / Capacitor frontend: viewport `viewport-fit=cover`, sticky `NavBar` top padding `calc(env(safe-area-inset-top) + 12px)` via `--nav-safe-padding-top` + `--nav-total-h`, layout offsets updated to use full nav height. Global `html`/`body`/`#root` + `.gt-app-root` constrain horizontal overflow. Parent settings ledger: safe horizontal padding, `CONTROL_LEDGER` title no longer `min-w-[200px]`, brutalist cards/inputs `max-w-full` + `box-border`.
