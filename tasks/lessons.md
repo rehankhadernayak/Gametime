@@ -5,6 +5,12 @@
 
 ---
 
+### 2026-05-25 — CORS must not reflect arbitrary origins in production
+**What happened:** `app.js` used `cors({ origin: () => callback(null, true), credentials: true })` for every environment, so production echoed any browser `Origin` with credentialed responses. A malicious site could trigger cross-origin authenticated fetches and read JSON responses (session theft / family data exfiltration).
+**Rule:** With `credentials: true`, never allow unrestricted origin reflection in production. Use `FRONTEND_ORIGIN` allowlist + optional `https://*.vercel.app` + Codespaces hostnames, and reserve full reflection for non-production or explicit `CORS_REFLECT_ORIGIN=true`.
+
+---
+
 ### 2026-03-11 — Read file before editing
 **What happened:** Edit tool threw "File has not been read yet" when trying to edit `pushService.js` and `notificationsRoutes.js` without reading them first.
 **Rule:** Always call `Read` on a file before calling `Edit` on it, even if you think you know the contents. No exceptions.

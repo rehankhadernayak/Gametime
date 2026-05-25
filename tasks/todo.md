@@ -483,3 +483,7 @@ Audited the entire codebase to surface bugs that would block App Store / Vercel 
 ## Session Notes — 2026-05-24
 
 - [x] iOS WebView / Capacitor frontend: viewport `viewport-fit=cover`, sticky `NavBar` top padding `calc(env(safe-area-inset-top) + 12px)` via `--nav-safe-padding-top` + `--nav-total-h`, layout offsets updated to use full nav height. Global `html`/`body`/`#root` + `.gt-app-root` constrain horizontal overflow. Parent settings ledger: safe horizontal padding, `CONTROL_LEDGER` title no longer `min-w-[200px]`, brutalist cards/inputs `max-w-full` + `box-border`.
+
+## Session Notes — 2026-05-25
+
+- [x] Critical CORS regression (post #169): production was reflecting any `Origin` with `Access-Control-Allow-Credentials: true`. Restored allowlist + dev/Codespaces/Vercel wildcard behaviour via `middleware/corsPolicy.js` and Vitest coverage in `tests/corsPolicy.test.js`.
