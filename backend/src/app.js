@@ -19,27 +19,40 @@ import { stripeWebhookController } from './controllers/stripeController.js';
 import stripeRouter from './routes/stripeRoutes.js';
 import billingRoutes from './routes/billingRoutes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { buildCorsOriginConfig } from './middleware/corsPolicy.js';
 import { getDb } from './db/connection.js';
 import { logger } from './utils/logger.js';
+import { env } from './config/env.js';
+
+const corsShared = {
+  credentials: true,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  optionsSuccessStatus: 204,
+  maxAge: 86400
+};
+
 export function createApp() {
   const app = express();
 
-  const corsOptions = {
-    origin(origin, callback) {
-      // Allow all origins in development
-      callback(null, true);
-    },
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    optionsSuccessStatus: 204,
-    maxAge: 86400
-  };
+  const corsOriginCfg = buildCorsOriginConfig({
+    nodeEnv: process.env.NODE_ENV || 'development',
+    corsReflectOrigin: env.corsReflectOrigin === true,
+    frontendOrigins: env.frontendOrigins,
+    logger
+  });
+
+  const corsOptions =
+    corsOriginCfg.mode === 'reflect'
+      ? { ...corsShared, origin: true }
+      : { ...corsShared, origin: corsOriginCfg.origin };
+
+  const corsMiddleware = cors(corsOptions);
 
   app.use(helmet());
-  // Dynamic origin reflection: required when credentials: true (no wildcard) and
-  // frontend URLs change (e.g. GitHub Codespaces ports / preview hosts).
-  app.use(cors(corsOptions));
-  app.options('*', cors(corsOptions));
+  // Reflect request Origin in non-production (Codespaces, changing dev ports) or when
+  // CORS_REFLECT_ORIGIN=true. Production uses FRONTEND_ORIGIN allowlist + optional *.vercel.app.
+  app.use(corsMiddleware);
+  app.options('*', corsMiddleware);
   app.post('/giftcards/webhook', express.raw({ type: 'application/json', limit: '2mb' }), athenaWebhookRawController);
   // Stripe webhook - raw body required for signature verification (must be before express.json)
   app.post('/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookController);
