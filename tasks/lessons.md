@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-26 — CORS “simplify” must not reflect every Origin in production
+**What happened:** A backend change replaced production CORS allowlisting with an `origin` callback that always called `callback(null, true)`, which reflects any browser `Origin` while `credentials: true` — allowing a malicious site to read credentialed API responses from a logged-in user’s session.
+**Rule:** With cookie or credentialed CORS, production must use an explicit allowlist (plus documented exceptions like `*.vercel.app` when configured), optional `CORS_REFLECT_ORIGIN` for staging, and dev-only reflection — never unconditional `callback(null, true)` or `origin: true` in production unless that opt-in flag is set.
+
+---
