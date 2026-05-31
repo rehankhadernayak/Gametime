@@ -39,12 +39,19 @@ export async function verifyGoogleIdentity(input) {
     return { sub: p.sub, email: p.email.toLowerCase(), name };
   }
 
-  const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-  if (!res.ok) throw new ApiError(401, 'Invalid Google credential.');
-  const p = await res.json();
-  if (!p?.sub || !p.email) throw new ApiError(401, 'Invalid Google credential.');
+  // Bind access tokens to configured OAuth clients (tokeninfo returns aud/azp).
+  const tokenInfoRes = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
+  );
+  if (!tokenInfoRes.ok) throw new ApiError(401, 'Invalid Google credential.');
+  const p = await tokenInfoRes.json();
+  if (p?.error || !p?.sub || !p.email) throw new ApiError(401, 'Invalid Google credential.');
+
+  const clientId = String(p.azp || p.aud || '').trim();
+  if (!clientId || !audiences.includes(clientId)) {
+    throw new ApiError(401, 'Invalid Google credential.');
+  }
+
   const verified = p.email_verified === true || p.verified_email === true || p.email_verified === 'true';
   if (!verified) throw new ApiError(403, 'Verify your Google email before continuing.');
   const name = String(p.name || p.given_name || p.email.split('@')[0] || 'User').trim();
