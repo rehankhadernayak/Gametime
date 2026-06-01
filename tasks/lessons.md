@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-06-01 — CORS “reflect all origins” in production (#169)
+**What happened:** `ba919a3` replaced the production allowlist with `callback(null, true)` for every origin while auth cookies use `SameSite=None` in production, enabling credentialed cross-site reads/actions from any malicious site.
+**Rule:** Never reflect arbitrary origins when `credentials: true` and session cookies are cross-site (`SameSite=None`). Keep `FRONTEND_ORIGIN` allowlist + `*.vercel.app` wildcard + Codespaces helpers; use `CORS_REFLECT_ORIGIN=true` only for deliberate staging. Add `backend/tests/corsProduction.test.js` when touching CORS.
+
+---
