@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-18 — Production CORS must never reflect arbitrary Origins with credentials
+**What happened:** A “simplify CORS” change used `callback(null, true)` for every request regardless of `NODE_ENV`, so in production any site could receive `Access-Control-Allow-Origin` echoing its own Origin together with `Access-Control-Allow-Credentials: true`, enabling credentialed cross-origin reads of the API when cookies are sent.
+**Rule:** With `credentials: true`, never reflect arbitrary Origins in production. Keep an explicit allowlist (plus known preview hosts such as `*.github.dev` and optional `https://*.vercel.app` config), use relaxed reflection only when `NODE_ENV !== 'production'` or `CORS_REFLECT_ORIGIN=true`.
+
+---
