@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-06-03 — CORS reflect-all must not ship in production with credentialed cookies
+**What happened:** Commit ba919a3 (#169) replaced the production CORS allowlist with `callback(null, true)` for every Origin while auth cookies use `SameSite=None` in production, enabling credentialed cross-site API access from arbitrary attacker pages.
+**Rule:** Never merge CORS changes that reflect all origins when `credentials: true` is set. Production must use `FRONTEND_ORIGIN` allowlist (+ Vercel/Codespaces helpers); keep reflect-all only for non-production or `CORS_REFLECT_ORIGIN=true`. Add `corsProduction.test.js` to block regressions.
+
+---
