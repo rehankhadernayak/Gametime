@@ -39,6 +39,16 @@ export async function verifyGoogleIdentity(input) {
     return { sub: p.sub, email: p.email.toLowerCase(), name };
   }
 
+  const tokenInfoUrl = new URL('https://oauth2.googleapis.com/tokeninfo');
+  tokenInfoUrl.searchParams.set('access_token', accessToken);
+  const tokenInfoRes = await fetch(tokenInfoUrl);
+  if (!tokenInfoRes.ok) throw new ApiError(401, 'Invalid Google credential.');
+  const tokenInfo = await tokenInfoRes.json();
+  const tokenClientId = tokenInfo.azp || tokenInfo.aud;
+  if (!tokenClientId || !audiences.includes(String(tokenClientId))) {
+    throw new ApiError(401, 'Invalid Google credential.');
+  }
+
   const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${accessToken}` }
   });
