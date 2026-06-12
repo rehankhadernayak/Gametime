@@ -25,11 +25,15 @@ export default function ParentPinGate({ onElevated }) {
         token: token || undefined,
         body: { password }
       });
-      setAuth({
+      const nextAuth = {
         token: data.token,
         role: 'parent',
         user: data.parent
-      });
+      };
+      setAuth(nextAuth);
+      // App.jsx route guards still read local auth state — sync after elevation
+      // revokes the child session and issues a parent JWT.
+      window.dispatchEvent(new CustomEvent('gametime:auth-sync', { detail: nextAuth }));
       unlockParentNav();
       refreshCookieRole();
       window.dispatchEvent(new CustomEvent('gametime:cookie-role-refresh'));

@@ -61,6 +61,14 @@ export default function App() {
   }, [location.search]);
 
   useEffect(() => {
+    const onAuthSync = (event) => {
+      if (event.detail) handleAuth(event.detail);
+    };
+    window.addEventListener('gametime:auth-sync', onAuthSync);
+    return () => window.removeEventListener('gametime:auth-sync', onAuthSync);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('gametime_theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
