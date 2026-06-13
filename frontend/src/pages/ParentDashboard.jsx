@@ -170,6 +170,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   /* ── Shell navigation ref - lets us drive DashboardShell section changes ── */
   const shellRef = useRef({});
   const homeStatsGridRef = useRef(null);
+  const dashboardFetchGen = useRef(0);
   const router = useAppRouter();
 
 
@@ -303,10 +304,11 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
     }
   }
 
-  async function fetchDashboardData({ silent = false } = {}) {
+  async function fetchDashboardData({ silent = false, fetchGen } = {}) {
     if (!silent) setLoading(true);
     try {
       const childList = await apiRequest('/children/list', { token });
+      if (fetchGen !== undefined && fetchGen !== dashboardFetchGen.current) return;
       const [taskListRaw, taskRequestList, rewardList, notificationList, inventoryList, gpSummaryRes] = await Promise.all([
         apiRequest('/tasks/list', { token }),
         apiRequest('/tasks/requests', { token }),
@@ -346,6 +348,7 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
         .map((entry) => entry.value);
 
       const leaderboardRes = await apiRequest('/children/leaderboard', { token }).catch(() => []);
+      if (fetchGen !== undefined && fetchGen !== dashboardFetchGen.current) return;
       setChildren(childList);
       setLeaderboard(Array.isArray(leaderboardRes) ? leaderboardRes : []);
       setTasks(normalizeTasksListResponse(taskListRaw).tasks);
@@ -395,7 +398,8 @@ export default function ParentDashboard({ token, onSwitchToChild, parentName }) 
   }, []);
 
   useEffect(() => {
-    fetchDashboardData({ silent: false });
+    const fetchGen = ++dashboardFetchGen.current;
+    fetchDashboardData({ silent: false, fetchGen });
   }, [token]);
 
   // Load parent email for reviewer-only UI (Seed demo data)

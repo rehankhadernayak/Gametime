@@ -30,6 +30,11 @@ export default function ParentPinGate({ onElevated }) {
         role: 'parent',
         user: data.parent
       });
+      window.dispatchEvent(
+        new CustomEvent('gametime:auth-sync', {
+          detail: { token: data.token, role: 'parent', user: data.parent }
+        })
+      );
       unlockParentNav();
       refreshCookieRole();
       window.dispatchEvent(new CustomEvent('gametime:cookie-role-refresh'));

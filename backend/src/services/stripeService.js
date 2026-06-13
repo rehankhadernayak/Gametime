@@ -101,22 +101,50 @@ export async function handleWebhook(rawBody, signature) {
   const { parentId, amountCents } = session.metadata;
   const db = await getDb();
 
-  // Idempotency check - skip if already credited
   const existing = await db.get(
     `SELECT status FROM stripe_sessions WHERE id = ?`,
     [session.id]
   );
   if (!existing) {
-    // Session not found in our DB - log and continue safely
     logger.warn({ sessionId: session.id }, 'Stripe webhook for unknown session; crediting anyway');
-  } else if (existing.status === 'completed') {
-    logger.info({ sessionId: session.id }, 'Stripe webhook duplicate - already credited; skipping');
-    return { received: true };
   }
 
-  // Credit GP inside a single transaction
+  const now = new Date().toISOString();
+
+  // Credit GP inside a single transaction with atomic idempotency claim
   await db.exec('BEGIN');
   try {
+    if (existing) {
+      const claim = await db.run(
+        `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ? AND status = 'pending'`,
+        [now, session.id]
+      );
+      if (!claim?.changes) {
+        await db.exec('ROLLBACK');
+        logger.info({ sessionId: session.id }, 'Stripe webhook duplicate - already credited; skipping');
+        return { received: true };
+      }
+    } else {
+      try {
+        await db.run(
+          `INSERT INTO stripe_sessions (id, parent_id, amount_cents, status, created_at)
+           VALUES (?, ?, ?, 'pending', ?)`,
+          [session.id, parentId, Number(amountCents), now]
+        );
+      } catch {
+        // Concurrent webhook inserted the row first — fall through to claim.
+      }
+      const claim = await db.run(
+        `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ? AND status = 'pending'`,
+        [now, session.id]
+      );
+      if (!claim?.changes) {
+        await db.exec('ROLLBACK');
+        logger.info({ sessionId: session.id }, 'Stripe webhook duplicate - already credited; skipping');
+        return { received: true };
+      }
+    }
+
     await purchaseParentGp({
       parentId,
       points: Number(amountCents),
@@ -125,20 +153,6 @@ export async function handleWebhook(rawBody, signature) {
       note: `Stripe top-up ${session.id}`,
       dbClient: db
     });
-
-    if (existing) {
-      await db.run(
-        `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ?`,
-        [new Date().toISOString(), session.id]
-      );
-    } else {
-      // Insert a completed record so future duplicates are blocked
-      await db.run(
-        `INSERT INTO stripe_sessions (id, parent_id, amount_cents, status, created_at, completed_at)
-         VALUES (?, ?, ?, 'completed', ?, ?)`,
-        [session.id, parentId, Number(amountCents), new Date().toISOString(), new Date().toISOString()]
-      );
-    }
 
     await db.exec('COMMIT');
     logger.info({ parentId, amountCents, sessionId: session.id }, 'GP top-up credited via Stripe');
