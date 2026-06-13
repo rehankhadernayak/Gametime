@@ -57,6 +57,20 @@ export default function App() {
   }, [auth]);
 
   useEffect(() => {
+    const onAuthSync = (event) => {
+      const nextAuth = event.detail;
+      if (!nextAuth || typeof nextAuth !== 'object') return;
+      setAuth({
+        token: nextAuth.token || '',
+        role: nextAuth.role || '',
+        user: nextAuth.user ?? null
+      });
+    };
+    window.addEventListener('gametime:auth-sync', onAuthSync);
+    return () => window.removeEventListener('gametime:auth-sync', onAuthSync);
+  }, []);
+
+  useEffect(() => {
     syncDemoModeFromUrl();
   }, [location.search]);
 
