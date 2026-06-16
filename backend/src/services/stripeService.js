@@ -115,35 +115,33 @@ export async function handleWebhook(rawBody, signature) {
   }
 
   // Credit GP inside a single transaction
-  await db.exec('BEGIN');
   try {
-    await purchaseParentGp({
-      parentId,
-      points: Number(amountCents),
-      moneyAmount: (Number(amountCents) / 100).toFixed(2),
-      currency: 'SGD',
-      note: `Stripe top-up ${session.id}`,
-      dbClient: db
-    });
+    await db.withTransaction(async () => {
+      await purchaseParentGp({
+        parentId,
+        points: Number(amountCents),
+        moneyAmount: (Number(amountCents) / 100).toFixed(2),
+        currency: 'SGD',
+        note: `Stripe top-up ${session.id}`,
+        dbClient: db
+      });
 
-    if (existing) {
-      await db.run(
-        `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ?`,
-        [new Date().toISOString(), session.id]
-      );
-    } else {
-      // Insert a completed record so future duplicates are blocked
-      await db.run(
-        `INSERT INTO stripe_sessions (id, parent_id, amount_cents, status, created_at, completed_at)
+      if (existing) {
+        await db.run(
+          `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ?`,
+          [new Date().toISOString(), session.id]
+        );
+      } else {
+        // Insert a completed record so future duplicates are blocked
+        await db.run(
+          `INSERT INTO stripe_sessions (id, parent_id, amount_cents, status, created_at, completed_at)
          VALUES (?, ?, ?, 'completed', ?, ?)`,
-        [session.id, parentId, Number(amountCents), new Date().toISOString(), new Date().toISOString()]
-      );
-    }
-
-    await db.exec('COMMIT');
+          [session.id, parentId, Number(amountCents), new Date().toISOString(), new Date().toISOString()]
+        );
+      }
+    });
     logger.info({ parentId, amountCents, sessionId: session.id }, 'GP top-up credited via Stripe');
   } catch (err) {
-    await db.exec('ROLLBACK');
     logger.error({ err, sessionId: session.id }, 'Failed to credit GP after Stripe payment - will retry on next webhook');
     throw err;
   }

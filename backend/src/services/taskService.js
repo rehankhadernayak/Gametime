@@ -92,8 +92,7 @@ export async function createTask(parentId, payload) {
 
   const now = new Date().toISOString();
   const id = uuidv4();
-  await db.exec('BEGIN');
-  try {
+  await db.withTransaction(async () => {
     const category = payload.category || 'other';
     const recurrenceDays = payload.recurrenceDays || null;
     await db.run(
@@ -125,12 +124,7 @@ export async function createTask(parentId, payload) {
         dbClient: db
       });
     }
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 
   const proofHint = requiredEvidenceType ? ` | Proof: ${requiredEvidenceType}` : '';
   await createNotification(
@@ -154,8 +148,7 @@ export async function expireTasks() {
   );
 
   for (const task of activeTasks) {
-    await db.exec('BEGIN');
-    try {
+    await db.withTransaction(async () => {
       await db.run('UPDATE tasks SET state = ?, gp_points = 0, updated_at = ? WHERE id = ?', [TASK_STATES.EXPIRED, now, task.id]);
       if (Number(task.gp_points || 0) > 0) {
         await refundTaskGpToParent({
@@ -166,11 +159,7 @@ export async function expireTasks() {
           dbClient: db
         });
       }
-      await db.exec('COMMIT');
-    } catch (error) {
-      await db.exec('ROLLBACK');
-      throw error;
-    }
+    });
     await createNotification('Child', task.child_id, 'A task has expired with no points awarded');
   }
 }
@@ -294,8 +283,7 @@ export async function completeTask(childId, payload) {
   }
 
   // ── Phase 1: Main transaction - must succeed atomically ───────────────
-  await db.exec('BEGIN');
-  try {
+  await db.withTransaction(async () => {
     const taskLocked = await db.get('SELECT * FROM tasks WHERE id = ? AND child_id = ?', [taskId, childId]);
     if (!taskLocked) {
       throw new ApiError(404, 'Task not found');
@@ -373,12 +361,7 @@ export async function completeTask(childId, payload) {
 
     const parent = await db.get('SELECT parent_id FROM child_profiles WHERE id = ?', childId);
     await createNotification('Parent', parent.parent_id, `Task ready for approval: ${task.title}`, 'task_submitted');
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 
   // ── Phase 2: AI review - best-effort, non-blocking ────────────────────
   // Runs after the transaction commits. Never throws back to the caller.
@@ -449,8 +432,7 @@ async function decideTask(parentId, payload, approve) {
 
   const now = new Date().toISOString();
   const sanitizedNote = sanitizeText(payload.note ?? null);
-  await db.exec('BEGIN');
-  try {
+  const result = await db.withTransaction(async () => {
     const nextTaskState = approve ? TASK_STATES.APPROVED : TASK_STATES.ACTIVE;
     const nextCompletionState = approve ? TASK_STATES.APPROVED : TASK_STATES.REJECTED;
     await db.run('UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ?', [
@@ -503,20 +485,16 @@ async function decideTask(parentId, payload, approve) {
       approve ? 'task_approved' : 'task_rejected'
     );
 
-    await db.exec('COMMIT');
-
-    // Post-commit: check achievements (fire-and-forget, never blocks approval)
-    if (approve) {
-      checkAndUnlockAchievements(task.child_id, db).catch(
-        (err) => logger.warn({ err }, '[achievements] unlock check failed (non-critical)')
-      );
-    }
-
     return { ignored: false, message: approve ? 'Approved' : 'Returned to child for retry' };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
+  });
+
+  if (approve) {
+    checkAndUnlockAchievements(task.child_id, db).catch(
+      (err) => logger.warn({ err }, '[achievements] unlock check failed (non-critical)')
+    );
   }
+
+  return result;
 }
 
 export async function approveTask(parentId, payload) {
@@ -565,8 +543,7 @@ export async function deleteTask(parentId, taskId) {
   if (!task || task.parentId !== parentId) throw new ApiError(404, 'Task not found');
 
   if ([TASK_STATES.ACTIVE, TASK_STATES.DRAFT, TASK_STATES.PENDING_APPROVAL].includes(task.state)) {
-    await db.exec('BEGIN');
-    try {
+    await db.withTransaction(async () => {
       await db.run('UPDATE tasks SET state = ?, gp_points = 0, updated_at = ? WHERE id = ?', [
         TASK_STATES.CANCELLED,
         new Date().toISOString(),
@@ -581,18 +558,13 @@ export async function deleteTask(parentId, taskId) {
           dbClient: db
         });
       }
-      await db.exec('COMMIT');
-    } catch (error) {
-      await db.exec('ROLLBACK');
-      throw error;
-    }
+    });
     await createNotification('Child', task.child_id, `Task cancelled: ${task.title}`);
     return { message: 'Task cancelled without points' };
   }
 
   if (task.state !== TASK_STATES.APPROVED && Number(task.gp_points || 0) > 0) {
-    await db.exec('BEGIN');
-    try {
+    await db.withTransaction(async () => {
       await refundTaskGpToParent({
         parentId,
         taskId,
@@ -601,11 +573,7 @@ export async function deleteTask(parentId, taskId) {
         dbClient: db
       });
       await db.run('DELETE FROM tasks WHERE id = ?', [taskId]);
-      await db.exec('COMMIT');
-    } catch (error) {
-      await db.exec('ROLLBACK');
-      throw error;
-    }
+    });
     return { message: 'Task deleted and GP refunded' };
   }
 
@@ -730,8 +698,7 @@ export async function approveTaskRequest(parentId, requestId, payload) {
     throw new ApiError(400, 'GP reward must be an integer between 0 and 1000');
   }
 
-  await db.exec('BEGIN');
-  try {
+  await db.withTransaction(async () => {
     await db.run(
       `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'other', NULL, NULL, ?, ?)`,
@@ -764,12 +731,7 @@ export async function approveTaskRequest(parentId, requestId, payload) {
        WHERE id = ?`,
       [TASK_REQUEST_STATES.APPROVED, parentNote, taskId, now, now, requestId]
     );
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 
   // Single combined notification avoids duplicate messages for the child.
   await createNotification('Child', request.child_id, `Task request approved - new task created: ${request.title}`, 'task_request_approved');

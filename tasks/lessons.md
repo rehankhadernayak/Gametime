@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-14 — PostgreSQL pool: BEGIN/COMMIT must pin one connection
+**What happened:** Services used `await db.exec('BEGIN')` then `db.run`/`db.get` via the shared `pg.Pool` adapter. Each `pool.query()` may use a different client, so “transactions” were not atomic: partial commits, inconsistent balances, and broken rollbacks under concurrency or mid-loop failures.
+**Rule:** Never pair imperative `BEGIN`/`COMMIT` with pooled `query()` unless every statement uses the same leased client. Use `db.withTransaction(async () => { ... })` (single-client `BEGIN`/`COMMIT`) for all multi-statement atomic work on Postgres; pass the same `db` handle as `dbClient` to helpers that must join the outer transaction.
+
+---

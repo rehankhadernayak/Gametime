@@ -209,8 +209,7 @@ export async function syncDetectedGames(parentId, payload) {
   let created = 0;
   let updated = 0;
 
-  await db.exec('BEGIN');
-  try {
+  await db.withTransaction(async () => {
     for (const game of payload.games) {
       const name = sanitizeText(game.name, 80);
       const platform = sanitizeText(game.platform || payload.platform || 'Unknown', 40);
@@ -236,12 +235,7 @@ export async function syncDetectedGames(parentId, payload) {
         created += 1;
       }
     }
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 
   return { created, updated };
 }
@@ -626,8 +620,7 @@ export async function importGamingUsage(parentId, payload) {
   const now = new Date().toISOString();
   let imported = 0;
 
-  await db.exec('BEGIN');
-  try {
+  await db.withTransaction(async () => {
     for (const entry of payload.entries) {
       const gameName = sanitizeText(entry.gameName, 80);
       const platform = sanitizeText(entry.platform, 40);
@@ -661,12 +654,7 @@ export async function importGamingUsage(parentId, payload) {
       );
       imported += 1;
     }
-
-    await db.exec('COMMIT');
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 
   return {
     imported,

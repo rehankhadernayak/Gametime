@@ -53,8 +53,7 @@ export async function purchaseParentGp({
     throw new ApiError(400, 'GP purchase points must be a positive whole number');
   }
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
+  const runCore = async () => {
     const parent = await db.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
     if (!parent) throw new ApiError(404, 'Parent account not found');
 
@@ -81,12 +80,11 @@ export async function purchaseParentGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { parentGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  };
+
+  if (ownTx) return db.withTransaction(runCore);
+  return runCore();
 }
 
 export async function reserveTaskGp({
@@ -104,8 +102,7 @@ export async function reserveTaskGp({
   }
   if (amount === 0) return { parentGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
+  const runCore = async () => {
     const parent = await db.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
     if (!parent) throw new ApiError(404, 'Parent account not found');
     if (Number(parent.gpBalance || 0) < amount) {
@@ -130,12 +127,11 @@ export async function reserveTaskGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { parentGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  };
+
+  if (ownTx) return db.withTransaction(runCore);
+  return runCore();
 }
 
 export async function refundTaskGpToParent({
@@ -153,8 +149,7 @@ export async function refundTaskGpToParent({
   }
   if (amount === 0) return { parentGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
+  const runCore = async () => {
     const parent = await db.get('SELECT id, gp_balance as gpBalance FROM parent_accounts WHERE id = ?', [parentId]);
     if (!parent) throw new ApiError(404, 'Parent account not found');
 
@@ -180,12 +175,11 @@ export async function refundTaskGpToParent({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { parentGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  };
+
+  if (ownTx) return db.withTransaction(runCore);
+  return runCore();
 }
 
 export async function awardChildGp({
@@ -205,8 +199,7 @@ export async function awardChildGp({
   }
   if (amount === 0) return { childGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
+  const runCore = async () => {
     const child = await db.get(
       'SELECT id, parent_id as parentId, giftcard_points_balance as giftcardPointsBalance FROM child_profiles WHERE id = ?',
       [childId]
@@ -236,12 +229,11 @@ export async function awardChildGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { childGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  };
+
+  if (ownTx) return db.withTransaction(runCore);
+  return runCore();
 }
 
 export async function debitChildGp({
@@ -261,8 +253,7 @@ export async function debitChildGp({
   }
   if (amount === 0) return { childGpBalance: null };
 
-  if (ownTx) await db.exec('BEGIN');
-  try {
+  const runCore = async () => {
     const child = await db.get(
       'SELECT id, parent_id as parentId, giftcard_points_balance as giftcardPointsBalance FROM child_profiles WHERE id = ?',
       [childId]
@@ -291,12 +282,11 @@ export async function debitChildGp({
       note
     });
 
-    if (ownTx) await db.exec('COMMIT');
     return { childGpBalance: nextBalance };
-  } catch (error) {
-    if (ownTx) await db.exec('ROLLBACK');
-    throw error;
-  }
+  };
+
+  if (ownTx) return db.withTransaction(runCore);
+  return runCore();
 }
 
 export async function listGpTransactions({ parentId, childId = null, limit = 100 }) {

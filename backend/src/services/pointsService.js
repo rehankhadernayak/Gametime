@@ -6,8 +6,7 @@ export async function adjustPoints({ childId, points, type, referenceType, refer
   const db = dbClient || (await getDb());
   const ownTransaction = !dbClient;
 
-  if (ownTransaction) await db.exec('BEGIN');
-  try {
+  const runCore = async () => {
     const child = await db.get('SELECT points_balance FROM child_profiles WHERE id = ?', childId);
     if (!child) throw new ApiError(404, 'Child not found');
 
@@ -35,12 +34,14 @@ export async function adjustPoints({ childId, points, type, referenceType, refer
       ]
     );
 
-    if (ownTransaction) await db.exec('COMMIT');
     return nextBalance;
-  } catch (error) {
-    if (ownTransaction) await db.exec('ROLLBACK');
-    throw error;
+  };
+
+  if (ownTransaction) {
+    return db.withTransaction(runCore);
   }
+
+  return runCore();
 }
 
 export async function listTransactions(childId) {

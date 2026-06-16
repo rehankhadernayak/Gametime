@@ -332,47 +332,46 @@ export async function createManualGiftcardInventory(parentId, payload) {
     })
   };
 
-  await db.exec('BEGIN');
   try {
-    await db.run(
-      `INSERT INTO giftcard_inventory_batches
+    return await db.withTransaction(async () => {
+      await db.run(
+        `INSERT INTO giftcard_inventory_batches
         (id, parent_id, merchant_order_request_id, athena_order_id, giftcard_id, giftcard_name,
          sku_id, sku_name, fulfilment_type, currency, quantity_purchased, quantity_available,
          status, invoice_amount, provider_payload_json, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        batch.id,
-        batch.parentId,
-        batch.merchantOrderRequestId,
-        null,
-        batch.giftcardId,
-        batch.giftcardName,
-        batch.skuId,
-        batch.skuName,
-        batch.fulfilmentType,
-        batch.currency,
-        batch.quantityPurchased,
-        0,
-        batch.status,
-        batch.invoiceAmount,
-        batch.providerPayloadJson,
-        now,
-        now
-      ]
-    );
+        [
+          batch.id,
+          batch.parentId,
+          batch.merchantOrderRequestId,
+          null,
+          batch.giftcardId,
+          batch.giftcardName,
+          batch.skuId,
+          batch.skuName,
+          batch.fulfilmentType,
+          batch.currency,
+          batch.quantityPurchased,
+          0,
+          batch.status,
+          batch.invoiceAmount,
+          batch.providerPayloadJson,
+          now,
+          now
+        ]
+      );
 
-    const insertedCodes = await insertGiftcodes(db, batch, giftcodes);
-    await refreshBatchAvailability(db, batch.id, now);
-    await db.exec('COMMIT');
+      const insertedCodes = await insertGiftcodes(db, batch, giftcodes);
+      await refreshBatchAvailability(db, batch.id, now);
 
-    return {
-      ...(await findInventoryBatchById(db, parentId, batch.id)),
-      source: 'manual',
-      idempotent: false,
-      insertedCodes
-    };
+      return {
+        ...(await findInventoryBatchById(db, parentId, batch.id)),
+        source: 'manual',
+        idempotent: false,
+        insertedCodes
+      };
+    });
   } catch (error) {
-    await db.exec('ROLLBACK');
     const message = String(error?.message || '');
     if (message.includes('giftcard_inventory_batches.parent_id') && message.includes('merchant_order_request_id')) {
       const dupe = await db.get(
@@ -490,52 +489,51 @@ export async function purchaseGiftcardInventory(parentId, payload) {
     providerPayloadJson: JSON.stringify(compactProviderPayload(purchaseResponse) || {})
   };
 
-  await db.exec('BEGIN');
   try {
-    await db.run(
-      `INSERT INTO giftcard_inventory_batches
+    return await db.withTransaction(async () => {
+      await db.run(
+        `INSERT INTO giftcard_inventory_batches
         (id, parent_id, merchant_order_request_id, athena_order_id, giftcard_id, giftcard_name,
          sku_id, sku_name, fulfilment_type, currency, quantity_purchased, quantity_available,
          status, invoice_amount, provider_payload_json, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        batch.id,
-        batch.parentId,
-        batch.merchantOrderRequestId,
-        batch.athenaOrderId,
-        batch.giftcardId,
-        batch.giftcardName,
-        batch.skuId,
-        batch.skuName,
-        batch.fulfilmentType,
-        batch.currency,
-        batch.quantityPurchased,
-        0,
-        batch.status,
-        batch.invoiceAmount,
-        batch.providerPayloadJson,
-        now,
-        now
-      ]
-    );
+        [
+          batch.id,
+          batch.parentId,
+          batch.merchantOrderRequestId,
+          batch.athenaOrderId,
+          batch.giftcardId,
+          batch.giftcardName,
+          batch.skuId,
+          batch.skuName,
+          batch.fulfilmentType,
+          batch.currency,
+          batch.quantityPurchased,
+          0,
+          batch.status,
+          batch.invoiceAmount,
+          batch.providerPayloadJson,
+          now,
+          now
+        ]
+      );
 
-    let insertedCodes = 0;
-    if (batch.status === 'completed' && batch.fulfilmentType === 'VOUCHER') {
-      const giftcodes = extractGiftcodesFromProvider(purchaseResponse);
-      insertedCodes = await insertGiftcodes(db, batch, giftcodes);
-    }
+      let insertedCodes = 0;
+      if (batch.status === 'completed' && batch.fulfilmentType === 'VOUCHER') {
+        const giftcodes = extractGiftcodesFromProvider(purchaseResponse);
+        insertedCodes = await insertGiftcodes(db, batch, giftcodes);
+      }
 
-    await refreshBatchAvailability(db, batch.id);
-    await db.exec('COMMIT');
+      await refreshBatchAvailability(db, batch.id);
 
-    return {
-      ...(await findInventoryBatchById(db, parentId, batch.id)),
-      source: isAthenaMockMode() ? 'mock' : 'athena',
-      idempotent: false,
-      insertedCodes
-    };
+      return {
+        ...(await findInventoryBatchById(db, parentId, batch.id)),
+        source: isAthenaMockMode() ? 'mock' : 'athena',
+        idempotent: false,
+        insertedCodes
+      };
+    });
   } catch (error) {
-    await db.exec('ROLLBACK');
     const message = String(error?.message || '');
     if (message.includes('giftcard_inventory_batches.parent_id') && message.includes('merchant_order_request_id')) {
       const dupe = await db.get(
@@ -633,8 +631,7 @@ export async function syncGiftcardInventory(parentId, batchId) {
   const status = normalizeAthenaStatus(statusResponse.status);
   const now = new Date().toISOString();
 
-  await db.exec('BEGIN');
-  try {
+  return db.withTransaction(async () => {
     await db.run(
       `UPDATE giftcard_inventory_batches
        SET status = ?,
@@ -661,7 +658,6 @@ export async function syncGiftcardInventory(parentId, batchId) {
     }
 
     await refreshBatchAvailability(db, batchId, now);
-    await db.exec('COMMIT');
 
     return {
       ...(await findInventoryBatchById(db, parentId, batchId)),
@@ -669,10 +665,7 @@ export async function syncGiftcardInventory(parentId, batchId) {
       insertedCodes,
       synced: true
     };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function createRewardFromGiftcardInventory(parentId, payload) {
@@ -708,8 +701,7 @@ export async function createRewardFromGiftcardInventory(parentId, payload) {
   const now = new Date().toISOString();
   const rewardId = uuidv4();
 
-  await db.exec('BEGIN');
-  try {
+  return db.withTransaction(async () => {
     await db.run(
       `INSERT INTO rewards (id, parent_id, title, points_cost, points_type, quantity_limit, active, created_at, updated_at)
        VALUES (?, ?, ?, ?, 'GP', ?, ?, ?, ?)`,
@@ -722,7 +714,6 @@ export async function createRewardFromGiftcardInventory(parentId, payload) {
       [rewardId, batch.id, now, now]
     );
 
-    await db.exec('COMMIT');
     return {
       rewardId,
       batchId: batch.id,
@@ -732,10 +723,7 @@ export async function createRewardFromGiftcardInventory(parentId, payload) {
       quantityLimit: requestedLimit,
       active: Boolean(payload.active)
     };
-  } catch (error) {
-    await db.exec('ROLLBACK');
-    throw error;
-  }
+  });
 }
 
 export async function redeemLinkedGiftcardReward({ dbClient, childId, reward }) {
