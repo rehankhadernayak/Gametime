@@ -636,12 +636,16 @@ export async function googleAuth(req, res, next) {
         if (!parent) {
           throw new ApiError(404, 'No Gametime parent account for this Google user. Create an account first.');
         }
+        // Reject email-only accounts (password signup) to prevent account squatting:
+        // an attacker who registers victim@email.com must not receive the victim's Google session.
+        if (!parent.google_sub) {
+          throw new ApiError(
+            403,
+            'This email is registered with a password. Sign in with your password instead.'
+          );
+        }
         if (parent.google_sub !== sub) {
-          await db.run('UPDATE parent_accounts SET google_sub = ?, updated_at = ? WHERE id = ?', [
-            sub,
-            new Date().toISOString(),
-            parent.id
-          ]);
+          throw new ApiError(403, 'This email is linked to a different Google account.');
         }
         await clearAttempts(db, `parent:${email}`);
         const isAdmin = Boolean(parent.is_admin);
@@ -689,15 +693,14 @@ export async function googleAuth(req, res, next) {
     if (!child) {
       throw new ApiError(404, 'No child profile for this Google account. Ask your parent to add you in Gametime first.');
     }
-    if (child.google_sub && child.google_sub !== sub) {
-      throw new ApiError(403, 'This child profile is linked to a different Google account.');
+    if (!child.google_sub) {
+      throw new ApiError(
+        403,
+        'This child profile is not linked to Google yet. Sign in with your password or PIN instead.'
+      );
     }
     if (child.google_sub !== sub) {
-      await db.run('UPDATE child_profiles SET google_sub = ?, updated_at = ? WHERE id = ?', [
-        sub,
-        new Date().toISOString(),
-        child.id
-      ]);
+      throw new ApiError(403, 'This child profile is linked to a different Google account.');
     }
     await clearAttempts(db, `child:${email}`);
     const token = await issueToken(res, { role: 'child', parentId: child.parent_id, childId: child.id });
