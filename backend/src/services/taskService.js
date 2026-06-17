@@ -453,13 +453,21 @@ async function decideTask(parentId, payload, approve) {
   try {
     const nextTaskState = approve ? TASK_STATES.APPROVED : TASK_STATES.ACTIVE;
     const nextCompletionState = approve ? TASK_STATES.APPROVED : TASK_STATES.REJECTED;
-    await db.run('UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ?', [
-      nextTaskState,
-      now,
-      approve ? now : null,
-      approve ? null : now,
-      taskId
-    ]);
+    const { changes: taskRowsUpdated } = await db.run(
+      'UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ? AND state = ?',
+      [
+        nextTaskState,
+        now,
+        approve ? now : null,
+        approve ? null : now,
+        taskId,
+        TASK_STATES.PENDING_APPROVAL
+      ]
+    );
+    if (!taskRowsUpdated) {
+      await db.exec('ROLLBACK');
+      return { ignored: true, message: 'Task is not pending approval' };
+    }
 
     await db.run('UPDATE task_completions SET status = ?, updated_at = ? WHERE task_id = ?', [
       nextCompletionState,
@@ -563,6 +571,10 @@ export async function deleteTask(parentId, taskId) {
   );
 
   if (!task || task.parentId !== parentId) throw new ApiError(404, 'Task not found');
+
+  if (task.state === TASK_STATES.APPROVED) {
+    throw new ApiError(400, 'Approved tasks cannot be deleted. Reward points have already been awarded.');
+  }
 
   if ([TASK_STATES.ACTIVE, TASK_STATES.DRAFT, TASK_STATES.PENDING_APPROVAL].includes(task.state)) {
     await db.exec('BEGIN');
