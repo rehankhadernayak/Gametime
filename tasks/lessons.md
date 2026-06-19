@@ -254,3 +254,9 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-16 — Google access tokens must be audience-checked
+**What happened:** `/auth/google` accepted a Google OAuth **access** token by calling `userinfo` only. Any valid user access token with email scopes (including one minted for a different OAuth client after the user consented to another app) could authenticate to Gametime.
+**Rule:** Never treat a bare Google access token as proof the user signed in to *your* app. Call `OAuth2Client#getTokenInfo` (or equivalent) and require `aud` / `azp` to match one of `GOOGLE_OAUTH_CLIENT_IDS`; prefer ID tokens (`verifyIdToken` with audience) when possible.
+
+---
