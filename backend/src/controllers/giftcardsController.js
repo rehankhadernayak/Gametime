@@ -22,6 +22,7 @@ import {
   giftcardSkuParamsSchema,
   giftcardCatalogQuerySchema
 } from '../utils/validation.js';
+import { ApiError } from '../utils/errors.js';
 import { getDb } from '../db/connection.js';
 import {
   getGpSummaryForParent,
@@ -117,6 +118,9 @@ export async function giftcardRedemptionDetailsController(req, res, next) {
 
 export async function purchaseGiftcardPointsController(req, res, next) {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ApiError(403, 'Manual GP purchase is disabled in production. Use Stripe top-up.');
+    }
     const payload = giftcardGpPurchaseSchema.parse(req.body);
     return res.status(201).json(await purchaseParentGp({
       parentId: req.auth.parentId,

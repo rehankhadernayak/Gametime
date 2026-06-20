@@ -11,13 +11,22 @@ import { apiProxyTarget } from "@/lib/apiProxyTarget";
 
 const DEFAULT_DEV_PIN = "1234";
 
-function expectedPin(): string {
+function expectedPin(): string | null {
   const fromEnv = process.env.PARENT_MODE_PIN?.trim();
   if (fromEnv) return fromEnv;
+  if (process.env.NODE_ENV === "production") return null;
   return DEFAULT_DEV_PIN;
 }
 
 export async function POST(request: Request) {
+  const pinRequired = expectedPin();
+  if (!pinRequired) {
+    return NextResponse.json(
+      { error: "Parent PIN is not configured on this deployment" },
+      { status: 503 },
+    );
+  }
+
   let pin = "";
   try {
     const body = (await request.json()) as { pin?: unknown };
@@ -26,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (pin !== expectedPin()) {
+  if (pin !== pinRequired) {
     return NextResponse.json({ error: "Incorrect PIN" }, { status: 401 });
   }
 
