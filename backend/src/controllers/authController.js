@@ -636,6 +636,13 @@ export async function googleAuth(req, res, next) {
         if (!parent) {
           throw new ApiError(404, 'No Gametime parent account for this Google user. Create an account first.');
         }
+        // Reject account squatting: password signup on a victim email before Google is linked.
+        if (!parentBySub && parentByEmail && !parent.google_sub) {
+          throw new ApiError(
+            403,
+            'This email is registered with a password. Sign in with email and password instead.'
+          );
+        }
         if (parent.google_sub !== sub) {
           await db.run('UPDATE parent_accounts SET google_sub = ?, updated_at = ? WHERE id = ?', [
             sub,
