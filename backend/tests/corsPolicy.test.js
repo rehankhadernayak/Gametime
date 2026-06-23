@@ -22,6 +22,9 @@ describe('CORS production policy', () => {
     process.env.NODE_ENV = 'production';
     process.env.CORS_REFLECT_ORIGIN = 'false';
     process.env.FRONTEND_ORIGIN = 'https://app.gametime.app';
+    process.env.USE_SQLITE_FALLBACK = 'true';
+    process.env.DATABASE_PATH = process.env.DATABASE_PATH || '/tmp/gametime-cors-test.db';
+    vi.resetModules();
 
     const { createApp } = await import('../src/app.js');
     const app = createApp();
@@ -37,6 +40,9 @@ describe('CORS production policy', () => {
     process.env.NODE_ENV = 'production';
     process.env.CORS_REFLECT_ORIGIN = 'false';
     process.env.FRONTEND_ORIGIN = 'https://app.gametime.app';
+    process.env.USE_SQLITE_FALLBACK = 'true';
+    process.env.DATABASE_PATH = process.env.DATABASE_PATH || '/tmp/gametime-cors-test.db';
+    vi.resetModules();
 
     const { createApp } = await import('../src/app.js');
     const app = createApp();
@@ -51,6 +57,7 @@ describe('CORS production policy', () => {
   test('reflects arbitrary origins in non-production', async () => {
     process.env.NODE_ENV = 'development';
     process.env.FRONTEND_ORIGIN = 'https://app.gametime.app';
+    vi.resetModules();
 
     const { createApp } = await import('../src/app.js');
     const app = createApp();

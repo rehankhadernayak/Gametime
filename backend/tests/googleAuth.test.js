@@ -3,10 +3,13 @@ import { beforeAll, describe, expect, test, vi } from 'vitest';
 import { resetTestDb, setupTestEnv } from './setupTestDb.js';
 
 setupTestEnv();
+process.env.GOOGLE_OAUTH_CLIENT_IDS = 'test-google-client-id.apps.googleusercontent.com';
 
 vi.mock('../src/services/googleVerifyService.js', () => ({
   verifyGoogleIdentity: vi.fn()
 }));
+
+const FAKE_ID_TOKEN = 'x'.repeat(24);
 
 const { initDb } = await import('../src/db/init.js');
 const { createApp } = await import('../src/app.js');
@@ -35,7 +38,7 @@ describe('Google auth safety', () => {
     const res = await request(app).post('/auth/google').send({
       role: 'parent',
       intent: 'signin',
-      idToken: 'fake-token'
+      idToken: FAKE_ID_TOKEN
     });
 
     expect(res.statusCode).toBe(403);
@@ -52,7 +55,7 @@ describe('Google auth safety', () => {
     const res = await request(app).post('/auth/google').send({
       role: 'parent',
       intent: 'signup',
-      idToken: 'fake-token'
+      idToken: FAKE_ID_TOKEN
     });
 
     expect(res.statusCode).toBe(201);

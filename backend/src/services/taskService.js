@@ -742,9 +742,9 @@ export async function approveTaskRequest(parentId, requestId, payload) {
   try {
     const claimRequest = await db.run(
       `UPDATE task_requests
-       SET status = ?, parent_note = ?, linked_task_id = ?, resolved_at = ?, updated_at = ?
+       SET status = ?, parent_note = ?, resolved_at = ?, updated_at = ?
        WHERE id = ? AND status = ?`,
-      [TASK_REQUEST_STATES.APPROVED, parentNote, taskId, now, now, requestId, TASK_REQUEST_STATES.PENDING]
+      [TASK_REQUEST_STATES.APPROVED, parentNote, now, now, requestId, TASK_REQUEST_STATES.PENDING]
     );
     if (claimRequest.changes === 0) {
       await db.exec('ROLLBACK');
@@ -784,6 +784,12 @@ export async function approveTaskRequest(parentId, requestId, payload) {
         dbClient: db
       });
     }
+
+    await db.run('UPDATE task_requests SET linked_task_id = ?, updated_at = ? WHERE id = ?', [
+      taskId,
+      now,
+      requestId
+    ]);
 
     await db.exec('COMMIT');
   } catch (error) {
