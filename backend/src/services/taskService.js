@@ -453,13 +453,21 @@ async function decideTask(parentId, payload, approve) {
   try {
     const nextTaskState = approve ? TASK_STATES.APPROVED : TASK_STATES.ACTIVE;
     const nextCompletionState = approve ? TASK_STATES.APPROVED : TASK_STATES.REJECTED;
-    await db.run('UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ?', [
-      nextTaskState,
-      now,
-      approve ? now : null,
-      approve ? null : now,
-      taskId
-    ]);
+    const claimTask = await db.run(
+      'UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ? AND state = ?',
+      [
+        nextTaskState,
+        now,
+        approve ? now : null,
+        approve ? null : now,
+        taskId,
+        TASK_STATES.PENDING_APPROVAL
+      ]
+    );
+    if (claimTask.changes === 0) {
+      await db.exec('ROLLBACK');
+      return { ignored: true, message: 'Task is not pending approval' };
+    }
 
     await db.run('UPDATE task_completions SET status = ?, updated_at = ? WHERE task_id = ?', [
       nextCompletionState,
@@ -732,6 +740,25 @@ export async function approveTaskRequest(parentId, requestId, payload) {
 
   await db.exec('BEGIN');
   try {
+    const claimRequest = await db.run(
+      `UPDATE task_requests
+       SET status = ?, parent_note = ?, linked_task_id = ?, resolved_at = ?, updated_at = ?
+       WHERE id = ? AND status = ?`,
+      [TASK_REQUEST_STATES.APPROVED, parentNote, taskId, now, now, requestId, TASK_REQUEST_STATES.PENDING]
+    );
+    if (claimRequest.changes === 0) {
+      await db.exec('ROLLBACK');
+      const current = await db.get('SELECT status, linked_task_id FROM task_requests WHERE id = ?', [requestId]);
+      if (current?.status === TASK_REQUEST_STATES.APPROVED) {
+        return {
+          ignored: true,
+          message: 'Task request already approved',
+          taskId: current.linked_task_id || null
+        };
+      }
+      return { ignored: true, message: 'Task request already resolved' };
+    }
+
     await db.run(
       `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'other', NULL, NULL, ?, ?)`,
@@ -757,13 +784,6 @@ export async function approveTaskRequest(parentId, requestId, payload) {
         dbClient: db
       });
     }
-
-    await db.run(
-      `UPDATE task_requests
-       SET status = ?, parent_note = ?, linked_task_id = ?, resolved_at = ?, updated_at = ?
-       WHERE id = ?`,
-      [TASK_REQUEST_STATES.APPROVED, parentNote, taskId, now, now, requestId]
-    );
 
     await db.exec('COMMIT');
   } catch (error) {
