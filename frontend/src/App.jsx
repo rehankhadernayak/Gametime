@@ -100,12 +100,19 @@ export default function App() {
       navigate('/login', { replace: true });
       pushToast({ type: 'warning', title: 'Session expired', message: 'Please sign in again.' });
     };
+    const onAuthUpdated = (event) => {
+      const nextAuth = event.detail;
+      if (!nextAuth?.token || !nextAuth?.role) return;
+      handleAuth(nextAuth);
+    };
 
     window.addEventListener('gametime:toast', onToast);
     window.addEventListener('gametime:session-expired', onSessionExpired);
+    window.addEventListener('gametime:auth-updated', onAuthUpdated);
     return () => {
       window.removeEventListener('gametime:toast', onToast);
       window.removeEventListener('gametime:session-expired', onSessionExpired);
+      window.removeEventListener('gametime:auth-updated', onAuthUpdated);
     };
   }, [auth.token]);
 
