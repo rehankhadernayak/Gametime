@@ -1,4 +1,5 @@
 import { logger } from '../utils/logger.js';
+import { runInDbTransaction } from '../db/runInTransaction.js';
 
 /**
  * True when Postgres has the multi-tenant `families` table (Supabase migrations applied).
@@ -44,34 +45,33 @@ export async function pgGetFamilyIdForParent(db, parentTable, parentId) {
  * then the `families` row. Uses a transaction. Caller must verify password first.
  */
 export async function pgDeleteFamilyCascade(db, familyId, parentTable) {
-  await db.exec('BEGIN');
-  try {
-    const parents = await db.all(`SELECT id, email FROM ${parentTable} WHERE family_id = ?`, [familyId]);
+  return runInDbTransaction(db, async (tx) => {
+    const parents = await tx.all(`SELECT id, email FROM ${parentTable} WHERE family_id = ?`, [familyId]);
     const parentIds = parents.map((p) => p.id);
-    const childRows = await db.all('SELECT id FROM child_profiles WHERE family_id = ?', [familyId]);
+    const childRows = await tx.all('SELECT id FROM child_profiles WHERE family_id = ?', [familyId]);
     const childIds = childRows.map((c) => c.id);
 
     if (parentIds.length) {
       const placeholders = parentIds.map(() => '?').join(',');
-      await db.run(`UPDATE sessions SET revoked = 1 WHERE parent_id IN (${placeholders})`, parentIds);
+      await tx.run(`UPDATE sessions SET revoked = 1 WHERE parent_id IN (${placeholders})`, parentIds);
     }
 
     for (const pid of parentIds) {
-      await db.run(
+      await tx.run(
         `DELETE FROM notifications WHERE recipient_type = 'Parent' AND recipient_id = ?`,
         [pid]
       );
-      await db.run(
+      await tx.run(
         `DELETE FROM device_tokens WHERE recipient_type = 'Parent' AND recipient_id = ?`,
         [pid]
       );
     }
     for (const cid of childIds) {
-      await db.run(
+      await tx.run(
         `DELETE FROM notifications WHERE recipient_type = 'Child' AND recipient_id = ?`,
         [cid]
       );
-      await db.run(
+      await tx.run(
         `DELETE FROM device_tokens WHERE recipient_type = 'Child' AND recipient_id = ?`,
         [cid]
       );
@@ -79,26 +79,22 @@ export async function pgDeleteFamilyCascade(db, familyId, parentTable) {
 
     if (parentIds.length) {
       const ph = parentIds.map(() => '?').join(',');
-      await db.run(`DELETE FROM stripe_sessions WHERE parent_id IN (${ph})`, parentIds);
+      await tx.run(`DELETE FROM stripe_sessions WHERE parent_id IN (${ph})`, parentIds);
     }
 
     for (const p of parents) {
       const email = p.email != null ? String(p.email).toLowerCase().trim() : '';
       if (email) {
-        await db.run('DELETE FROM failed_login_attempts WHERE identifier = ?', [`parent:${email}`]);
+        await tx.run('DELETE FROM failed_login_attempts WHERE identifier = ?', [`parent:${email}`]);
       }
     }
 
-    await db.run('DELETE FROM child_profiles WHERE family_id = ?', [familyId]);
-    await db.run(`DELETE FROM ${parentTable} WHERE family_id = ?`, [familyId]);
-    await db.run('DELETE FROM families WHERE id = ?', [familyId]);
+    await tx.run('DELETE FROM child_profiles WHERE family_id = ?', [familyId]);
+    await tx.run(`DELETE FROM ${parentTable} WHERE family_id = ?`, [familyId]);
+    await tx.run('DELETE FROM families WHERE id = ?', [familyId]);
 
-    await db.exec('COMMIT');
     logger.info({ familyId, parentCount: parentIds.length, childCount: childIds.length }, 'Family account deleted (cascade)');
-  } catch (err) {
-    await db.exec('ROLLBACK');
-    throw err;
-  }
+  });
 }
 
 /**

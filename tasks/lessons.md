@@ -254,3 +254,8 @@
 **Rule:** After merging rescue branches, run `git diff main..HEAD --stat` (or compare `^{tree}` hashes). If empty, the problem is not “lost commits” but global styles, deploy root, or cache — fix the actual override path instead of assuming the branch merge added files.
 
 ---
+
+### 2026-05-13 — PostgreSQL pool: BEGIN/COMMIT must not use separate pool.query calls
+**What happened:** The pg adapter implemented `exec`/`run`/`get` with `pool.query()`, so `BEGIN` followed by `UPDATE`/`COMMIT` could run on different connections, breaking atomicity for points, GP, tasks, Stripe credit, and giftcard inventory on Supabase.
+**Rule:** Use `runInDbTransaction` (or the adapter’s `withTransaction` with one `pool.connect()` client) for every multi-statement atomic block; never rely on `pool.query('BEGIN')` plus later `pool.query` calls to share a transaction.
+

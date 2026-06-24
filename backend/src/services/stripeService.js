@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { env } from '../config/env.js';
 import { getDb } from '../db/connection.js';
+import { runInDbTransaction } from '../db/runInTransaction.js';
 import { logger } from '../utils/logger.js';
 import { ApiError } from '../utils/errors.js';
 import { purchaseParentGp } from './giftcardPointsService.js';
@@ -115,35 +116,34 @@ export async function handleWebhook(rawBody, signature) {
   }
 
   // Credit GP inside a single transaction
-  await db.exec('BEGIN');
   try {
-    await purchaseParentGp({
-      parentId,
-      points: Number(amountCents),
-      moneyAmount: (Number(amountCents) / 100).toFixed(2),
-      currency: 'SGD',
-      note: `Stripe top-up ${session.id}`,
-      dbClient: db
-    });
+    await runInDbTransaction(db, async (tx) => {
+      await purchaseParentGp({
+        parentId,
+        points: Number(amountCents),
+        moneyAmount: (Number(amountCents) / 100).toFixed(2),
+        currency: 'SGD',
+        note: `Stripe top-up ${session.id}`,
+        dbClient: tx
+      });
 
-    if (existing) {
-      await db.run(
-        `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ?`,
-        [new Date().toISOString(), session.id]
-      );
-    } else {
-      // Insert a completed record so future duplicates are blocked
-      await db.run(
-        `INSERT INTO stripe_sessions (id, parent_id, amount_cents, status, created_at, completed_at)
+      if (existing) {
+        await tx.run(
+          `UPDATE stripe_sessions SET status = 'completed', completed_at = ? WHERE id = ?`,
+          [new Date().toISOString(), session.id]
+        );
+      } else {
+        // Insert a completed record so future duplicates are blocked
+        await tx.run(
+          `INSERT INTO stripe_sessions (id, parent_id, amount_cents, status, created_at, completed_at)
          VALUES (?, ?, ?, 'completed', ?, ?)`,
-        [session.id, parentId, Number(amountCents), new Date().toISOString(), new Date().toISOString()]
-      );
-    }
+          [session.id, parentId, Number(amountCents), new Date().toISOString(), new Date().toISOString()]
+        );
+      }
 
-    await db.exec('COMMIT');
-    logger.info({ parentId, amountCents, sessionId: session.id }, 'GP top-up credited via Stripe');
+      logger.info({ parentId, amountCents, sessionId: session.id }, 'GP top-up credited via Stripe');
+    });
   } catch (err) {
-    await db.exec('ROLLBACK');
     logger.error({ err, sessionId: session.id }, 'Failed to credit GP after Stripe payment - will retry on next webhook');
     throw err;
   }
