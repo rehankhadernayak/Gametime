@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { resetTestDb, setupTestEnv } from './setupTestDb.js';
 
 setupTestEnv();
@@ -357,5 +357,34 @@ describe('Giftcard integration', () => {
       .get(`/giftcards/redemptions/${redeem.body.redemptionId}/details`)
       .set('Authorization', `Bearer ${familyB.parentToken}`);
     expect(deniedParent.statusCode).toBe(404);
+  });
+
+  test('manual GP purchase is blocked in production', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    const originalSqliteFallback = process.env.USE_SQLITE_FALLBACK;
+    process.env.NODE_ENV = 'production';
+    process.env.USE_SQLITE_FALLBACK = 'true';
+    vi.resetModules();
+
+    await resetTestDb();
+    const { initDb } = await import('../src/db/init.js');
+    await initDb();
+    const { createApp: createProdApp } = await import('../src/app.js');
+    const prodApp = createProdApp();
+    const family = await bootstrapFamily(prodApp, 'prod-gp');
+
+    const purchase = await request(prodApp)
+      .post('/giftcards/gp/purchase')
+      .set('Authorization', `Bearer ${family.parentToken}`)
+      .send({ gpPoints: 100, currency: 'SGD', note: 'free gp' });
+
+    expect(purchase.statusCode).toBe(403);
+    expect(String(purchase.body.error || '')).toMatch(/stripe/i);
+
+    process.env.NODE_ENV = originalNodeEnv;
+    process.env.USE_SQLITE_FALLBACK = originalSqliteFallback;
+    vi.resetModules();
+    await resetTestDb();
+    await initDb();
   });
 });
