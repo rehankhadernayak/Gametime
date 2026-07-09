@@ -25,11 +25,14 @@ export default function ParentPinGate({ onElevated }) {
         token: token || undefined,
         body: { password }
       });
-      setAuth({
+      const nextAuth = {
         token: data.token,
         role: 'parent',
         user: data.parent
-      });
+      };
+      setAuth(nextAuth);
+      localStorage.setItem('gametime_auth', JSON.stringify(nextAuth));
+      window.dispatchEvent(new CustomEvent('gametime:auth-updated', { detail: nextAuth }));
       unlockParentNav();
       refreshCookieRole();
       window.dispatchEvent(new CustomEvent('gametime:cookie-role-refresh'));
