@@ -29,11 +29,35 @@ export function AuthProvider({ children }) {
     setCookieRole(readUserRoleCookie());
   }, []);
 
+  const clearAuth = useCallback(() => {
+    setToken('');
+    setRole('');
+    setUser(null);
+    setParentNavUnlocked(false);
+    refreshCookieRole();
+  }, [refreshCookieRole]);
+
   useEffect(() => {
     const onCookieRefresh = () => refreshCookieRole();
+    const onAuthUpdated = (event) => {
+      const next = event.detail;
+      if (next && typeof next === 'object') {
+        setToken(next.token || '');
+        setRole(next.role || '');
+        setUser(next.user ?? null);
+        refreshCookieRole();
+      }
+    };
+    const onAuthCleared = () => clearAuth();
     window.addEventListener('gametime:cookie-role-refresh', onCookieRefresh);
-    return () => window.removeEventListener('gametime:cookie-role-refresh', onCookieRefresh);
-  }, [refreshCookieRole]);
+    window.addEventListener('gametime:auth-updated', onAuthUpdated);
+    window.addEventListener('gametime:auth-cleared', onAuthCleared);
+    return () => {
+      window.removeEventListener('gametime:cookie-role-refresh', onCookieRefresh);
+      window.removeEventListener('gametime:auth-updated', onAuthUpdated);
+      window.removeEventListener('gametime:auth-cleared', onAuthCleared);
+    };
+  }, [refreshCookieRole, clearAuth]);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,14 +93,6 @@ export function AuthProvider({ children }) {
     setToken(next.token || '');
     setRole(next.role || '');
     setUser(next.user ?? null);
-    refreshCookieRole();
-  }, [refreshCookieRole]);
-
-  const clearAuth = useCallback(() => {
-    setToken('');
-    setRole('');
-    setUser(null);
-    setParentNavUnlocked(false);
     refreshCookieRole();
   }, [refreshCookieRole]);
 
