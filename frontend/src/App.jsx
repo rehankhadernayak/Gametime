@@ -57,6 +57,17 @@ export default function App() {
   }, [auth]);
 
   useEffect(() => {
+    const onAuthUpdated = (event) => {
+      const next = event.detail;
+      if (next && typeof next === 'object') {
+        setAuth(next);
+      }
+    };
+    window.addEventListener('gametime:auth-updated', onAuthUpdated);
+    return () => window.removeEventListener('gametime:auth-updated', onAuthUpdated);
+  }, []);
+
+  useEffect(() => {
     syncDemoModeFromUrl();
   }, [location.search]);
 
@@ -77,9 +88,11 @@ export default function App() {
     } catch {
       // Always continue local logout even if server logout fails.
     } finally {
-      setAuth({ token: '', role: '', user: null });
+      const cleared = { token: '', role: '', user: null };
+      setAuth(cleared);
       localStorage.removeItem('gametime_auth');
       localStorage.removeItem('gametime_demo_mode');
+      window.dispatchEvent(new CustomEvent('gametime:auth-cleared'));
       trackEvent('logout', { fromPath: location.pathname });
     }
   }

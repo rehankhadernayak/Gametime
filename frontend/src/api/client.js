@@ -73,7 +73,37 @@ if (import.meta.env.PROD && !viteApiUrl && !nextPublicApiUrl) {
   );
 }
 
-export const API_BASE = stripTrailingSlash(resolvedApiBase);
+const PRODUCTION_API_FALLBACK = 'https://api.gametime.app';
+
+/** Ephemeral Codespaces URLs must not ship in Capacitor native builds. */
+function isEphemeralDevApiHost(hostname) {
+  const h = String(hostname || '').toLowerCase();
+  return h.endsWith('.github.dev') || h.endsWith('.app.github.dev');
+}
+
+/**
+ * Capacitor WebView has no `/api` proxy. Prefer a runtime override, then reject
+ * dev-only baked hosts in favor of the production API.
+ */
+function resolveCapacitorApiBase(apiBase) {
+  if (typeof window === 'undefined') return apiBase;
+  const cap = window.Capacitor;
+  if (!cap?.isNativePlatform?.()) return apiBase;
+
+  const runtime =
+    typeof window.__GAMETIME_API_URL__ === 'string' ? window.__GAMETIME_API_URL__.trim() : '';
+  if (runtime) return stripTrailingSlash(runtime);
+
+  try {
+    const host = new URL(apiBase, window.location.origin).hostname;
+    if (isEphemeralDevApiHost(host)) return PRODUCTION_API_FALLBACK;
+  } catch {
+    /* keep apiBase */
+  }
+  return apiBase;
+}
+
+export const API_BASE = resolveCapacitorApiBase(stripTrailingSlash(resolvedApiBase));
 
 const DEMO_MODE_STORAGE_KEY = 'gametime_demo_mode';
 const REVIEWER_DEMO_PARENT_EMAILS = String(import.meta.env?.VITE_REVIEWER_DEMO_PARENT_EMAILS ?? '')
