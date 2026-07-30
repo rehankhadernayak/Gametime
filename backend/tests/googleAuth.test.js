@@ -73,4 +73,36 @@ describe('Google auth account squatting', () => {
     expect(googleSignin.statusCode).toBe(200);
     expect(googleSignin.body.parent.email).toBe('linked@example.com');
   });
+
+  test('rejects Google sign-in when child email matches a password-only profile', async () => {
+    const app = createApp();
+    const { getDb } = await import('../src/db/connection.js');
+    const db = await getDb();
+    const now = new Date().toISOString();
+
+    await db.run(
+      `INSERT INTO parent_accounts (id, name, email, password_hash, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      ['parent-1', 'Parent', 'parent@example.com', 'hash', now, now]
+    );
+    await db.run(
+      `INSERT INTO child_profiles (id, parent_id, name, email, password_hash, date_of_birth, points_balance, giftcard_points_balance, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?, ?)`,
+      ['child-1', 'parent-1', 'Victim Kid', 'victim-kid@example.com', 'hash', '2015-01-01', now, now]
+    );
+
+    vi.mocked(verifyGoogleIdentity).mockResolvedValue({
+      sub: 'google-sub-child-victim',
+      email: 'victim-kid@example.com',
+      name: 'Attacker'
+    });
+
+    const googleSignin = await request(app).post('/auth/google').send({
+      role: 'child',
+      idToken: 'fake-id-token-with-min-length'
+    });
+
+    expect(googleSignin.statusCode).toBe(403);
+    expect(String(googleSignin.body.error || '')).toMatch(/password|PIN/i);
+  });
 });
