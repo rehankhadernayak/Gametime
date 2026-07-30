@@ -699,6 +699,13 @@ export async function googleAuth(req, res, next) {
     if (child.google_sub && child.google_sub !== sub) {
       throw new ApiError(403, 'This child profile is linked to a different Google account.');
     }
+    // Reject account squatting: password/PIN login on a victim email before Google is linked.
+    if (!childBySub && childByEmail && !child.google_sub) {
+      throw new ApiError(
+        403,
+        'This profile is registered with a password or PIN. Sign in with your Gametime login instead.'
+      );
+    }
     if (child.google_sub !== sub) {
       await db.run('UPDATE child_profiles SET google_sub = ?, updated_at = ? WHERE id = ?', [
         sub,
