@@ -28,6 +28,7 @@ import {
   listGpTransactions,
   purchaseParentGp
 } from '../services/giftcardPointsService.js';
+import { ApiError } from '../utils/errors.js';
 
 export async function listGiftcardCatalogController(req, res, next) {
   try {
@@ -117,6 +118,9 @@ export async function giftcardRedemptionDetailsController(req, res, next) {
 
 export async function purchaseGiftcardPointsController(req, res, next) {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ApiError(403, 'GP top-up requires payment. Use Stripe checkout.');
+    }
     const payload = giftcardGpPurchaseSchema.parse(req.body);
     return res.status(201).json(await purchaseParentGp({
       parentId: req.auth.parentId,
