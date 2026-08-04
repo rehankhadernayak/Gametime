@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { getDb } from '../db/connection.js';
 import { env } from '../config/env.js';
-import { createTask, approveTask, rejectTask } from './taskService.js';
+import { createTask, approveTask, rejectTask, deleteTask } from './taskService.js';
 import { createReward, fulfillRedemption, deleteReward } from './rewardService.js';
 import { adjustPoints } from './pointsService.js';
 import { getAllMemory, setMemory } from './aiMemoryService.js';
@@ -525,15 +525,18 @@ async function executeTool(parentId, name, input) {
     }
 
     if (name === 'delete_task') {
-      const db = await getDb();
-      const task = await db.get(
-        `SELECT t.id FROM tasks t JOIN child_profiles cp ON cp.id = t.child_id
-         WHERE t.id = ? AND cp.parent_id = ?`,
-        [input.task_id, parentId]
-      );
-      if (!task) return { success: false, message: 'Task not found or does not belong to your family.', data: null };
-      await db.run('DELETE FROM tasks WHERE id = ?', [input.task_id]);
-      return { success: true, message: 'Task deleted.', data: { taskId: input.task_id } };
+      try {
+        const result = await deleteTask(parentId, input.task_id);
+        return { success: true, message: result.message, data: { taskId: input.task_id } };
+      } catch (err) {
+        if (err.statusCode === 404) {
+          return { success: false, message: 'Task not found or does not belong to your family.', data: null };
+        }
+        if (err.statusCode === 400) {
+          return { success: false, message: err.message, data: null };
+        }
+        throw err;
+      }
     }
 
     if (name === 'get_gaming_settings') {
