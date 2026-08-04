@@ -50,6 +50,11 @@ async function bootstrap() {
   };
 }
 
+async function getParentIdFromToken(app, parentToken) {
+  const me = await request(app).get('/auth/me').set('Authorization', `Bearer ${parentToken}`);
+  return me.body.user.id;
+}
+
 describe('Task request flow', () => {
   test('child requests task and parent approves into real task', async () => {
     const { app, parentToken, childToken } = await bootstrap();
@@ -148,5 +153,38 @@ describe('Task request flow', () => {
       .set('Authorization', `Bearer ${parentToken}`);
     expect(parentRequests.statusCode).toBe(200);
     expect(parentRequests.body[0].status).toBe('Cancelled');
+  });
+
+  test('duplicate task request approvals only create one task and debit GP once', async () => {
+    const { app, parentToken, childToken, childId } = await bootstrap();
+    const { getDb } = await import('../src/db/connection.js');
+    const { approveTaskRequest } = await import('../src/services/taskService.js');
+    const { purchaseParentGp } = await import('../src/services/giftcardPointsService.js');
+
+    const parentId = await getParentIdFromToken(app, parentToken);
+    await purchaseParentGp({ parentId, points: 100 });
+
+    const createRequest = await request(app)
+      .post('/tasks/request')
+      .set('Authorization', `Bearer ${childToken}`)
+      .send({
+        title: 'Race request',
+        description: 'Only one approval should win.',
+        requestedPoints: 25
+      });
+    expect(createRequest.statusCode).toBe(201);
+
+    const first = await approveTaskRequest(parentId, createRequest.body.id, { gpPoints: 50 });
+    const second = await approveTaskRequest(parentId, createRequest.body.id, { gpPoints: 50 });
+
+    expect(first.ignored).toBe(false);
+    expect(second.ignored).toBe(true);
+
+    const db = await getDb();
+    const tasks = await db.all('SELECT id FROM tasks WHERE child_id = ?', [childId]);
+    expect(tasks).toHaveLength(1);
+
+    const wallet = await db.get('SELECT gp_balance as balance FROM parent_accounts WHERE id = ?', [parentId]);
+    expect(Number(wallet.balance)).toBe(50);
   });
 });
