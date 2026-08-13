@@ -453,13 +453,14 @@ async function decideTask(parentId, payload, approve) {
   try {
     const nextTaskState = approve ? TASK_STATES.APPROVED : TASK_STATES.ACTIVE;
     const nextCompletionState = approve ? TASK_STATES.APPROVED : TASK_STATES.REJECTED;
-    await db.run('UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ?', [
-      nextTaskState,
-      now,
-      approve ? now : null,
-      approve ? null : now,
-      taskId
-    ]);
+    const taskUpdate = await db.run(
+      'UPDATE tasks SET state = ?, updated_at = ?, approved_at = ?, rejected_at = ? WHERE id = ? AND state = ?',
+      [nextTaskState, now, approve ? now : null, approve ? null : now, taskId, TASK_STATES.PENDING_APPROVAL]
+    );
+    if (!taskUpdate.changes) {
+      await db.exec('ROLLBACK');
+      return { ignored: true, message: 'Task is not pending approval' };
+    }
 
     await db.run('UPDATE task_completions SET status = ?, updated_at = ? WHERE task_id = ?', [
       nextCompletionState,
@@ -588,6 +589,10 @@ export async function deleteTask(parentId, taskId) {
     }
     await createNotification('Child', task.child_id, `Task cancelled: ${task.title}`);
     return { message: 'Task cancelled without points' };
+  }
+
+  if (task.state === TASK_STATES.APPROVED) {
+    throw new ApiError(400, 'Approved tasks cannot be deleted. Rewards have already been issued.');
   }
 
   if (task.state !== TASK_STATES.APPROVED && Number(task.gp_points || 0) > 0) {
@@ -732,6 +737,27 @@ export async function approveTaskRequest(parentId, requestId, payload) {
 
   await db.exec('BEGIN');
   try {
+    const claimUpdate = await db.run(
+      `UPDATE task_requests
+       SET status = ?, parent_note = ?, resolved_at = ?, updated_at = ?
+       WHERE id = ? AND status = ?`,
+      [TASK_REQUEST_STATES.APPROVED, parentNote, now, now, requestId, TASK_REQUEST_STATES.PENDING]
+    );
+    if (!claimUpdate.changes) {
+      await db.exec('ROLLBACK');
+      const current = await db.get('SELECT status, linked_task_id as linkedTaskId FROM task_requests WHERE id = ?', [
+        requestId
+      ]);
+      if (current?.status === TASK_REQUEST_STATES.APPROVED) {
+        return {
+          ignored: true,
+          message: 'Task request already approved',
+          taskId: current.linkedTaskId || null
+        };
+      }
+      return { ignored: true, message: 'Task request already resolved' };
+    }
+
     await db.run(
       `INSERT INTO tasks (id, child_id, title, description, points, gp_points, state, due_date, category, recurrence_days, required_evidence_type, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'other', NULL, NULL, ?, ?)`,
@@ -748,6 +774,12 @@ export async function approveTaskRequest(parentId, requestId, payload) {
         now
       ]
     );
+
+    await db.run(
+      `UPDATE task_requests SET linked_task_id = ?, updated_at = ? WHERE id = ?`,
+      [taskId, now, requestId]
+    );
+
     if (gpPoints > 0) {
       await reserveTaskGp({
         parentId,
@@ -757,13 +789,6 @@ export async function approveTaskRequest(parentId, requestId, payload) {
         dbClient: db
       });
     }
-
-    await db.run(
-      `UPDATE task_requests
-       SET status = ?, parent_note = ?, linked_task_id = ?, resolved_at = ?, updated_at = ?
-       WHERE id = ?`,
-      [TASK_REQUEST_STATES.APPROVED, parentNote, taskId, now, now, requestId]
-    );
 
     await db.exec('COMMIT');
   } catch (error) {
